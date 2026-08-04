@@ -63,13 +63,16 @@ export interface MonitorRunResult {
 }
 
 /**
- * TASK 7 TODO: replace this with the real `buildDigestPayload` from `./digest.js` once it
- * exists. This placeholder only carries the digest id so `enqueueMonitorDigestDeliveries` has
- * a payload to enqueue; it is intentionally the very last thing `monitorRules` does, so wiring
- * in the real payload assembly means swapping this one call.
+ * TASK 7 TODO: replace this with the real `buildDigestPayload` from `./digest.js`. There is no
+ * safe placeholder body for a payload real users will read: `enqueue_monitor_digest_deliveries`
+ * inserts the delivery rows AND flips the digest to `dispatched` in the same call, so a payload
+ * shipped empty here would reach a user as an email/push carrying nothing but a UUID, with no
+ * way to re-enqueue it. Throwing instead is caught per-user by the digest-enqueue loop below, so
+ * Task 7's absence cannot take down the rest of the run — it only means today's digests do not
+ * go out (loudly, logged) until Task 7 lands.
  */
 function placeholderDigestPayload(digestId: string): Record<string, unknown> {
-  return Object.freeze({ digestId });
+  throw new Error(`P10 Task 7: buildDigestPayload is not wired yet (digest ${digestId})`);
 }
 
 interface RuleEvaluationCounters {
@@ -79,21 +82,38 @@ interface RuleEvaluationCounters {
   errored: number;
 }
 
+/**
+ * Records an `error` outcome for a rule that could not be evaluated or persisted normally.
+ * Never rethrows: this is itself the failure-recovery path, so a second failure here (e.g. the
+ * same transient RPC fault that caused the original failure) must be logged and swallowed
+ * rather than escaping to kill the rest of the group or run.
+ *
+ * `state` defaults to the rule's current state, but callers that already durably appended a
+ * breach row before this failure must pass the computed latched state instead — recording the
+ * rule back as `armed` would let the very same breach fire, and get appended, a second time on
+ * the next run.
+ */
 async function recordError(
   rule: MonitorRuleRow,
   message: string,
   counters: RuleEvaluationCounters,
+  state: MonitorLatchState = rule.state,
 ): Promise<void> {
   counters.errored += 1;
   counters.evaluated += 1;
-  await recordMonitorEvaluation({
-    ruleId: rule.id,
-    outcome: 'error',
-    state: rule.state,
-    observation: {},
-    error: message,
-    nextEvaluationAt: nextEvaluationAt('error', rule.min_interval_hours, Date.now()),
-  });
+  try {
+    await recordMonitorEvaluation({
+      ruleId: rule.id,
+      outcome: 'error',
+      state,
+      observation: {},
+      error: message,
+      nextEvaluationAt: nextEvaluationAt('error', rule.min_interval_hours, Date.now()),
+    });
+  } catch (recordFailure) {
+    const failureMessage = recordFailure instanceof Error ? recordFailure.message : String(recordFailure);
+    logger.warn('monitor.record_error_failed', { ruleId: rule.id, message: failureMessage });
+  }
 }
 
 async function evaluateGroup(
@@ -103,6 +123,12 @@ async function evaluateGroup(
   counters: RuleEvaluationCounters,
 ): Promise<void> {
   for (const rule of group.rules) {
+    // Tracks whether `appendMonitorBreach` already succeeded this iteration. If a later step
+    // (recordMonitorEvaluation) throws, the catch below must still record the rule as latched —
+    // not as its old `armed` state — since the breach row is already durable and un-latching
+    // would let the identical breach fire, and get appended, again on the next run.
+    let breachAppended = false;
+    let newState: MonitorLatchState = rule.state;
     try {
       const input: MonitorRuleInput = {
         id: rule.id,
@@ -113,11 +139,7 @@ async function evaluateGroup(
       };
       const result = evaluateRule(input, observation);
       const notify = shouldNotify(rule.state, result.outcome);
-      const newState: MonitorLatchState = nextState(rule.state, result.outcome);
-
-      if (result.outcome === 'breached') counters.breached += 1;
-      if (result.outcome === 'deferred') counters.deferred += 1;
-      counters.evaluated += 1;
+      newState = nextState(rule.state, result.outcome);
 
       if (notify) {
         let digestId = digestByUser.get(group.userId);
@@ -140,6 +162,7 @@ async function evaluateGroup(
           inputQuality: observation.valuationQuality,
           sourceSnapshotId: null,
         });
+        breachAppended = true;
       }
 
       await recordMonitorEvaluation({
@@ -156,10 +179,16 @@ async function evaluateGroup(
         error: null,
         nextEvaluationAt: nextEvaluationAt(result.outcome, rule.min_interval_hours, Date.now()),
       });
+
+      // Only counted once the outcome is durably recorded — a failure below lands in the catch
+      // and is counted exactly once, by `recordError`, instead.
+      if (result.outcome === 'breached') counters.breached += 1;
+      if (result.outcome === 'deferred') counters.deferred += 1;
+      counters.evaluated += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logger.warn('monitor.rule_failed', { ruleId: rule.id, portfolioId: group.portfolioId, message });
-      await recordError(rule, message, counters);
+      await recordError(rule, message, counters, breachAppended ? newState : rule.state);
     }
   }
 }
@@ -200,11 +229,24 @@ export async function monitorRules(requestId: string, deadlineMs: number): Promi
       continue;
     }
 
-    await evaluateGroup(group, observation, digestByUser, counters);
+    // Defense in depth: `evaluateGroup` already catches every per-rule failure internally, so
+    // it should not throw. If it somehow did, one bad group must still not end the run — the
+    // remaining groups' rules keep their existing `next_evaluation_at` and are retried next run.
+    try {
+      await evaluateGroup(group, observation, digestByUser, counters);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn('monitor.group_failed', { requestId, portfolioId: group.portfolioId, message });
+    }
   }
 
-  for (const digestId of digestByUser.values()) {
-    await enqueueMonitorDigestDeliveries(digestId, placeholderDigestPayload(digestId));
+  for (const [userId, digestId] of digestByUser) {
+    try {
+      await enqueueMonitorDigestDeliveries(digestId, placeholderDigestPayload(digestId));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn('monitor.digest_enqueue_failed', { userId, digestId, message });
+    }
   }
 
   return Object.freeze({

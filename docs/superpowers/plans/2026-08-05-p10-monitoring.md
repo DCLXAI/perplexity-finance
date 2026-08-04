@@ -1450,24 +1450,15 @@ git commit -m "feat(p10): add monitor digest assembly and delivery"
 - Modify: `routes/cron/daily-maintenance.ts`
 
 **Interfaces:**
-- Consumes: `monitorRules` from Task 6, `deliverPendingMonitorDigests` from Task 7.
-- Produces: `config.monitorRuleLimit`, `config.monitorBudgetMs`.
+- Consumes: `monitorRules` from Task 6, `deliverPendingMonitorDigests` from Task 7, and `config.monitorRuleLimit` / `config.monitorBudgetMs` which **Task 6 already added** — Task 6 consumes them, so they cannot wait until here. Verify they exist before doing anything else; do not add them twice.
+- Produces: the two new steps in `daily-maintenance`.
 
-- [ ] **Step 1: Add config fields**
+- [ ] **Step 1: Verify the config fields already exist**
 
-In `server/config.ts`, add to the config interface beside `alertBatchSize`:
-
-```ts
-  readonly monitorRuleLimit: number;
-  readonly monitorBudgetMs: number;
-```
-
-and to the loader beside `alertBatchSize: numberValue('ALERT_BATCH_SIZE', 250, 1, 500),`:
-
-```ts
-    monitorRuleLimit: numberValue('MONITOR_RULE_LIMIT', 200, 1, 600),
-    monitorBudgetMs: numberValue('MONITOR_BUDGET_MS', 25_000, 1_000, 55_000),
-```
+Task 6 added `monitorRuleLimit` (default 200, range 1..600) and `monitorBudgetMs` (default 25_000,
+range 1_000..55_000) to `server/config.ts`, because Task 6 consumes them and cannot wait until here.
+Confirm both are present and do not add them again. The 600 ceiling deliberately matches the
+`least(p_limit, 600)` clamp inside `claim_due_monitor_rules` so the two cannot disagree.
 
 - [ ] **Step 2: Append the two steps to daily maintenance**
 

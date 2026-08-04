@@ -1,0 +1,63 @@
+{
+  "name": "perplexity-finance",
+  "private": true,
+  "version": "1.10.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "typecheck": "tsc --noEmit --pretty",
+    "typecheck:strict": "tsc --noEmit --pretty --noUnusedLocals --noUnusedParameters",
+    "test": "vitest run",
+    "test:contracts": "tsx scripts/test-core.ts",
+    "validate:data": "tsx scripts/validate-data.ts",
+    "build": "tsc --noEmit && vite build",
+    "check": "npm run typecheck:strict && npm run test && npm run test:contracts && npm run validate:data && npm run validate:p2 && npm run validate:p3 && npm run validate:p4 && npm run validate:p5 && npm run validate:p6 && npm run validate:p7 && npm run validate:p8 && npm run validate:p9 && npm run validate:migrations && npm run validate:esm && npm run build && npm run security:scan",
+    "preview": "vite preview --port 5602 --strictPort",
+    "audit": "npm audit --audit-level=low",
+    "dev:web": "vite --port 5602 --strictPort",
+    "dev:api": "tsx watch server/local.ts",
+    "serve:api": "tsx server/local.ts",
+    "validate:p2": "tsx scripts/validate-p2.ts",
+    "validate:p3": "tsx scripts/validate-p3.ts",
+    "validate:p4": "tsx scripts/validate-p4.ts",
+    "validate:p5": "tsx scripts/validate-p5.ts",
+    "validate:p6": "tsx scripts/validate-p6.ts",
+    "validate:p7": "tsx scripts/validate-p7.ts",
+    "validate:p8": "tsx scripts/validate-p8.ts",
+    "validate:p9": "tsx scripts/validate-p9.ts",
+    "validate:migrations": "tsx scripts/validate-migrations.ts",
+    "validate:esm": "tsx scripts/validate-esm-imports.ts",
+    "security:scan": "tsx scripts/security-scan.ts",
+    "smoke:deployment": "tsx scripts/postdeploy-smoke.ts"
+  },
+  "dependencies": {
+    "lightweight-charts": "4.2.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.30.4",
+    "@supabase/supabase-js": "2.110.2",
+    "@upstash/ratelimit": "2.0.8",
+    "@upstash/redis": "1.38.0",
+    "@vercel/analytics": "2.0.1",
+    "@vercel/speed-insights": "2.0.0",
+    "web-push": "3.6.7",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
+    "@types/node": "22.20.1",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "6.0.3",
+    "jsdom": "29.1.1",
+    "tsx": "4.23.0",
+    "typescript": "5.6.3",
+    "vite": "8.1.4",
+    "vitest": "4.1.10",
+    "@types/web-push": "3.6.4"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

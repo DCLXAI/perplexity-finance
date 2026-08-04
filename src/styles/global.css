@@ -1,0 +1,398 @@
+/* ============================================================
+   Perplexity 금융 — Design tokens & base styles
+   Brand: Paper White bg, True Turquoise accent, Offblack ink
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --bg: #fcfcf9;
+  --bg-subtle: #f3f3ee;
+  --bg-raised: #ffffff;
+  --bg-hover: #f0efe9;
+  --bg-inset: #f7f7f2;
+
+  /* Ink */
+  --ink: #13343b;
+  --ink-strong: #091717;
+  --ink-secondary: #4d5f62;
+  --ink-muted: #84898c;
+  --ink-faint: #aab0b0;
+
+  /* Lines */
+  --border: #e8e8e3;
+  --border-strong: #d9d9d2;
+
+  /* Brand */
+  --teal: #20808d;
+  --teal-strong: #16606b;
+  --teal-soft: #e4eeef;
+  --teal-softer: #f0f5f6;
+
+  /* Semantics */
+  --pos: #0d8259;
+  --pos-strong: #096b49;
+  --pos-bg: #e2f2ea;
+  --neg: #b8432f;
+  --neg-strong: #9e3826;
+  --neg-bg: #f8e8e3;
+  --warn: #b47d12;
+  --warn-bg: #f7efdb;
+
+  /* Heatmap ramp (−3% … +3%) */
+  --hm-neg-3: #e5766a;
+  --hm-neg-2: #efa197;
+  --hm-neg-1: #f7ccc5;
+  --hm-flat: #f0f0eb;
+  --hm-pos-1: #c8e6cd;
+  --hm-pos-2: #94d3a0;
+  --hm-pos-3: #57bb70;
+
+  /* Typography */
+  --font-sans: 'Inter', 'Segoe UI', 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo',
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Georgia', 'Times New Roman', 'Batang', serif;
+  --font-mono: 'Cascadia Code', 'SF Mono', Consolas, 'Malgun Gothic', monospace;
+
+  /* Geometry */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(9, 23, 23, 0.05);
+  --shadow: 0 2px 8px rgba(9, 23, 23, 0.07);
+  --shadow-lg: 0 12px 32px rgba(9, 23, 23, 0.14);
+
+  --rail-w: 320px;
+  --header-h: 52px;
+  --tabbar-h: 46px;
+
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #0d1414;
+  --bg-subtle: #121b1b;
+  --bg-raised: #16201f;
+  --bg-hover: #1d2928;
+  --bg-inset: #101918;
+
+  --ink: #e7ecec;
+  --ink-strong: #f7fafa;
+  --ink-secondary: #a9b6b6;
+  --ink-muted: #7d8b8b;
+  --ink-faint: #566262;
+
+  --border: #233030;
+  --border-strong: #2e3d3d;
+
+  --teal: #35a4b2;
+  --teal-strong: #58bcc8;
+  --teal-soft: #143336;
+  --teal-softer: #10282b;
+
+  --pos: #3bbf8b;
+  --pos-strong: #5fd3a5;
+  --pos-bg: #12312a;
+  --neg: #e0705c;
+  --neg-strong: #ef8d7b;
+  --neg-bg: #3a1f19;
+  --warn: #d9a83c;
+  --warn-bg: #33290f;
+
+  --hm-neg-3: #a13d31;
+  --hm-neg-2: #7c3a30;
+  --hm-neg-1: #4c2c27;
+  --hm-flat: #1d2626;
+  --hm-pos-1: #1f3d2c;
+  --hm-pos-2: #2a5e3d;
+  --hm-pos-3: #3a8654;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+  color-scheme: dark;
+}
+
+/* ---------- Reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input, select, textarea {
+  font-family: inherit;
+}
+
+canvas {
+  display: block;
+}
+
+/* Numbers align in tables */
+.num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Scrollbars ---------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------- Focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+
+/* ---------- Shared utility classes ---------- */
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
+.muted { color: var(--ink-muted); }
+
+.text-xs { font-size: 11px; }
+.text-sm { font-size: 12px; }
+.text-md { font-size: 13px; }
+.text-lg { font-size: 15px; }
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Page scaffolding shared by all feature pages */
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 24px 80px;
+}
+
+.page-with-rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail-w);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .page-with-rail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Mock price flash animations */
+@keyframes flash-up {
+  0% { background: var(--pos-bg); }
+  100% { background: transparent; }
+}
+
+@keyframes flash-down {
+  0% { background: var(--neg-bg); }
+  100% { background: transparent; }
+}
+
+.flash-up { animation: flash-up 0.9s ease-out; }
+.flash-down { animation: flash-down 0.9s ease-out; }
+
+/* 종료 프레임은 반드시 transform:none — translateY(0)라도 non-none transform이
+   fill-mode:both 로 잔존하면 fixed 자손(툴팁/모달)의 containing block 이 되어 버린다 */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.fade-in-up { animation: fade-in-up 0.25s ease-out; }
+
+/* ---------- Accessibility + production states ---------- */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.page-fallback-head {
+  height: 120px;
+  margin-bottom: 16px;
+}
+
+.page-fallback-body {
+  height: 320px;
+}
+
+.route-error,
+.not-found {
+  max-width: 680px;
+  min-height: min(560px, calc(100vh - var(--header-h) - var(--tabbar-h)));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.route-error-icon {
+  margin-bottom: 12px;
+  font-size: 36px;
+}
+
+.route-error-title,
+.not-found-title {
+  color: var(--ink-strong);
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.route-error-copy,
+.not-found-copy {
+  margin: 10px auto 16px;
+  max-width: 560px;
+  color: var(--ink-secondary);
+  line-height: 1.65;
+}
+
+.route-error-id {
+  display: inline-block;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.route-error-details {
+  margin: 16px auto 0;
+  max-width: 620px;
+  text-align: left;
+  color: var(--ink-secondary);
+}
+
+.route-error-details pre {
+  max-height: 260px;
+  overflow: auto;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--bg-inset);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: pre-wrap;
+}
+
+.route-error-actions,
+.not-found-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.not-found-code {
+  color: var(--teal);
+  font-size: clamp(56px, 12vw, 96px);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.not-found-copy code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-subtle);
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px 14px 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

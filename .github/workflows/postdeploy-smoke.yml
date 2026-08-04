@@ -1,0 +1,46 @@
+name: Post-deploy smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Deployment origin, for example https://example.vercel.app
+        required: true
+        type: string
+      require_ready:
+        description: Fail unless /api/ready returns ready=true
+        required: true
+        default: true
+        type: boolean
+      require_provider:
+        description: Fail when quotes use mock/fallback data
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ inputs.base_url }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Exercise public, protected, readiness, and provenance boundaries
+        env:
+          SMOKE_BASE_URL: ${{ inputs.base_url }}
+          SMOKE_EXPECT_VERSION: 1.5.0
+          SMOKE_REQUIRE_READY: ${{ inputs.require_ready && '1' || '0' }}
+          SMOKE_REQUIRE_PROVIDER: ${{ inputs.require_provider && '1' || '0' }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: npm run smoke:deployment

@@ -1,0 +1,335 @@
+/* ============================================================
+   Shared UI primitives
+   ============================================================ */
+
+/* ---------- Card ---------- */
+.ui-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.ui-card-pad {
+  padding: 14px 16px;
+}
+
+.ui-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px 8px;
+}
+
+.ui-card-heading {
+  margin: 0;
+  font: inherit;
+  line-height: inherit;
+}
+
+.ui-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ui-card-title:is(a):hover {
+  color: var(--teal);
+}
+
+/* ---------- Change badge (pill) ---------- */
+.ui-chg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-chg.pill {
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  font-size: 11.5px;
+}
+
+.ui-chg.up { color: var(--pos); }
+.ui-chg.down { color: var(--neg); }
+.ui-chg.flat { color: var(--ink-muted); }
+.ui-chg.pill.up { background: var(--pos-bg); }
+.ui-chg.pill.down { background: var(--neg-bg); }
+.ui-chg.pill.flat { background: var(--bg-subtle); }
+
+.ui-chg .arr {
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* ---------- Logo chip ---------- */
+.ui-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  flex: none;
+  user-select: none;
+}
+
+/* ---------- Buttons ---------- */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.ui-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.ui-btn.primary {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+.ui-btn.primary:hover {
+  background: var(--teal-strong);
+}
+
+.ui-btn.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.ui-btn.ghost:hover {
+  background: var(--bg-hover);
+}
+
+.ui-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-btn:disabled:hover {
+  background: var(--bg-raised);
+  border-color: var(--border);
+}
+
+/* ---------- Segmented tabs (underline style) ---------- */
+.ui-seg {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ui-seg button {
+  padding: 8px 2px 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.12s;
+}
+
+.ui-seg button:hover { color: var(--ink); }
+
+.ui-seg button.active {
+  color: var(--ink-strong);
+  border-bottom-color: var(--ink-strong);
+}
+
+/* ---------- Chip tabs (rounded filter chips) ---------- */
+.ui-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ui-chips button {
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  background: var(--bg-raised);
+}
+
+.ui-chips button:hover { background: var(--bg-hover); }
+
+.ui-chips button.active {
+  background: var(--ink-strong);
+  border-color: var(--ink-strong);
+  color: var(--bg-raised);
+}
+
+/* ---------- Row (quote list row) ---------- */
+.ui-qrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  transition: background 0.1s;
+  border-radius: var(--radius-sm);
+}
+
+a.ui-qrow:hover {
+  background: var(--bg-hover);
+}
+
+.ui-qrow .qr-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-qrow .qr-name {
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--ink-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-qrow .qr-sub {
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.ui-qrow .qr-right {
+  text-align: right;
+  flex: none;
+}
+
+.ui-qrow .qr-price {
+  font-weight: 600;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-strong);
+}
+
+/* ---------- Skeleton ---------- */
+@keyframes ui-shimmer {
+  0% { opacity: 0.55; }
+  50% { opacity: 1; }
+  100% { opacity: 0.55; }
+}
+
+.ui-skel {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  animation: ui-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ---------- Tooltip container ---------- */
+.ui-tooltip {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 10px 12px;
+  font-size: 12px;
+  min-width: 160px;
+}
+
+/* ---------- Modal ---------- */
+.ui-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 23, 23, 0.45);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fade-in-up 0.15s ease-out;
+}
+
+.ui-modal {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  max-width: min(1200px, 94vw);
+  max-height: 90vh;
+  overflow: auto;
+}
+
+/* ---------- Table ---------- */
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.ui-table th {
+  text-align: right;
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+}
+
+.ui-table th:first-child,
+.ui-table td:first-child {
+  text-align: left;
+}
+
+.ui-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+.ui-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ui-modal-backdrop {
+  padding: 16px;
+}
+
+.ui-modal:focus {
+  outline: none;
+}
+
+.ui-table th button:focus-visible,
+.ui-table td a:focus-visible {
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .ui-modal-backdrop {
+    padding: 8px;
+  }
+}

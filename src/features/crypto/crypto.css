@@ -1,0 +1,305 @@
+/* ============================================================
+   암호화폐 대시보드 스타일 — 접두사 cr-
+   ============================================================ */
+
+/* ---------- 페이지 헤더 ---------- */
+
+.cr-head {
+  margin: 20px 2px 4px;
+}
+
+.cr-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  letter-spacing: -0.01em;
+}
+
+.cr-sub {
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+
+/* ---------- 1. 히어로 스트립 ---------- */
+
+.cr-hero {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.cr-hero-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 132px;
+}
+
+.cr-hero-hit {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  width: 100%;
+  padding: 14px 16px 12px;
+  cursor: pointer;
+  border-radius: inherit;
+}
+
+.cr-hero-quote {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.cr-hero-quote:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.cr-hero-hit:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.cr-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.cr-hero-names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cr-hero-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cr-hero-sym {
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.cr-hero-price {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.cr-hero-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+}
+
+/* ---------- 공포·탐욕 게이지 ---------- */
+
+.cr-gauge-card {
+  padding: 14px 16px 12px;
+  gap: 6px;
+}
+
+.cr-gauge-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 15px;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  flex: none;
+}
+
+.cr-gauge-svg {
+  width: 100%;
+  max-width: 140px;
+  margin: 2px auto 0;
+  display: block;
+}
+
+.cr-gauge-read {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+
+.cr-gauge-num {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  line-height: 1;
+}
+
+.cr-gauge-word {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--pos);
+}
+
+/* ---------- 2. 통계 타일 ---------- */
+
+.cr-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.cr-tile {
+  padding: 12px 16px;
+}
+
+.cr-tile-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  margin-bottom: 4px;
+}
+
+.cr-tile-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+
+/* ---------- 3. 테이블 ---------- */
+
+.cr-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 26px 2px 10px;
+}
+
+.cr-section-note {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+}
+
+.cr-table-card {
+  overflow: hidden;
+}
+
+.cr-table-scroll {
+  overflow-x: auto;
+}
+
+.cr-table {
+  min-width: 680px;
+}
+
+.cr-table th.cr-td-rank,
+.cr-table td.cr-td-rank {
+  text-align: left;
+  width: 34px;
+  color: var(--ink-muted);
+}
+
+.cr-table th.cr-td-name,
+.cr-table td.cr-td-name {
+  text-align: left;
+  width: 32%;
+}
+
+.cr-name-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cr-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
+.cr-sym {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+}
+
+.cr-td-spark {
+  width: 126px;
+}
+
+.cr-td-spark canvas {
+  vertical-align: middle;
+}
+
+/* ---------- 4. 뉴스 ---------- */
+
+.cr-news {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cr-news-card {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cr-news-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  line-height: 1.45;
+}
+
+.cr-news-summary {
+  font-size: 12.5px;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+  margin-top: 6px;
+}
+
+.cr-news-meta {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  margin-top: 10px;
+}
+
+/* ---------- 반응형 ---------- */
+
+@media (max-width: 1000px) {
+  .cr-hero,
+  .cr-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .cr-hero,
+  .cr-tiles,
+  .cr-news {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cr-row-link {
+  border-radius: var(--radius-sm);
+}
+
+.cr-row-link:hover .cr-name {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

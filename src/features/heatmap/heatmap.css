@@ -1,0 +1,164 @@
+/* ============================================================
+   미국 주식 표본 히트맵 — feature styles (prefix: hm-)
+   ============================================================ */
+
+.hm-root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* canvas fills the wrap; wrap background paints the 1px tile gaps */
+.hm-canvas-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--bg-inset);
+}
+
+.hm-canvas {
+  display: block;
+  width: 100%;
+}
+
+/* ---------- bottom legend ---------- */
+
+.hm-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px;
+}
+
+.hm-scale {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.hm-scale-label {
+  font-size: 10px;
+  color: var(--ink-muted);
+  line-height: 1;
+}
+
+.hm-scale-label:first-child {
+  margin-right: 2px;
+}
+
+.hm-scale-label:last-child {
+  margin-left: 2px;
+}
+
+.hm-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.hm-wordmark {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--ink-faint);
+  letter-spacing: 0.02em;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* ---------- tooltip (extends .ui-tooltip) ---------- */
+
+.hm-tip {
+  width: 216px;
+}
+
+.hm-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hm-tip-names {
+  min-width: 0;
+}
+
+.hm-tip-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hm-tip-sym {
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.hm-tip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.hm-tip-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+
+.hm-tip-cap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+.hm-data-table {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.hm-data-table summary {
+  width: fit-content;
+  padding: 9px 4px 2px;
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hm-data-scroll {
+  max-height: 320px;
+  margin-top: 8px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.hm-data-scroll .ui-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-raised);
+}
+
+.hm-data-link {
+  color: var(--ink-strong);
+  font-weight: 600;
+}
+
+.hm-data-link:hover {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

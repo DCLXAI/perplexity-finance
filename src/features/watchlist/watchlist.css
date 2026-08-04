@@ -1,0 +1,226 @@
+/* ============================================================
+   Watchlist page — prefix: wl-
+   ============================================================ */
+
+.wl-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.wl-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  margin: 0 0 4px;
+}
+
+.wl-sub {
+  font-size: 12.5px;
+}
+
+/* ---------- add-symbol combo ---------- */
+
+.wl-add {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.wl-add-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--ink-muted);
+  font-size: 15px;
+  font-weight: 600;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.wl-add-input {
+  width: 220px;
+  padding: 8px 14px 8px 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--bg-raised);
+  color: var(--ink);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.wl-add-input::placeholder {
+  color: var(--ink-muted);
+}
+
+.wl-add-input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-softer);
+}
+
+.wl-add-drop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 290px;
+  padding: 4px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 60;
+}
+
+.wl-add-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12.5px;
+}
+
+.wl-add-item:hover {
+  background: var(--bg-hover);
+}
+
+.wl-add-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
+.wl-add-sym {
+  color: var(--ink-muted);
+  font-size: 11.5px;
+}
+
+.wl-add-has {
+  flex: none;
+  font-size: 10.5px;
+  color: var(--teal);
+  background: var(--teal-softer);
+  border-radius: var(--radius-full);
+  padding: 2px 7px;
+}
+
+/* ---------- table ---------- */
+
+.wl-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wl-name-txt {
+  min-width: 0;
+}
+
+.wl-name {
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--ink-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wl-name-sub {
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.wl-spark-cell {
+  line-height: 0;
+}
+
+.wl-del-cell {
+  width: 36px;
+}
+
+.wl-del {
+  border: none;
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 7px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.wl-del:hover {
+  background: var(--neg-bg);
+  color: var(--neg);
+}
+
+/* ---------- empty state ---------- */
+
+.wl-empty {
+  padding: 56px 24px;
+  text-align: center;
+}
+
+.wl-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.wl-empty-hint {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.wl-empty-hint b {
+  color: var(--ink-secondary);
+}
+
+.wl-card {
+  overflow: hidden;
+}
+
+.wl-table-scroll {
+  overflow-x: auto;
+}
+
+.wl-row-link {
+  border-radius: var(--radius-sm);
+}
+
+.wl-row-link:hover .wl-name {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.wl-add-item.active {
+  background: var(--bg-hover);
+}
+
+@media (max-width: 640px) {
+  .wl-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .wl-add-input {
+    width: 100%;
+  }
+
+  .wl-add-drop {
+    right: auto;
+    left: 0;
+    width: min(100%, 360px);
+  }
+
+  .wl-table {
+    min-width: 760px;
+  }
+}

@@ -1,0 +1,214 @@
+/* ============================================================
+   Right-rail widget cards (prefix: rail-)
+   ============================================================ */
+
+.rail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.rail-card {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* rows already carry their own 8px/16px padding — just close the card */
+.rail-rows {
+  padding-bottom: 6px;
+}
+
+.rail-empty {
+  padding: 18px 16px;
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+/* ---------- 관심목록 ---------- */
+
+.rail-gear {
+  padding: 2px 8px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink-muted);
+}
+
+.rail-gear:hover {
+  color: var(--ink);
+}
+
+.rail-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 2px 0 10px;
+}
+
+.rail-pager button {
+  padding: 0 10px;
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--ink-muted);
+  border-radius: var(--radius-sm);
+  transition: color 0.12s, background 0.12s;
+}
+
+.rail-pager button:hover:not(:disabled) {
+  color: var(--ink-strong);
+  background: var(--bg-hover);
+}
+
+.rail-pager button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.rail-page-num {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  min-width: 28px;
+  text-align: center;
+}
+
+/* ---------- 예측 시장 ---------- */
+
+.rail-pred-block {
+  padding: 10px 16px 12px;
+}
+
+.rail-pred-block + .rail-pred-block {
+  border-top: 1px solid var(--border);
+}
+
+.rail-pred-q {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink-strong);
+  margin-bottom: 7px;
+}
+
+.rail-pred-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.rail-pred-label {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  min-width: 0;
+}
+
+.rail-pred-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.rail-pred-prob {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
+.rail-pred-right .rail-pred-delta.pill {
+  font-size: 10.5px;
+  padding: 0 5px;
+}
+
+.rail-pred-meta {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--ink-muted);
+  text-align: right;
+}
+
+.rail-pred-more {
+  display: block;
+  margin: 6px 12px 12px;
+  padding: 7px 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+  transition: background 0.12s, color 0.12s;
+}
+
+.rail-pred-more:hover {
+  background: var(--bg-hover);
+  color: var(--ink-strong);
+}
+
+/* ---------- movers ---------- */
+
+.rail-seg-wrap {
+  padding: 4px 16px 0;
+}
+
+.rail-seg-wrap .ui-seg {
+  gap: 14px;
+}
+
+.rail-seg-wrap .ui-seg button {
+  font-size: 12.5px;
+}
+
+.rail-more-link {
+  display: block;
+  text-align: center;
+  padding: 9px 0 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border);
+  transition: color 0.12s;
+}
+
+.rail-more-link:hover {
+  color: var(--teal);
+}
+
+/* ---------- 주식 섹터 ---------- */
+
+.rail-sector-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 34px;
+  padding: 0 16px;
+  transition: background 0.1s;
+}
+
+.rail-sector-row:hover {
+  background: var(--bg-hover);
+}
+
+.rail-sector-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 0;
+}
+
+.rail-sector-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.rail-sector-val {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-strong);
+}

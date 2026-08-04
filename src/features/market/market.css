@@ -1,0 +1,406 @@
+/* ============================================================
+   미국 시장 대시보드 (route "/") — 접두사 mkt-
+   ============================================================ */
+
+/* AskBar(하단 고정)에 가리지 않도록 여유 패딩: .page 80px + 60px ≈ 140px */
+.mkt-main {
+  min-width: 0;
+  padding-bottom: 60px;
+}
+
+.mkt-rail {
+  min-width: 0;
+}
+
+/* fill-mode 는 backwards 여야 한다 — both/forwards 는 종료 후에도 transform 을
+   (항등 행렬로라도) 유지해 fixed 자손(히트맵 툴팁·확장 모달)의 containing block 이 된다 */
+.mkt-rise {
+  animation: fade-in-up 0.3s ease-out backwards;
+}
+
+.mkt-section {
+  margin-bottom: 26px;
+}
+
+.mkt-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.mkt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mkt-note {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* ---------- 1. 상위 자산 지수 카드 ---------- */
+
+.mkt-idx-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .mkt-idx-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.mkt-idx-card {
+  padding: 12px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: box-shadow 0.15s;
+}
+
+.mkt-idx-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.mkt-idx-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mkt-idx-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.mkt-idx-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  margin-top: 7px;
+  line-height: 1.15;
+}
+
+.mkt-idx-chg {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+
+.mkt-idx-spark {
+  margin-top: 8px;
+  height: 44px;
+  overflow: hidden;
+}
+
+/* ---------- 2. 시장 요약 아코디언 ---------- */
+
+.mkt-sum-list {
+  padding-top: 2px;
+}
+
+.mkt-sum-item {
+  border-top: 1px solid var(--border);
+}
+
+.mkt-sum-item:first-child {
+  border-top: none;
+}
+
+.mkt-sum-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  text-align: left;
+}
+
+.mkt-sum-head:hover .mkt-sum-title {
+  color: var(--teal);
+}
+
+.mkt-sum-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  line-height: 1.45;
+  transition: color 0.12s;
+}
+
+.mkt-sum-chev {
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--ink-muted);
+}
+
+.mkt-sum-body {
+  padding: 0 16px 12px;
+  font-size: 12.5px;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+}
+
+.mkt-sum-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.mkt-src-chip {
+  font-weight: 500;
+}
+
+/* 겹치는 출처 원 클러스터 */
+.mkt-srcs {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+.mkt-src-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bg-raised);
+}
+
+.mkt-src-dot + .mkt-src-dot {
+  margin-left: -5px;
+}
+
+.mkt-src-dot.sm {
+  width: 11px;
+  height: 11px;
+}
+
+.mkt-src-dot.sm + .mkt-src-dot.sm {
+  margin-left: -4px;
+}
+
+/* ---------- 3. 미국 주식 표본 히트맵 ---------- */
+
+.mkt-hm-card {
+  padding: 12px;
+}
+
+.mkt-hm-modal {
+  width: 90vw;
+  max-width: 94vw;
+}
+
+.mkt-hm-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 18px 8px;
+}
+
+.mkt-hm-modal-body {
+  padding: 0 12px 12px;
+}
+
+/* ---------- 아이콘 버튼 (♡ ⋯ ✕) ---------- */
+
+.mkt-icon-btn {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1;
+  transition: background 0.12s, color 0.12s;
+}
+
+.mkt-icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+
+/* ---------- 4. 둘러보기 캐러셀 ---------- */
+
+.mkt-exp-wrap {
+  position: relative;
+}
+
+.mkt-exp-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mkt-exp-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.mkt-exp-card {
+  width: 260px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.mkt-exp-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.mkt-exp-visual {
+  height: 150px;
+  position: relative;
+  flex: none;
+}
+
+.mkt-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mkt-exp-title {
+  padding: 10px 12px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ink-strong);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 44px;
+}
+
+.mkt-exp-foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 8px 8px 12px;
+  margin-top: auto;
+}
+
+.mkt-exp-src {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mkt-exp-actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 2px;
+  flex: none;
+}
+
+/* 좌우 화살표 */
+.mkt-exp-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2px;
+  z-index: 2;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.mkt-exp-arrow:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.mkt-exp-arrow.left {
+  left: -12px;
+}
+
+.mkt-exp-arrow.right {
+  right: -12px;
+}
+
+/* 점 인디케이터 */
+.mkt-exp-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.mkt-exp-dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: background 0.15s, transform 0.15s;
+}
+
+.mkt-exp-dot:hover {
+  background: var(--ink-muted);
+}
+
+.mkt-exp-dot.active {
+  background: var(--ink-strong);
+  transform: scale(1.15);
+}
+
+/* P2 provider news */
+.mkt-news-mode { padding: 3px 7px; border-radius: var(--radius-full); font-size: 9.5px; font-weight: 800; }
+.mkt-news-mode.live { background: color-mix(in srgb, var(--pos) 10%, transparent); color: var(--pos); }
+.mkt-news-mode.fallback { background: color-mix(in srgb, var(--warn) 10%, transparent); color: var(--warn); }
+.mkt-news-list { display: grid; padding: 0 16px 8px; }
+.mkt-news-item { padding: 11px 0; border-bottom: 1px solid var(--border); }
+.mkt-news-item:last-child { border-bottom: 0; }
+.mkt-news-title { margin: 0; color: var(--ink-strong); font-size: 13px; font-weight: 700; line-height: 1.4; }
+a.mkt-news-title:hover { color: var(--teal); text-decoration: underline; }
+.mkt-news-item p { display: -webkit-box; margin-top: 4px; overflow: hidden; color: var(--ink-muted); font-size: 11.5px; line-height: 1.5; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mkt-news-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; color: var(--ink-faint); font-size: 10px; }
+.mkt-news-loading, .mkt-news-error { padding: 18px 0; color: var(--ink-muted); font-size: 11.5px; }
+.mkt-news-error { color: var(--neg); }
+.mkt-news-foot { padding: 8px 16px; border-top: 1px solid var(--border); color: var(--ink-faint); background: var(--bg-inset); font-size: 10px; }

@@ -1,0 +1,235 @@
+/* ============================================================
+   Predictions page — prefix: pd-
+   ============================================================ */
+
+.pd-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- header ---------- */
+
+.pd-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pd-title {
+  margin: 0;
+}
+
+.pd-sub {
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.pd-chips {
+  flex-shrink: 0;
+}
+
+/* ---------- grid ---------- */
+
+.pd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media (max-width: 420px) {
+  .pd-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pd-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 0;
+  font-size: 13px;
+}
+
+/* ---------- card ---------- */
+
+.pd-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.pd-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+/* top row: category chip + source badge + end date */
+
+.pd-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pd-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  padding: 2px 9px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.pd-cat-emoji {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.pd-src {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.pd-src.poly {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+
+.pd-src.kalshi {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.pd-ends {
+  margin-left: auto;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* question */
+
+.pd-qwrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pd-q {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  line-height: 1.35;
+}
+
+.pd-q-ko {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* outcomes */
+
+.pd-outcomes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.pd-outcome-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  min-width: 0;
+}
+
+.pd-outcome-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.pd-delta {
+  font-size: 10px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+
+.pd-prob {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-strong);
+  min-width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pd-bar {
+  height: 6px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.pd-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--border-strong);
+  transition: width 0.45s ease;
+}
+
+.pd-bar-fill.lead {
+  background: var(--teal);
+}
+
+/* footer */
+
+.pd-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+}
+
+.pd-vol {
+  min-width: 0;
+}
+
+.pd-foot-src {
+  white-space: nowrap;
+}
+
+/* ---------- disclaimer ---------- */
+
+.pd-disclaimer {
+  text-align: center;
+  font-size: 11px;
+  padding: 8px 0 24px;
+}
+.pd-live-link { display: block; color: inherit; }
+.pd-live-link:hover { color: var(--teal); text-decoration: underline; }
+.pd-provider-strip { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 12px; }
+.pd-provider { padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-full); color: var(--ink-muted); background: var(--bg-raised); font-size: 10px; }
+.pd-provider.up { border-color: color-mix(in srgb, var(--pos) 35%, var(--border)); color: var(--pos); }
+.pd-provider.down, .pd-provider.degraded { border-color: color-mix(in srgb, var(--warn) 40%, var(--border)); color: var(--warn); }
+.pd-api-error { margin-bottom: 12px; padding: 9px 11px; border-radius: var(--radius); background: color-mix(in srgb, var(--neg) 9%, transparent); color: var(--neg); font-size: 11px; }

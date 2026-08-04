@@ -66,6 +66,32 @@ describe('parseMonitorRuleSpec', () => {
       value: 180,
     })).toThrow();
   });
+
+  it('rejects unknown keys on a thesis spec', () => {
+    expect(() => parseMonitorRuleSpec('thesis_invalidation', {
+      condition: 'price_below',
+      symbol: 'AAPL',
+      value: 180,
+      extra: 'x',
+    })).toThrow();
+  });
+
+  it('rejects unknown keys on a risk threshold spec', () => {
+    expect(() => parseMonitorRuleSpec('risk_threshold', {
+      metric: 'annualizedVolatilityPct',
+      comparison: 'above',
+      value: 35,
+      extra: 'x',
+    })).toThrow();
+  });
+
+  it('rejects unknown keys on a stress scenario spec', () => {
+    expect(() => parseMonitorRuleSpec('stress_scenario', {
+      shocks: [{ targetType: 'all', target: '*', changePct: -20 }],
+      maxProjectedLossPct: 25,
+      extra: 'x',
+    })).toThrow();
+  });
 });
 
 describe('defaultIntervalHours', () => {

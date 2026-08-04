@@ -29,22 +29,22 @@ const symbolSchema = z
 const percentSchema = z.number().finite().min(0).max(1_000);
 
 const thesisInvalidationSchema = z.discriminatedUnion('condition', [
-  z.object({ condition: z.literal('price_below'), symbol: symbolSchema, value: z.number().finite().positive() }),
-  z.object({ condition: z.literal('price_above'), symbol: symbolSchema, value: z.number().finite().positive() }),
-  z.object({ condition: z.literal('drawdown_from_entry_pct'), symbol: symbolSchema, value: percentSchema }),
-  z.object({ condition: z.literal('weight_above_pct'), symbol: symbolSchema, value: percentSchema }),
+  z.object({ condition: z.literal('price_below'), symbol: symbolSchema, value: z.number().finite().positive() }).strict(),
+  z.object({ condition: z.literal('price_above'), symbol: symbolSchema, value: z.number().finite().positive() }).strict(),
+  z.object({ condition: z.literal('drawdown_from_entry_pct'), symbol: symbolSchema, value: percentSchema }).strict(),
+  z.object({ condition: z.literal('weight_above_pct'), symbol: symbolSchema, value: percentSchema }).strict(),
   z.object({
     condition: z.literal('no_verified_price_days'),
     symbol: symbolSchema,
     value: z.number().int().min(1).max(365),
-  }),
+  }).strict(),
 ]);
 
 const riskThresholdSchema = z.object({
   metric: z.enum(RISK_METRIC_KEYS),
   comparison: z.enum(['above', 'below']),
   value: z.number().finite().min(-1_000).max(1_000),
-});
+}).strict();
 
 const stressScenarioSchema = z.object({
   shocks: z
@@ -56,7 +56,7 @@ const stressScenarioSchema = z.object({
     .min(1)
     .max(20),
   maxProjectedLossPct: percentSchema,
-});
+}).strict();
 
 export type ThesisInvalidationSpec = z.infer<typeof thesisInvalidationSchema>;
 export type RiskThresholdSpec = z.infer<typeof riskThresholdSchema>;
@@ -65,8 +65,8 @@ export type MonitorRuleSpec = ThesisInvalidationSpec | RiskThresholdSpec | Stres
 
 export const monitorRuleSpecSchema = {
   thesis_invalidation: thesisInvalidationSchema,
-  risk_threshold: riskThresholdSchema.strict(),
-  stress_scenario: stressScenarioSchema.strict(),
+  risk_threshold: riskThresholdSchema,
+  stress_scenario: stressScenarioSchema,
 } as const;
 
 /**
@@ -74,10 +74,7 @@ export const monitorRuleSpecSchema = {
  * malformed row can never reach the evaluator and be silently treated as "not breached".
  */
 export function parseMonitorRuleSpec(kind: MonitorRuleKind, value: unknown): MonitorRuleSpec {
-  const schema = monitorRuleSpecSchema[kind];
-  // discriminatedUnion doesn't have .strict() in Zod 4.4.3, but objects do
-  const strictSchema = typeof (schema as any).strict === 'function' ? (schema as any).strict() : schema;
-  return strictSchema.parse(value);
+  return monitorRuleSpecSchema[kind].parse(value) as MonitorRuleSpec;
 }
 
 export function defaultIntervalHours(kind: MonitorRuleKind): number {

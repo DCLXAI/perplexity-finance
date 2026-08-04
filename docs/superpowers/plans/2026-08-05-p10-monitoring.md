@@ -641,7 +641,11 @@ function evaluateThesis(
     if (!since) return deferred(`${spec.symbol}의 마지막 검증 시각을 알 수 없습니다.`);
     const days = (Date.parse(observation.asOfISO) - Date.parse(since)) / 86_400_000;
     if (!Number.isFinite(days)) return deferred('마지막 검증 시각을 읽을 수 없습니다.');
-    return decide(days > spec.value, Math.max(0, days), spec.value);
+    // A timestamp later than the observation means the clocks disagree or the row is
+    // corrupt. Judging either way would be guessing, and `clear` would silently un-latch
+    // an already-fired rule, since nextState('latched','clear') re-arms.
+    if (days < 0) return deferred('마지막 검증 시각이 관측 시각보다 미래입니다.');
+    return decide(days > spec.value, days, spec.value);
   }
 
   if (held.valuationQuality !== 'verified') {
@@ -676,7 +680,9 @@ function evaluateRisk(spec: RiskThresholdSpec, observation: MonitorObservation):
     return deferred(`리스크 지표 상태가 ${risk.status}입니다.`);
   }
   const observed = risk[spec.metric];
-  if (observed === undefined || !Number.isFinite(observed)) {
+  // `typeof` rather than `=== undefined`: TypeScript's Number.isFinite does not narrow
+  // `number | undefined`, so the typeof check is what makes this typecheck under strict.
+  if (typeof observed !== 'number' || !Number.isFinite(observed)) {
     return deferred(`${spec.metric} 지표가 계산되지 않았습니다.`);
   }
   const breached = spec.comparison === 'above' ? observed > spec.value : observed < spec.value;
@@ -737,7 +743,7 @@ export function shouldNotify(current: MonitorLatchState, outcome: MonitorOutcome
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run server/monitors/evaluate.test.ts`
-Expected: PASS, 20 tests.
+Expected: PASS, 26 tests.
 
 - [ ] **Step 5: Verify the full gate still passes**
 

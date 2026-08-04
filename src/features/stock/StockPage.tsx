@@ -3,7 +3,7 @@
    interactive chart, key stats, related news, sector peers.
    ============================================================ */
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { Card, CardHeader, ChangeBadge, LogoChip, QuoteRow } from '@/components/ui';
 import { engine } from '@/data/engine';
 import { useQuote, useQuotes, useWatchlist } from '@/data/store';

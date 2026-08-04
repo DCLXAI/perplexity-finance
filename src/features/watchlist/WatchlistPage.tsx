@@ -3,7 +3,7 @@
    symbol combobox.
    ============================================================ */
 import { memo, useCallback, useEffect, useId, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Card, ChangeBadge, LogoChip, Sparkline } from '@/components/ui';
 import { engine } from '@/data/engine';
 import { clsx, fmtCompact, fmtQuoteChange, fmtQuoteValue } from '@/data/format';

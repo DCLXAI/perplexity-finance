@@ -14,7 +14,7 @@ interface ModalProps {
   ariaLabel?: string;
   className?: string;
   backdropClassName?: string;
-  initialFocusRef?: RefObject<HTMLElement>;
+  initialFocusRef?: RefObject<HTMLElement | null>;
 }
 
 export default function Modal({

@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Card, LogoChip } from '@/components/ui';
 import { engine } from '@/data/engine';
 import { SNAPSHOT } from '@/data/universe';

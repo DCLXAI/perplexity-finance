@@ -3,7 +3,7 @@ import { apiHandler } from '../routes/registry.js';
 
 const PORT = Number(process.env.API_PORT ?? 5603);
 
-async function body(request: IncomingMessage): Promise<Uint8Array | undefined> {
+async function body(request: IncomingMessage): Promise<Uint8Array<ArrayBuffer> | undefined> {
   if (['GET', 'HEAD'].includes(request.method ?? 'GET')) return undefined;
   const chunks: Buffer[] = [];
   let size = 0;

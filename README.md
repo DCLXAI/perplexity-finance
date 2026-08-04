@@ -181,7 +181,7 @@ Skipped portfolios remain visible through Cron counts and logs. A fairness curso
 
 ## Quick start
 
-Requirements: Node.js 20.19 or newer.
+Requirements: Node.js 22.22 or newer.
 
 ```bash
 npm ci

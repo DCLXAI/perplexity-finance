@@ -2,7 +2,7 @@
    Route-aware document metadata and a polite route announcer.
    ============================================================ */
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { engine } from '@/data/engine';
 
 interface RouteMetadata {

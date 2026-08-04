@@ -9,7 +9,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { clsx, fmtPct, fmtQuoteValue } from '@/data/format';
 import type { Quote } from '@/data/types';
 import './ui.css';

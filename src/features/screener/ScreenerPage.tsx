@@ -2,7 +2,7 @@
    주식 스크리너 — accessible sort/filter/pagination table.
    ============================================================ */
 import { memo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Card, ChipTabs, LogoChip, Sparkline } from '@/components/ui';
 import { useAllQuotes } from '@/data/store';
 import { SECTORS, SECTOR_BY_ID } from '@/data/universe';

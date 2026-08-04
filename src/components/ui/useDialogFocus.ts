@@ -63,8 +63,8 @@ export function useDialogFocus<T extends HTMLElement = HTMLElement>({
   initialFocusRef,
 }: {
   onClose: () => void;
-  initialFocusRef?: RefObject<HTMLElement>;
-}): RefObject<T> {
+  initialFocusRef?: RefObject<HTMLElement | null>;
+}): RefObject<T | null> {
   const dialogRef = useRef<T>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;

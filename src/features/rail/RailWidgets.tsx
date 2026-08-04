@@ -2,8 +2,8 @@
    Right-rail widget cards shared by several pages
    (watchlist / predictions / movers / sectors / crypto)
    ============================================================ */
-import { memo, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { memo, useMemo, useState, type JSX } from 'react';
+import { Link } from 'react-router';
 import { Card, CardHeader, ChangeBadge, QuoteRow, SegTabs } from '@/components/ui';
 import { engine } from '@/data/engine';
 import { useAllQuotes, useQuotes, useWatchlist } from '@/data/store';

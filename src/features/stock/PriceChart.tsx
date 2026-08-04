@@ -5,8 +5,11 @@
    ============================================================ */
 import { memo, useEffect, useId, useRef, useState } from 'react';
 import {
+  AreaSeries,
+  CandlestickSeries,
   ColorType,
   CrosshairMode,
+  HistogramSeries,
   createChart,
   type AreaSeriesPartialOptions,
   type CandlestickSeriesPartialOptions,
@@ -199,9 +202,10 @@ function PriceChartInner({ symbol }: { symbol: string }) {
     const intraday = range === '1D' || range === '5D' || range === '7D';
     const chart = createChart(el, themedChartOptions(palette, el.clientWidth, intraday));
 
-    const area = chartType === 'line' ? chart.addAreaSeries(areaOptions(palette)) : null;
-    const candles = chartType === 'candle' ? chart.addCandlestickSeries(candleOptions(palette)) : null;
-    const volume = chart.addHistogramSeries({
+    const area = chartType === 'line' ? chart.addSeries(AreaSeries, areaOptions(palette)) : null;
+    const candles =
+      chartType === 'candle' ? chart.addSeries(CandlestickSeries, candleOptions(palette)) : null;
+    const volume = chart.addSeries(HistogramSeries, {
       priceScaleId: '',
       priceFormat: { type: 'volume' },
       lastValueVisible: false,

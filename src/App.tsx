@@ -3,7 +3,7 @@
    error boundary so one broken module never takes down the app.
    ============================================================ */
 import { Component, Suspense, lazy, type ErrorInfo, type ReactNode } from 'react';
-import { HashRouter, Link, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter, Link, Route, Routes, useLocation } from 'react-router';
 import AppShell from '@/components/layout/AppShell';
 
 const MarketPage = lazy(() => import('@/features/market/MarketPage'));

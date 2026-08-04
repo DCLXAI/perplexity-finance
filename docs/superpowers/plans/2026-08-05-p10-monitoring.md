@@ -252,7 +252,7 @@ export const monitorRuleSpecSchema = {
  * malformed row can never reach the evaluator and be silently treated as "not breached".
  */
 export function parseMonitorRuleSpec(kind: MonitorRuleKind, value: unknown): MonitorRuleSpec {
-  return monitorRuleSpecSchema[kind].parse(value) as MonitorRuleSpec;
+  return monitorRuleSpecSchema[kind].parse(value);
 }
 
 export function defaultIntervalHours(kind: MonitorRuleKind): number {

@@ -47,6 +47,8 @@ function deferred(reason: string): EvaluationOutcome {
   return Object.freeze({ outcome: 'deferred' as const, reason });
 }
 
+// Despite the name, this can return `deferred`: a non-finite observedValue means the
+// computation could not be trusted, so it refuses to assert breached/clear.
 function decide(breached: boolean, observedValue: number, threshold: number): EvaluationOutcome {
   if (!Number.isFinite(observedValue)) {
     return deferred('관측값을 계산할 수 없어 판정하지 않습니다.');
@@ -75,7 +77,10 @@ function evaluateThesis(
     if (!since) return deferred(`${spec.symbol}의 마지막 검증 시각을 알 수 없습니다.`);
     const days = (Date.parse(observation.asOfISO) - Date.parse(since)) / 86_400_000;
     if (!Number.isFinite(days)) return deferred('마지막 검증 시각을 읽을 수 없습니다.');
-    return decide(days > spec.value, Math.max(0, days), spec.value);
+    // A timestamp later than the observation means the two clocks disagree or the row is
+    // corrupt. Judging either way would be guessing, and `clear` would silently un-latch.
+    if (days < 0) return deferred('마지막 검증 시각이 관측 시각보다 미래입니다.');
+    return decide(days > spec.value, days, spec.value);
   }
 
   if (held.valuationQuality !== 'verified') {
@@ -110,7 +115,7 @@ function evaluateRisk(spec: RiskThresholdSpec, observation: MonitorObservation):
     return deferred(`리스크 지표 상태가 ${risk.status}입니다.`);
   }
   const observed = risk[spec.metric];
-  if (observed === undefined || !Number.isFinite(observed)) {
+  if (typeof observed !== 'number' || !Number.isFinite(observed)) {
     return deferred(`${spec.metric} 지표가 계산되지 않았습니다.`);
   }
   const breached = spec.comparison === 'above' ? observed > spec.value : observed < spec.value;

@@ -159,6 +159,17 @@ describe('evaluateRule — thesis invalidation', () => {
     );
     expect(result.outcome).toBe('deferred');
   });
+
+  it('defers when the last-verified timestamp is later than the observation', () => {
+    const result = evaluateRule(
+      rule({ spec: { condition: 'no_verified_price_days', symbol: 'AAPL', value: 3 } }),
+      observation({
+        holdings: [holding({ valuationQuality: 'estimated' })],
+        unverifiedSinceISO: { AAPL: '2026-09-01T00:00:00.000Z' },
+      }),
+    );
+    expect(result.outcome).toBe('deferred');
+  });
 });
 
 describe('evaluateRule — risk threshold', () => {

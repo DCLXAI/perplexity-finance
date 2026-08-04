@@ -128,6 +128,28 @@ describe('parseMonitorRuleSpec', () => {
       value: 180,
     })).toThrow();
   });
+
+  // Unknown keys must be rejected, not silently stripped, for every kind. A stored spec
+  // that quietly loses a field would evaluate as something other than what the user saved.
+  it('rejects unknown keys on a thesis spec', () => {
+    expect(() => parseMonitorRuleSpec('thesis_invalidation', {
+      condition: 'price_below', symbol: 'AAPL', value: 180, extra: 'x',
+    })).toThrow();
+  });
+
+  it('rejects unknown keys on a risk spec', () => {
+    expect(() => parseMonitorRuleSpec('risk_threshold', {
+      metric: 'annualizedVolatilityPct', comparison: 'above', value: 35, extra: 'x',
+    })).toThrow();
+  });
+
+  it('rejects unknown keys on a stress spec', () => {
+    expect(() => parseMonitorRuleSpec('stress_scenario', {
+      shocks: [{ targetType: 'all', target: '*', changePct: -20 }],
+      maxProjectedLossPct: 25,
+      extra: 'x',
+    })).toThrow();
+  });
 });
 
 describe('defaultIntervalHours', () => {
@@ -181,23 +203,26 @@ const symbolSchema = z
 
 const percentSchema = z.number().finite().min(0).max(1_000);
 
+// Zod 4's discriminatedUnion has no `.strict()` — only ZodObject does — so strictness must
+// be applied to each member at definition time. Doing it here rather than at parse time also
+// keeps all three kinds uniformly strict and avoids cloning a schema on every call.
 const thesisInvalidationSchema = z.discriminatedUnion('condition', [
-  z.object({ condition: z.literal('price_below'), symbol: symbolSchema, value: z.number().finite().positive() }),
-  z.object({ condition: z.literal('price_above'), symbol: symbolSchema, value: z.number().finite().positive() }),
-  z.object({ condition: z.literal('drawdown_from_entry_pct'), symbol: symbolSchema, value: percentSchema }),
-  z.object({ condition: z.literal('weight_above_pct'), symbol: symbolSchema, value: percentSchema }),
+  z.object({ condition: z.literal('price_below'), symbol: symbolSchema, value: z.number().finite().positive() }).strict(),
+  z.object({ condition: z.literal('price_above'), symbol: symbolSchema, value: z.number().finite().positive() }).strict(),
+  z.object({ condition: z.literal('drawdown_from_entry_pct'), symbol: symbolSchema, value: percentSchema }).strict(),
+  z.object({ condition: z.literal('weight_above_pct'), symbol: symbolSchema, value: percentSchema }).strict(),
   z.object({
     condition: z.literal('no_verified_price_days'),
     symbol: symbolSchema,
     value: z.number().int().min(1).max(365),
-  }),
+  }).strict(),
 ]);
 
 const riskThresholdSchema = z.object({
   metric: z.enum(RISK_METRIC_KEYS),
   comparison: z.enum(['above', 'below']),
   value: z.number().finite().min(-1_000).max(1_000),
-});
+}).strict();
 
 const stressScenarioSchema = z.object({
   shocks: z
@@ -209,7 +234,7 @@ const stressScenarioSchema = z.object({
     .min(1)
     .max(20),
   maxProjectedLossPct: percentSchema,
-});
+}).strict();
 
 export type ThesisInvalidationSpec = z.infer<typeof thesisInvalidationSchema>;
 export type RiskThresholdSpec = z.infer<typeof riskThresholdSchema>;
@@ -227,7 +252,7 @@ export const monitorRuleSpecSchema = {
  * malformed row can never reach the evaluator and be silently treated as "not breached".
  */
 export function parseMonitorRuleSpec(kind: MonitorRuleKind, value: unknown): MonitorRuleSpec {
-  return monitorRuleSpecSchema[kind].strict().parse(value);
+  return monitorRuleSpecSchema[kind].parse(value) as MonitorRuleSpec;
 }
 
 export function defaultIntervalHours(kind: MonitorRuleKind): number {
@@ -238,7 +263,7 @@ export function defaultIntervalHours(kind: MonitorRuleKind): number {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run server/monitors/rules.test.ts`
-Expected: PASS, 9 tests.
+Expected: PASS, 13 tests.
 
 - [ ] **Step 5: Commit**
 

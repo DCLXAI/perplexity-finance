@@ -328,7 +328,8 @@ function observation(overrides: Partial<MonitorObservation> = {}): MonitorObserv
     valuationQuality: 'verified',
     holdings,
     risk: risk(),
-    summary: { holdings, totalValue: 3_800, marketValue: 3_800 } as unknown as PortfolioSummary,
+    // cashBalance is required: runPortfolioScenario reads it, and omitting it yields NaN.
+    summary: { holdings, totalValue: 3_800, marketValue: 3_800, cashBalance: 0 } as unknown as PortfolioSummary,
     ...overrides,
   };
 }
@@ -610,6 +611,12 @@ function deferred(reason: string): EvaluationOutcome {
 }
 
 function decide(breached: boolean, observedValue: number, threshold: number): EvaluationOutcome {
+  // A comparison against NaN is always false, so a broken computation would otherwise report
+  // `clear` — "nothing wrong" — which is the exact failure this feature exists to prevent.
+  // No verdict may rest on a value we cannot justify.
+  if (!Number.isFinite(observedValue)) {
+    return deferred('관측값을 계산할 수 없어 판정하지 않습니다.');
+  }
   return Object.freeze({
     outcome: breached ? ('breached' as const) : ('clear' as const),
     observedValue,

@@ -14,6 +14,7 @@ assert.deepEqual(files, [
   '202607140002_p9_order_cost_optimization.sql',
   '202608050001_p10_monitor_rules.sql',
 ]);
+const cloudSql = readFileSync(new URL(files[0]!, directory), 'utf8').toLowerCase();
 const operationsSql = readFileSync(new URL(files[1]!, directory), 'utf8').toLowerCase();
 const hardeningSql = readFileSync(new URL(files[2]!, directory), 'utf8').toLowerCase();
 const portfolioSql = readFileSync(new URL(files[3]!, directory), 'utf8').toLowerCase();
@@ -21,7 +22,12 @@ const allocationSql = readFileSync(new URL(files[4]!, directory), 'utf8').toLowe
 const rebalanceSql = readFileSync(new URL(files[5]!, directory), 'utf8').toLowerCase();
 const contributionSql = readFileSync(new URL(files[6]!, directory), 'utf8').toLowerCase();
 const orderCostSql = readFileSync(new URL(files[7]!, directory), 'utf8').toLowerCase();
-const sql = `${operationsSql}\n${hardeningSql}\n${portfolioSql}\n${allocationSql}\n${rebalanceSql}\n${contributionSql}\n${orderCostSql}`;
+// files[8] (P10) was previously left out of this slice entirely, so this script's
+// `sql.includes(...)` contract checks and the anon/authenticated grant regex below never
+// scanned it at all -- it returned PASS even when the P10 file did not parse. Every listed
+// migration is now included.
+const monitorSql = readFileSync(new URL(files[8]!, directory), 'utf8').toLowerCase();
+const sql = `${cloudSql}\n${operationsSql}\n${hardeningSql}\n${portfolioSql}\n${allocationSql}\n${rebalanceSql}\n${contributionSql}\n${orderCostSql}\n${monitorSql}`;
 for (const contract of [
   'claim_due_price_alerts',
   'for update skip locked',
@@ -104,6 +110,22 @@ for (const contract of [
   'apply_p9_plan_costs',
   'validate_p9_actual_costs',
   'persist_p9_actual_costs',
+  'monitor_rules',
+  'monitor_digests',
+  'monitor_breaches',
+  'monitor_digest_deliveries',
+  'validate_monitor_rule_spec',
+  'upsert_monitor_rule',
+  'delete_monitor_rule',
+  'claim_due_monitor_rules',
+  'record_monitor_evaluation',
+  'open_monitor_digest',
+  'append_monitor_breach',
+  'enqueue_monitor_digest_deliveries',
+  'claim_due_monitor_digest_deliveries',
+  'mark_monitor_digest_delivery_sent',
+  'mark_monitor_digest_delivery_failure',
+  'mark_monitor_digest_delivery_disabled',
 ]) assert.ok(sql.includes(contract), `missing migration contract: ${contract}`);
 assert.ok(!/grant\s+(insert|update|delete|all)[\s\S]{0,120}\s+to\s+(anon|authenticated)/i.test(sql));
 console.log(JSON.stringify({

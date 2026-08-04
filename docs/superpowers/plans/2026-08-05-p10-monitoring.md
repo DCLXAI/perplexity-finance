@@ -318,8 +318,24 @@ function rule(overrides: Partial<MonitorRuleInput> = {}): MonitorRuleInput {
 }
 
 describe('evaluateRule — quality gate', () => {
-  it('defers when portfolio valuation is not verified', () => {
-    const result = evaluateRule(rule(), observation({ valuationQuality: 'estimated' }));
+  it('judges a verified holding even when an unrelated holding is stale', () => {
+    // One stale position makes portfolio quality 'mixed'. Gating thesis rules on the
+    // portfolio aggregate would blind every rule in the portfolio over an unrelated symbol.
+    const result = evaluateRule(rule(), observation({
+      valuationQuality: 'mixed',
+      holdings: [holding(), holding({ symbol: 'TSLA', valuationQuality: 'estimated' })],
+    }));
+    expect(result.outcome).toBe('breached');
+  });
+
+  it('defers a stress rule when portfolio valuation is not verified', () => {
+    const result = evaluateRule(
+      rule({
+        kind: 'stress_scenario',
+        spec: { shocks: [{ targetType: 'all', target: '*', changePct: -30 }], maxProjectedLossPct: 20 },
+      }),
+      observation({ valuationQuality: 'estimated' }),
+    );
     expect(result.outcome).toBe('deferred');
     expect(result.reason).toContain('verified');
   });
@@ -660,15 +676,13 @@ export function evaluateRule(
     return deferred('규칙 정의가 현재 스키마와 맞지 않습니다.');
   }
 
-  if (observation.valuationQuality !== 'verified' && rule.kind !== 'thesis_invalidation') {
-    return deferred('포트폴리오 평가 품질이 verified가 아니라 판정하지 않습니다.');
-  }
-
+  // Each evaluator owns the gate that matches its own scope. There is deliberately no
+  // portfolio-wide gate here: `valuationQuality` is 'mixed' whenever holdings span more than
+  // one quality class, so a single unrelated stale position would otherwise blind every
+  // thesis rule in the portfolio — and would make no_verified_price_days, which exists to
+  // fire precisely when something is unverified, permanently unable to fire.
   switch (rule.kind) {
     case 'thesis_invalidation':
-      if (observation.valuationQuality !== 'verified') {
-        return deferred('포트폴리오 평가 품질이 verified가 아니라 판정하지 않습니다.');
-      }
       return evaluateThesis(spec as ThesisInvalidationSpec, observation);
     case 'risk_threshold':
       return evaluateRisk(spec as RiskThresholdSpec, observation);
@@ -1552,7 +1566,9 @@ git commit -m "feat(p10): add monitor rule editor and status panel"
 Follow `scripts/validate-p9.ts` exactly. Assert:
 - `loadConfig().version === '1.11.0'`
 - `parseMonitorRuleSpec` rejects an unknown risk metric and an empty shock list
-- `evaluateRule` returns `deferred` when `valuationQuality !== 'verified'`
+- `evaluateRule` returns `deferred` for a stress rule when `valuationQuality !== 'verified'`
+- `evaluateRule` returns `deferred` for a thesis rule when the watched holding is not verified
+- `evaluateRule` still judges a thesis rule on a verified holding when portfolio quality is `'mixed'` because an unrelated holding is stale
 - `evaluateRule` returns `deferred` when `risk.dataQuality !== 'verified'`
 - `shouldNotify('latched', 'breached') === false` and `shouldNotify('armed', 'breached') === true`
 - `nextState('armed', 'deferred') === 'armed'` and `nextState('latched', 'deferred') === 'latched'`
@@ -1612,5 +1628,6 @@ git commit -m "feat(p10): add validation script, bump to 1.11.0, and document mo
 
 1. The spec described the observation as "the latest verified `portfolio_snapshots` row plus quotes". The plan uses `buildPortfolioSummary` instead — the same call `snapshot-portfolios` makes. It already loads quotes internally and returns holdings with `averageCost`, `price`, `allocationPct`, and `valuationQuality`, plus the full `PortfolioRiskMetrics`, in one call. It also makes the quality semantics here byte-identical to the ones gating a strict snapshot, rather than a second implementation that could drift. `runPortfolioScenario(summary, shocks)` needs a `PortfolioSummary` anyway.
 2. `no_verified_price_days` deliberately bypasses the per-holding verified check, since the condition is *about* the absence of verification. It reads `unverifiedSinceISO` instead. Every other thesis condition still requires a verified holding.
+3. **The quality gate is per-scope, not portfolio-wide.** The spec says "when the input for a rule is not `verified`, the rule is recorded as `deferred`", which reads as one portfolio-level check. Implemented literally that is wrong twice over: `PortfolioValuationQuality` is `'mixed'` whenever holdings span more than one quality class, so a single unrelated stale position would blind every thesis rule in the portfolio, and `no_verified_price_days` — whose entire purpose is to fire when something is unverified — could never fire at all. Each evaluator therefore gates on its own scope: thesis rules on the watched holding, risk rules on `risk.dataQuality` and `risk.status`, stress rules on portfolio `valuationQuality` (correct there, since it values the whole portfolio). The spec's intent — never judge on unverified input — is preserved exactly; only the granularity changes.
 
 **One bug caught in review and fixed in the plan.** The first draft of `evaluateThesis` returned `clear` when a `no_verified_price_days` rule found no entry in `unverifiedSinceISO`. That is wrong in the case that matters: a holding can be unverified *and* carry no provider timestamp, and reporting `clear` would silence the exact rule meant to catch a price going stale. The evaluator now returns `clear` only when the holding is currently verified, and `deferred` when it is unverified with no known timestamp. Two tests in Task 2 pin both halves.

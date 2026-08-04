@@ -19,6 +19,15 @@
 - A breach notifies only. It never writes to the transaction ledger, never changes `investment_theses.status`, and never creates a plan.
 - Every user-visible notification states that it is not an order suggestion and that nothing was written to the ledger.
 - All new DB mutations go through security-definer RPCs. Authenticated clients get `select` on their own rows via RLS and no direct write.
+- **Every function a migration creates must be followed by a revoke/grant pair.** PostgreSQL defaults new functions to `EXECUTE` for `PUBLIC`, and `security definer` bypasses RLS, so a function taking `p_user_id` as a caller-supplied parameter is a cross-user read/write hole until its execute privilege is withdrawn. House pattern, verbatim from `202607130002_p7_rebalance_workflow.sql:868-869`:
+  ```sql
+  revoke all on function public.<name>(<exact arg types>) from public, anon, authenticated;
+  grant execute on function public.<name>(<exact arg types>) to service_role;
+  ```
+  The argument type list must match exactly or the revoke silently targets nothing. Verify against `pg_proc.proacl` after applying.
+- **A SQL migration must be applied to a live local PostgreSQL before it is reported complete.** `npm run check` never touches a database and `npm run validate:migrations` is only a string check, so neither catches a syntax error or a NULL-logic bug. Use `docker run -d --name <name> -e POSTGRES_PASSWORD=pw -p 55434:5432 postgres:16`, create stand-ins for `auth.users`, `auth.uid()`, `public.portfolios`, `public.investment_theses`, `public.portfolio_snapshots`, `public.set_updated_at()`, `pgcrypto`, and roles `authenticated`/`anon`/`service_role`, then apply the file and probe it. Never against a remote database.
+- **In PL/pgSQL, never inline a `CASE` expression into an `IF` condition.** `IF <expr> THEN` reads the condition up to the first `THEN` token and does not track `CASE`/`END` nesting, so the statement truncates and the file fails to parse. Assign the `CASE` to a variable first, or use a boolean expression.
+- **`NULL not in (...)` is `NULL`, not `TRUE`,** so a missing JSON key passes an `if ... not in (...) then raise` guard silently. Guard key presence explicitly with `?`, or wrap with `coalesce(...)` / `is not true`.
 - User-facing copy is Korean, matching existing surfaces.
 - Run `npm run check` before every commit. It must exit 0.
 

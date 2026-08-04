@@ -12,6 +12,7 @@ assert.deepEqual(files, [
   '202607130002_p7_rebalance_workflow.sql',
   '202607140001_p8_goal_contributions.sql',
   '202607140002_p9_order_cost_optimization.sql',
+  '202608050001_p10_monitor_rules.sql',
 ]);
 const operationsSql = readFileSync(new URL(files[1]!, directory), 'utf8').toLowerCase();
 const hardeningSql = readFileSync(new URL(files[2]!, directory), 'utf8').toLowerCase();

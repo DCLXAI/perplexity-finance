@@ -241,18 +241,26 @@ $$;
 revoke all on function public.delete_monitor_rule(uuid, uuid) from public, anon, authenticated;
 grant execute on function public.delete_monitor_rule(uuid, uuid) to service_role;
 
--- Claims due rules oldest-first so no batch can starve a later rule, and orders by
--- portfolio so the caller can group and build one observation per portfolio. This is a
--- real claim, not a plain SELECT: `for update skip locked` means two concurrent callers
--- can never receive the same row, and the matched rows are leased forward via
--- evaluation_lease_until (a fixed, short window, independent of the rule's own
+-- Claims due rules with `for update skip locked` so concurrent workers get disjoint sets:
+-- two concurrent callers can never receive the same row. The matched rows are leased
+-- forward via evaluation_lease_until (a fixed, short window, independent of the rule's own
 -- min_interval_hours) so a worker that claims a batch and then crashes before calling
 -- record_monitor_evaluation does not block that rule from being re-claimed forever.
+--
+-- The ORDER BY selects WHICH rules are claimed -- oldest-waiting (by next_evaluation_at)
+-- first, then by portfolio_id, so no batch can starve a later rule -- but it does NOT
+-- determine the order rows are returned in: this is `UPDATE ... FROM due ... RETURNING`,
+-- not a plain SELECT, and Postgres does not guarantee RETURNING preserves the CTE's scan
+-- order. Callers that need per-portfolio grouping (e.g. to build one shared observation per
+-- portfolio) must group explicitly, such as with a Map keyed on portfolio_id; do not rely
+-- on adjacency in the returned rows.
+--
 -- Follows the claim_due_portfolio_rebalance_deliveries shape in
 -- 202607130002_p7_rebalance_workflow.sql (CTE select ... for update skip locked, then
--- UPDATE ... FROM ... RETURNING), adapted to lease via evaluation_lease_until instead of
--- a status column because monitor_rules.state is deliberately restricted to the
--- armed/latched latch and must not gain a third, unrelated "processing" value.
+-- UPDATE ... FROM ... RETURNING, which has the identical unordered-output property),
+-- adapted to lease via evaluation_lease_until instead of a status column because
+-- monitor_rules.state is deliberately restricted to the armed/latched latch and must not
+-- gain a third, unrelated "processing" value.
 create or replace function public.claim_due_monitor_rules(p_limit integer default 200)
 returns setof public.monitor_rules language plpgsql security definer set search_path = public as $$
 begin

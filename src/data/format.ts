@@ -20,6 +20,28 @@ export function fmtUsd(value: number): string {
   return `US$${fmtPrice(value)}`;
 }
 
+/** Won prices are whole units — KRX quotes in won, so a decimal would be noise. */
+export function fmtKrw(value: number): string {
+  return `₩${Math.round(value).toLocaleString('ko-KR')}`;
+}
+
+/**
+ * 조 (10^12) and 억 (10^8) rather than T/B/M. A Korean reader parses
+ * "1,568.32조" instantly and "US$1.57T" not at all.
+ */
+export function fmtKrwCompact(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1e12) {
+    const formatted = (value / 1e12).toLocaleString('ko-KR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `₩${formatted}조`;
+  }
+  if (abs >= 1e8) return `₩${Math.round(value / 1e8).toLocaleString('ko-KR')}억`;
+  return fmtKrw(value);
+}
+
 export function fmtPct(value: number, opts: { sign?: boolean } = {}): string {
   const sign = opts.sign === false ? '' : value > 0 ? '+' : '';
   return `${sign}${value.toFixed(2)}%`;
@@ -35,6 +57,7 @@ export function fmtInstrumentValue(unit: InstrumentUnit, value: number): string 
   if (unit === 'PERCENT') return `${fmtPrice(value)}%`;
   if (unit === 'USD_PER_OZ') return `${fmtUsd(value)}/oz`;
   if (unit === 'USD_PER_BBL') return `${fmtUsd(value)}/bbl`;
+  if (unit === 'KRW') return fmtKrw(value);
   return fmtUsd(value);
 }
 
@@ -45,6 +68,7 @@ export function fmtInstrumentChange(unit: InstrumentUnit, value: number): string
   if (unit === 'PERCENT') return `${sign}${fmtPrice(magnitude)}%p`;
   if (unit === 'USD_PER_OZ') return `${sign}${fmtUsd(magnitude)}/oz`;
   if (unit === 'USD_PER_BBL') return `${sign}${fmtUsd(magnitude)}/bbl`;
+  if (unit === 'KRW') return `${sign}${fmtKrw(magnitude)}`;
   return `${sign}${fmtUsd(magnitude)}`;
 }
 

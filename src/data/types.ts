@@ -27,7 +27,7 @@ export interface SectorInfo {
 }
 
 export type AssetKind = 'stock' | 'index' | 'future' | 'crypto' | 'etf';
-export type InstrumentUnit = 'USD' | 'POINTS' | 'PERCENT' | 'USD_PER_OZ' | 'USD_PER_BBL';
+export type InstrumentUnit = 'USD' | 'KRW' | 'POINTS' | 'PERCENT' | 'USD_PER_OZ' | 'USD_PER_BBL';
 export type MarketSessionKind = 'regular' | 'continuous' | 'after-hours';
 export type MarketSessionStatus = 'open' | 'closed';
 

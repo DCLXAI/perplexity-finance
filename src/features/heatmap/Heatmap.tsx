@@ -28,6 +28,15 @@ function fmtQuoteCap(quote: Quote): string {
   return quote.unit === 'KRW' ? fmtKrwCompact(cap * KRW_PER_USD) : `US$${fmtCompact(cap)}`;
 }
 
+/**
+ * Adjective form ("미국"/"한국") derived from the canonical region label, for headings like
+ * "○○ 주식 표본 히트맵". Exported so `MarketPage` (the only other consumer of region-flavored
+ * copy on this page) shares this instead of re-deriving its own copy.
+ */
+export function regionAdj(region: MarketRegion): string {
+  return REGION_LABELS[region].label.replace(' 시장', '');
+}
+
 /* ---------------- treemap geometry ---------------- */
 
 interface Laid<T> {
@@ -181,7 +190,7 @@ export default function Heatmap({
   const quotes = useMemo(() => allQuotes.filter((q) => q.region === region), [allQuotes, region]);
   const navigate = useNavigate();
   const descriptionId = useId();
-  const adj = REGION_LABELS[region].label.replace(' 시장', '');
+  const adj = regionAdj(region);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

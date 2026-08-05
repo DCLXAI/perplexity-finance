@@ -1,6 +1,6 @@
 /* ============================================================
-   미국 시장 대시보드 — route "/"
-   상위 자산 · 시장 요약 · 미국 주식 표본 히트맵 · 둘러보기 + 우측 레일
+   지역별 시장 대시보드 — route "/" (region-scoped: US 기본, ?region=kr 지원)
+   상위 자산 · 시장 요약 · 지역별 주식 표본 히트맵 · 둘러보기 + 우측 레일
    ============================================================ */
 import {
   memo,
@@ -21,16 +21,11 @@ import { REGION_LABELS, regionFromSearch, type MarketRegion } from '@/data/regio
 import { RegionSwitcher } from '@/components/layout/RegionSwitcher';
 import type { NewsResponse } from '@/shared/api';
 import type { ExploreCard as ExploreCardData, Quote } from '@/data/types';
-import Heatmap from '@/features/heatmap/Heatmap';
+import Heatmap, { regionAdj } from '@/features/heatmap/Heatmap';
 import { MarketRail } from '@/features/rail/RailWidgets';
 import AskBar from '@/features/ai/AskBar';
 import ExploreArt from './ExploreArt.js';
 import './market.css';
-
-/** Adjective form ("미국"/"한국") derived from the canonical region label, for headings like "○○ 주식 표본 히트맵". */
-function regionAdj(region: MarketRegion): string {
-  return REGION_LABELS[region].label.replace(' 시장', '');
-}
 
 /* ---------- 공용: 요소 너비 측정 (스파크라인 반응형) ---------- */
 

@@ -5,6 +5,7 @@
 import { memo, useMemo, useState, type JSX } from 'react';
 import { Link } from 'react-router';
 import { Card, CardHeader, ChangeBadge, QuoteRow, SegTabs } from '@/components/ui';
+import { withRegion } from '@/components/layout/AppShell';
 import { engine } from '@/data/engine';
 import { useAllQuotes, useQuotes, useWatchlist } from '@/data/store';
 import { PREDICTIONS } from '@/data/content';
@@ -156,7 +157,7 @@ const MOVER_TABS: { key: MoverKey; label: string }[] = [
   { key: 'active', label: '활성화' },
 ];
 
-export function MoversCard({ region }: { readonly region?: MarketRegion }): JSX.Element {
+export function MoversCard({ region = 'US' }: { readonly region?: MarketRegion }): JSX.Element {
   const [tab, setTab] = useState<MoverKey>('up');
   useAllQuotes(2000); // 로컬 모의 틱 재계산 트리거 (스로틀)
   const rows = engine.movers(tab, 4, 0, region);
@@ -171,7 +172,10 @@ export function MoversCard({ region }: { readonly region?: MarketRegion }): JSX.
           <RailQuoteRow key={q.symbol} quote={q} showVolume={tab === 'active'} />
         ))}
       </div>
-      <Link className="rail-more-link" to="/screener">
+      {/* Same convention AppShell's nav links use: only stamp `?region=` when it isn't the
+          default US, so a KR home doesn't silently drop back to US on navigation (I3), while
+          plain US browsing stays free of `?region=us` cruft. */}
+      <Link className="rail-more-link" to={withRegion('/screener', region === 'KR' ? 'kr' : null)}>
         모두 보기 ›
       </Link>
     </Card>
@@ -238,7 +242,9 @@ export function MarketRail({
   return (
     <div className="rail-stack">
       <WatchlistCard />
-      <PredictionsCard filter={predictionsFilter} />
+      {/* Same reasoning as AppShell's `usOnly` nav tabs: Korea has no domestic securities
+          prediction market, so the rail must not advertise a page the nav already hides. */}
+      {region !== 'KR' && <PredictionsCard filter={predictionsFilter} />}
       <MoversCard region={region} />
       <SectorsCard region={region} />
       <CryptoCard />

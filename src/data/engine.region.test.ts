@@ -21,4 +21,16 @@ describe('cross-region resolution', () => {
     expect(kr.every((a) => a.region === 'KR')).toBe(true);
     expect(engine.listAssets('US').every((a) => a.region === 'US')).toBe(true);
   });
+
+  it('scopes movers to one region — regression for the market-home rail leaking KR rows into US', () => {
+    for (const direction of ['up', 'down', 'active'] as const) {
+      const us = engine.movers(direction, 8, 0, 'US');
+      expect(us.length).toBeGreaterThan(0);
+      expect(us.every((q) => q.region === 'US')).toBe(true);
+
+      const kr = engine.movers(direction, 8, 0, 'KR');
+      expect(kr.length).toBeGreaterThan(0);
+      expect(kr.every((q) => q.region === 'KR')).toBe(true);
+    }
+  });
 });

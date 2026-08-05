@@ -68,9 +68,22 @@ market cap   1,568.32조       조/억, because US$1.57T is meaningless to a Kor
 change       +2.50%          unchanged
 ```
 
-`AssetMeta.marketCap` is currently documented as "market cap in USD". It becomes a plain
-number whose currency is given by the asset's `unit`. Heatmap weighting compares only within
-a region, so relative sizing is unaffected.
+**`AssetMeta.marketCap` stays USD.** An earlier draft of this design said it would become a
+plain number whose currency the asset's `unit` supplied, on the reasoning that "heatmap
+weighting compares only within a region, so relative sizing is unaffected". That reasoning was
+wrong, and Task 4's review measured how wrong: the existing consumers — `getAll`, `movers`,
+`search`, and the heatmap — compare caps across the whole asset list, not within a region. Two
+Korean rows carrying raw won put the heatmap at 93.74% Korean by area and pushed Samsung and
+SK Hynix above every US name in the movers rail, on the US pages, immediately.
+
+So Korean market caps are converted to USD where the asset is built, through a single named
+`KRW_PER_USD` constant carrying its own as-of date. The seed keeps its authored column in
+trillion won, because that is what the source publishes and what a human can check against a
+Korean quote page; the conversion happens once, in one auditable place. Display converts back
+to won via `fmtKrwCompact`.
+
+The cost is that the seed now embeds an exchange-rate assumption, which is recorded beside the
+constant rather than left implicit.
 
 ## Trading calendar
 

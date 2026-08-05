@@ -198,4 +198,23 @@ describe('monitorRules — failure isolation', () => {
     const failedUserIds = enqueueFailures.map(([, data]) => (data as { userId: string }).userId).sort();
     expect(failedUserIds).toEqual(['u1', 'u2']);
   });
+
+  it('skips enqueueing a digest that ended up with zero breaches', async () => {
+    // `openMonitorDigest` reserves the digest id before `appendMonitorBreach` durably records
+    // anything against it. If that append then fails — and nothing else breaches for this user
+    // in the same run — the digest must not be enqueued: handing `buildDigestPayload` an empty
+    // breach list would produce a "0 conditions were met" notification, which is worse than no
+    // notification at all.
+    claimDueMonitorRulesMock.mockResolvedValue([rule({ id: 'a', portfolio_id: 'p1', user_id: 'u1' })]);
+    buildMonitorObservationMock.mockResolvedValue(observation('p1'));
+    appendMonitorBreachMock.mockRejectedValue(new Error('breach insert failed'));
+
+    const result = await monitorRules('req-4', FAR_DEADLINE);
+
+    expect(enqueueMonitorDigestDeliveriesMock).not.toHaveBeenCalled();
+    expect(result.digests).toBe(1);
+    const emptyDigestWarnings = loggerWarnMock.mock.calls.filter(([event]) => event === 'monitor.digest_empty_skipped');
+    expect(emptyDigestWarnings).toHaveLength(1);
+    expect(emptyDigestWarnings[0][1]).toMatchObject({ userId: 'u1' });
+  });
 });

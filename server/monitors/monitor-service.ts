@@ -244,6 +244,16 @@ export async function monitorRules(requestId: string, deadlineMs: number): Promi
   for (const [userId, digestId] of digestByUser) {
     try {
       const breaches = breachesByDigest.get(digestId) ?? [];
+      // A digest id can be reserved (`openMonitorDigest`) before its first breach is durably
+      // appended. If that append then fails, and nothing else breaches for this user in the same
+      // run, the digest ends up with zero breaches — enqueueing that would send a real user a
+      // notification saying "0 conditions were met", which is worse than no notification at all.
+      // Leave the digest row `open`: `open_monitor_digest` reuses it on the next run that has a
+      // real breach for this user, so nothing is orphaned.
+      if (breaches.length === 0) {
+        logger.warn('monitor.digest_empty_skipped', { userId, digestId });
+        continue;
+      }
       await enqueueMonitorDigestDeliveries(digestId, buildDigestPayload(breaches, config.publicOrigin ?? ''));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

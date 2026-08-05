@@ -58,6 +58,7 @@
 
 /* P10 investment-thesis and portfolio monitor rules */
 .pf-monitor-grid{grid-template-columns:1fr 1fr}
+.pf-monitor-precondition{margin:0;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);color:var(--ink-muted);font-size:10px;line-height:1.5}
 .pf-monitor-editor{margin:0;padding:16px 20px;border:0;border-top:1px solid var(--border)}
 .pf-form-grid .pf-monitor-editor{grid-column:1/-1}
 .pf-monitor-editor legend{float:left;width:100%;margin-bottom:8px;color:var(--ink-strong);font-size:10.5px;font-weight:700}

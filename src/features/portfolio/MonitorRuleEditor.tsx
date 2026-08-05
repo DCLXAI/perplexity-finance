@@ -100,6 +100,10 @@ const STATE_LABEL: Readonly<Record<MonitorRule['state'], string>> = Object.freez
   latched: '경보 발동 · 재확인 필요',
 });
 
+function isBlank(value: string): boolean {
+  return value.trim() === '';
+}
+
 function isThesisCondition(value: unknown): value is ThesisCondition {
   return typeof value === 'string' && (THESIS_CONDITIONS as readonly string[]).includes(value);
 }
@@ -156,8 +160,14 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
   const [thesisDraft, setThesisDraft] = useState<ThesisDraft>(() => defaultThesisDraft(symbol));
   const [riskDraft, setRiskDraft] = useState<RiskDraft>(defaultRiskDraft);
   const [stressDraft, setStressDraft] = useState<StressDraft>(defaultStressDraft);
+  const [formThesisId, setFormThesisId] = useState<string | null>(thesisId ?? null);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    if (editingRuleId) return;
+    setThesisDraft((current) => ({ ...current, symbol: symbol?.trim().toUpperCase() ?? current.symbol }));
+  }, [symbol, editingRuleId]);
 
   useEffect(() => {
     if (!accessToken) {
@@ -184,6 +194,7 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
     setThesisDraft(defaultThesisDraft(symbol));
     setRiskDraft(defaultRiskDraft());
     setStressDraft(defaultStressDraft());
+    setFormThesisId(thesisId ?? null);
     setFormError('');
   };
 
@@ -197,6 +208,7 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
     setKind(rule.kind);
     setEnabled(rule.enabled);
     setMinIntervalHours(String(rule.minIntervalHours));
+    setFormThesisId(rule.thesisId);
     setFormError('');
     const spec = rule.spec;
     if (rule.kind === 'thesis_invalidation') {
@@ -273,11 +285,15 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
     let spec: Record<string, unknown>;
     if (kind === 'thesis_invalidation') {
       const draftSymbol = thesisDraft.symbol.trim().toUpperCase();
-      const value = Number(thesisDraft.value);
       if (!draftSymbol || draftSymbol.length > 20 || !/^[A-Za-z0-9.:-]+$/.test(draftSymbol)) {
         setFormError('심볼 형식을 확인하세요 (영문·숫자·.:- 조합, 최대 20자).');
         return;
       }
+      if (isBlank(thesisDraft.value)) {
+        setFormError('조건 값을 입력하세요.');
+        return;
+      }
+      const value = Number(thesisDraft.value);
       if (!Number.isFinite(value)) {
         setFormError('조건 값을 입력하세요.');
         return;
@@ -286,8 +302,8 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
         setFormError('기준 가격은 0보다 커야 합니다.');
         return;
       }
-      if ((thesisDraft.condition === 'drawdown_from_entry_pct' || thesisDraft.condition === 'weight_above_pct') && (value < 0 || value > 1000)) {
-        setFormError('비율 임계치는 0~1000 사이여야 합니다.');
+      if ((thesisDraft.condition === 'drawdown_from_entry_pct' || thesisDraft.condition === 'weight_above_pct') && (value <= 0 || value > 1000)) {
+        setFormError('비율 임계치는 0보다 크고 1000 이하여야 합니다.');
         return;
       }
       if (thesisDraft.condition === 'no_verified_price_days' && (!Number.isInteger(value) || value < 1 || value > 365)) {
@@ -296,6 +312,10 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
       }
       spec = { condition: thesisDraft.condition, symbol: draftSymbol, value };
     } else if (kind === 'risk_threshold') {
+      if (isBlank(riskDraft.value)) {
+        setFormError('임계값을 입력하세요.');
+        return;
+      }
       const value = Number(riskDraft.value);
       if (!Number.isFinite(value) || value < -1000 || value > 1000) {
         setFormError('임계값은 -1000~1000 사이여야 합니다.');
@@ -310,12 +330,24 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
       const shocks: Record<string, unknown>[] = [];
       for (const shock of stressDraft.shocks) {
         const target = shock.target.trim();
+        if (!target || target.length > 40) {
+          setFormError('충격 시나리오의 대상을 확인하세요.');
+          return;
+        }
+        if (isBlank(shock.changePct)) {
+          setFormError('충격 시나리오의 변화율을 입력하세요.');
+          return;
+        }
         const changePct = Number(shock.changePct);
-        if (!target || target.length > 40 || !Number.isFinite(changePct) || changePct < -100 || changePct > 1000) {
-          setFormError('충격 시나리오의 대상과 변화율을 확인하세요.');
+        if (!Number.isFinite(changePct) || changePct < -100 || changePct > 1000) {
+          setFormError('충격 시나리오의 변화율을 확인하세요.');
           return;
         }
         shocks.push({ targetType: shock.targetType, target, changePct });
+      }
+      if (isBlank(stressDraft.maxProjectedLossPct)) {
+        setFormError('최대 허용 손실을 입력하세요.');
+        return;
       }
       const maxProjectedLossPct = Number(stressDraft.maxProjectedLossPct);
       if (!Number.isFinite(maxProjectedLossPct) || maxProjectedLossPct < 0 || maxProjectedLossPct > 1000) {
@@ -323,6 +355,10 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
         return;
       }
       spec = { shocks, maxProjectedLossPct };
+    }
+    if (isBlank(minIntervalHours)) {
+      setFormError('최소 재평가 간격을 입력하세요.');
+      return;
     }
     const parsedInterval = Number(minIntervalHours);
     if (!Number.isInteger(parsedInterval) || parsedInterval < 1 || parsedInterval > 8760) {
@@ -333,7 +369,7 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
     try {
       const body = {
         portfolioId,
-        thesisId: thesisId ?? null,
+        thesisId: formThesisId,
         kind,
         spec,
         enabled,
@@ -423,7 +459,6 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
             <label>
               <span>심볼</span>
               <input
-                required
                 maxLength={20}
                 value={thesisDraft.symbol}
                 onChange={(event) => setThesisDraft((current) => ({ ...current, symbol: event.target.value.toUpperCase() }))}
@@ -442,7 +477,6 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
               <span>{CONDITION_VALUE_LABEL[thesisDraft.condition]}</span>
               <input
                 type="number"
-                required
                 step="any"
                 value={thesisDraft.value}
                 onChange={(event) => setThesisDraft((current) => ({ ...current, value: event.target.value }))}
@@ -476,7 +510,6 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
               <span>임계값</span>
               <input
                 type="number"
-                required
                 step="any"
                 value={riskDraft.value}
                 onChange={(event) => setRiskDraft((current) => ({ ...current, value: event.target.value }))}
@@ -510,7 +543,6 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
                 />
                 <input
                   type="number"
-                  required
                   step="0.1"
                   value={shock.changePct}
                   onChange={(event) => updateShock(shock.id, { changePct: event.target.value })}
@@ -526,7 +558,6 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
                 type="number"
                 min="0"
                 max="1000"
-                required
                 step="0.1"
                 value={stressDraft.maxProjectedLossPct}
                 onChange={(event) => setStressDraft((current) => ({ ...current, maxProjectedLossPct: event.target.value }))}
@@ -542,7 +573,7 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
           </label>
           <label>
             <span>최소 재평가 간격 · 시간</span>
-            <input type="number" min="1" max="8760" required value={minIntervalHours} onChange={(event) => setMinIntervalHours(event.target.value)} />
+            <input type="number" min="1" max="8760" value={minIntervalHours} onChange={(event) => setMinIntervalHours(event.target.value)} />
           </label>
         </div>
 

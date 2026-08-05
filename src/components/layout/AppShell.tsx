@@ -2,12 +2,13 @@
    App shell — sticky header, route tabs, title/focus management.
    ============================================================ */
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useSearchParams } from 'react-router';
 import { SNAPSHOT } from '@/data/universe';
 import AccountButton from '@/cloud/AccountButton';
 import { useAuth } from '@/cloud/AuthProvider';
 import DataStatusButton from '@/live/DataStatusButton';
 import { useMarketRuntimeStatus } from '@/live/marketRuntime';
+import { REGION_PARAM, regionFromSearch } from '@/data/region';
 import { useTheme } from '@/data/store';
 import AlertsButton from '@/features/alerts/AlertsButton';
 import ToastHost from '@/features/alerts/ToastHost';
@@ -16,18 +17,32 @@ import './layout.css';
 
 const SearchPalette = lazy(() => import('@/features/search/SearchPalette'));
 
-const TABS: { to: string; label: string; flag?: string }[] = [
+interface Tab {
+  readonly to: string;
+  readonly label: string;
+  readonly flag?: string;
+  /** Korea has no per-trade disclosure feed and no domestic prediction market: hide under KR. */
+  readonly usOnly?: boolean;
+}
+
+const TABS: readonly Tab[] = [
   { to: '/', label: '미국 시장', flag: '🇺🇸' },
   { to: '/crypto', label: '암호화폐' },
   { to: '/earnings', label: '수익' },
-  { to: '/predictions', label: '예측' },
+  { to: '/predictions', label: '예측', usOnly: true },
   { to: '/screener', label: '스크리너' },
-  { to: '/politicians', label: '정치인' },
+  { to: '/politicians', label: '정치인', usOnly: true },
   { to: '/watchlist', label: '관심목록' },
   { to: '/portfolio', label: '포트폴리오' },
   { to: '/apps', label: '앱 갤러리' },
   { to: '/status', label: '시스템 상태' },
 ];
+
+/** Keep the region parameter on nav links so moving between tabs doesn't silently fall back to US. */
+function withRegion(to: string, region: string | null): string {
+  if (!region) return to;
+  return `${to}?${REGION_PARAM}=${region}`;
+}
 
 function SentimentBars({ score }: { score: number }) {
   const bars = 10;
@@ -48,10 +63,14 @@ export default function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false);
   const { theme, toggle } = useTheme();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const region = regionFromSearch(searchParams);
+  const regionParam = searchParams.get(REGION_PARAM);
   const marketStatus = useMarketRuntimeStatus();
   const { isOps } = useAuth();
   const mainRef = useRef<HTMLElement>(null);
   const priorPathRef = useRef(location.pathname);
+  const visibleTabs = TABS.filter((tab) => !tab.usOnly || region === 'US');
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -135,10 +154,10 @@ export default function AppShell() {
 
       <nav className="app-tabbar" aria-label="주요 금융 화면">
         <div className="tabbar-tabs">
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <NavLink
               key={tab.to}
-              to={tab.to}
+              to={withRegion(tab.to, regionParam)}
               end={tab.to === '/'}
               className={({ isActive }) =>
                 `tabbar-tab${isActive || (tab.to === '/' && location.pathname.startsWith('/stock')) ? ' active' : ''}`

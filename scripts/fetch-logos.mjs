@@ -22,11 +22,21 @@ const outDir = path.join(root, 'public/logos');
 /** Symbols whose bundled file is fetched under a different ticker. */
 const TICKER_ALIASES = { 'BRK-B': 'BRKB' };
 
-/** Crypto marks come from simple-icons, keyed by brand slug rather than ticker. */
-const CRYPTO_SLUGS = {
+/**
+ * Crypto marks need three sources because no single one covers the set:
+ * simple-icons is keyed by brand slug, spothq by short ticker, and the last
+ * four only resolve on CoinMarketCap's static assets, keyed by numeric id.
+ */
+const CRYPTO_SIMPLE_ICONS = {
   BTCUSD: 'bitcoin', ETHUSD: 'ethereum', SOLUSD: 'solana', XRPUSD: 'ripple',
   DOGEUSD: 'dogecoin', BNBUSD: 'binance', ADAUSD: 'cardano', LINKUSD: 'chainlink',
   LTCUSD: 'litecoin', DOTUSD: 'polkadot', XLMUSD: 'stellar', NEARUSD: 'near',
+};
+const CRYPTO_SPOTHQ = {
+  TRXUSD: 'trx', AVAXUSD: 'avax', UNIUSD: 'uni', ATOMUSD: 'atom',
+};
+const CRYPTO_CMC_IDS = {
+  SHIBUSD: 5994, APTUSD: 21794, ARBUSD: 11841, ONDOUSD: 21159,
 };
 
 function symbolsFromUniverse() {
@@ -60,9 +70,14 @@ async function main() {
       (await download(`https://assets.parqet.com/logos/symbol/${ticker}`, dest));
     if (!got) missing.push(symbol);
   }
-  for (const [symbol, slug] of Object.entries(CRYPTO_SLUGS)) {
-    if (!(await download(`https://cdn.simpleicons.org/${slug}`, path.join(outDir, symbol)))) {
-      missing.push(symbol);
+  const cryptoSources = [
+    [CRYPTO_SIMPLE_ICONS, (v) => `https://cdn.simpleicons.org/${v}`],
+    [CRYPTO_SPOTHQ, (v) => `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/${v}.png`],
+    [CRYPTO_CMC_IDS, (v) => `https://s2.coinmarketcap.com/static/img/coins/128x128/${v}.png`],
+  ];
+  for (const [map, toUrl] of cryptoSources) {
+    for (const [symbol, key] of Object.entries(map)) {
+      if (!(await download(toUrl(key), path.join(outDir, symbol)))) missing.push(symbol);
     }
   }
 

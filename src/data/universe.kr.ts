@@ -80,7 +80,7 @@ export const KR_STOCKS: KrStockRow[] = [
   ['251270', 'Netmarble Corporation', '넷마블', 'comm', 3.11, 37950, -3.44],
 
   // ---------- 금융 서비스 ----------
-  ['105560', 'KB Financial Group Inc.', 'KB금융', 'fin', 59.87, 169544, 1.13],
+  ['105560', 'KB Financial Group Inc.', 'KB금융', 'fin', 59.87, 169500, 1.13],
   ['032830', 'Samsung Life Insurance Co., Ltd.', '삼성생명', 'fin', 52.79, 294000, 5.76],
   ['055550', 'Shinhan Financial Group Co., Ltd.', '신한지주', 'fin', 49.17, 103600, 1.27],
   ['086790', 'Hana Financial Group Inc.', '하나금융지주', 'fin', 34.4, 128600, 0.78],
@@ -96,6 +96,7 @@ export const KR_STOCKS: KrStockRow[] = [
   ['016360', 'Samsung Securities Co., Ltd.', '삼성증권', 'fin', 8.72, 97600, -1.01],
   ['039490', 'Kiwoom Securities Co., Ltd.', '키움증권', 'fin', 7.67, 292500, 2.99],
   ['377300', 'Kakao Pay Corp.', '카카오페이', 'fin', 5.62, 42000, -4.11],
+  ['175330', 'JB Financial Group Co., Ltd.', 'JB금융지주', 'fin', 5.16, 27500, 2.77],
   ['138930', 'BNK Financial Group Inc.', 'BNK금융지주', 'fin', 4.69, 14940, -1.13],
   ['088350', 'Hanwha Life Insurance Co., Ltd.', '한화생명', 'fin', 3.24, 4355, 1.04],
   ['031210', 'Seoul Guarantee Insurance Co., Ltd.', '서울보증보험', 'fin', 2.97, 42950, 0.94],
@@ -162,6 +163,7 @@ export const KR_STOCKS: KrStockRow[] = [
   ['298040', 'Hyosung Heavy Industries Corporation', '효성중공업', 'industrials', 27.8, 2985000, 12.43],
   ['267260', 'HD Hyundai Electric Co., Ltd.', 'HD현대일렉트릭', 'industrials', 27.79, 772000, 7.82],
   ['011200', 'HMM Co., Ltd.', 'HMM', 'industrials', 20, 21100, -0.47],
+  ['000150', 'Doosan Corporation', '두산', 'industrials', 19.23, 1259000, -1.1],
   ['010140', 'Samsung Heavy Industries Co., Ltd.', '삼성중공업', 'industrials', 18.96, 22200, 2.54],
   ['079550', 'LIG Nex1 Co., Ltd.', 'LIG넥스원', 'industrials', 17.43, 798000, -0.37],
   ['003550', 'LG Corp.', 'LG(주)', 'industrials', 16.35, 106800, 4.71],
@@ -178,6 +180,7 @@ export const KR_STOCKS: KrStockRow[] = [
   ['180640', 'Hanjin Kal Corp.', '한진칼', 'industrials', 8.19, 123900, 2.91],
   ['267270', 'HD Hyundai Construction Equipment Co., Ltd.', 'HD현대건설기계', 'industrials', 6.78, 141900, 11.64],
   ['047040', 'Daewoo Engineering & Construction Co., Ltd.', '대우건설', 'industrials', 6.59, 16230, 6.78],
+  ['241560', 'Doosan Bobcat Inc.', '두산밥캣', 'industrials', 6.16, 63900, 2.55],
   ['001440', 'Taihan Cable & Solution Co., Ltd.', '대한전선', 'industrials', 5.55, 28450, 11.57],
   ['000880', 'Hanwha Corporation', '한화', 'industrials', 5.46, 83800, -3.46],
   ['454910', 'Doosan Robotics Inc.', '두산로보틱스', 'industrials', 4.73, 73000, 6.57],
@@ -224,7 +227,7 @@ export const KR_STOCKS: KrStockRow[] = [
   ['014680', 'Hansol Chemical Co., Ltd.', '한솔케미칼', 'materials', 2.33, 225500, 5.13],
 
   // ---------- 유틸리티 ----------
-  ['015760', 'Korea Electric Power Corporation', '한국전력공사', 'utilities', 22.92, 35700, 1.57],
+  ['015760', 'Korea Electric Power Corporation', '한국전력공사', 'utilities', 22.92, 35700, 1.56],
   ['036460', 'Korea Gas Corporation', '한국가스공사', 'utilities', 2.96, 33950, -0.44],
 ];
 
@@ -298,9 +301,9 @@ export const KR_SECTORS: SectorInfo[] = [
   { id: 'cons-cyc',    nameKo: '경기소비재',        nameEn: 'Consumer Cyclical',      indexValue: 23.14,  changePct: 2.86 },
   { id: 'cons-def',    nameKo: '필수소비재',        nameEn: 'Consumer Defensive',     indexValue: 8.66,   changePct: -0.13 },
   { id: 'comm',        nameKo: '커뮤니케이션 서비스', nameEn: 'Communication Services', indexValue: 10.76,  changePct: 0.27 },
-  { id: 'industrials', nameKo: '산업재',            nameEn: 'Industrials',            indexValue: 76.98,  changePct: 5.10 },
-  { id: 'fin',         nameKo: '금융 서비스',       nameEn: 'Financial Services',     indexValue: 38.60,  changePct: 1.72 },
-  { id: 'utilities',   nameKo: '유틸리티',          nameEn: 'Utilities',              indexValue: 2.59,   changePct: 1.34 },
+  { id: 'industrials', nameKo: '산업재',            nameEn: 'Industrials',            indexValue: 79.52,  changePct: 4.93 },
+  { id: 'fin',         nameKo: '금융 서비스',       nameEn: 'Financial Services',     indexValue: 39.11,  changePct: 1.73 },
+  { id: 'utilities',   nameKo: '유틸리티',          nameEn: 'Utilities',              indexValue: 2.59,   changePct: 1.33 },
   { id: 'materials',   nameKo: '기초 소재',         nameEn: 'Basic Materials',        indexValue: 11.95,  changePct: 3.12 },
   { id: 'realestate',  nameKo: '부동산',            nameEn: 'Real Estate',            indexValue: 1.00,   changePct: 0 },
   { id: 'healthcare',  nameKo: '의료',              nameEn: 'Healthcare',             indexValue: 13.76,  changePct: 1.52 },

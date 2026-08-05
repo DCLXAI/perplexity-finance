@@ -78,7 +78,7 @@ await call('/api/ops/summary', [401, 503]);
 if (process.env.SMOKE_SKIP_WEB !== '1') {
   const response = await fetch(base, { redirect: 'manual', headers: commonHeaders });
   assert.equal(response.status, 200);
-  assert.match(await response.text(), /Perplexity 금융/);
+  assert.match(await response.text(), /Synapsu/);
 }
 
 console.log(JSON.stringify({

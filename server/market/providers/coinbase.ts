@@ -17,7 +17,7 @@ function productId(symbol: string): string {
 }
 async function fetchJson(url: string, signal: AbortSignal): Promise<unknown> {
   const response = await fetch(url, {
-    headers: { Accept: 'application/json', 'User-Agent': 'Perplexity-Finance/1.4' },
+    headers: { Accept: 'application/json', 'User-Agent': 'Synapsu/1.4' },
     signal,
   });
   const data: unknown = await response.json().catch(() => ({}));

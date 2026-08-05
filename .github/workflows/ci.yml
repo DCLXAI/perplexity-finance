@@ -37,7 +37,7 @@ jobs:
         if: always() && matrix.node == '22' && hashFiles('dist/**') != ''
         uses: actions/upload-artifact@v5
         with:
-          name: perplexity-finance-dist-${{ github.sha }}
+          name: synapsu-dist-${{ github.sha }}
           path: dist
           if-no-files-found: error
           retention-days: 7

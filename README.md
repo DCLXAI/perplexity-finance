@@ -1,8 +1,8 @@
-# Perplexity Finance — P10 Rule-Based Portfolio Monitoring
+# Synapsu — P10 Rule-Based Portfolio Monitoring
 
 **Version 1.11.0 · 2026-08-05**
 
-Perplexity Finance is a Vite/React financial terminal with explicit provider provenance, durable alerts, an operations control plane, and an append-only personal investment decision ledger.
+Synapsu is a Vite/React financial terminal with explicit provider provenance, durable alerts, an operations control plane, and an append-only personal investment decision ledger.
 
 P10 adds structured monitor rules over investment theses, risk thresholds, and stress scenarios, evaluated against the same provider-quality data the rest of the product uses, with a transition-latched digest so a breach is reported once, not on every scan.
 

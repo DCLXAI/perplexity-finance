@@ -104,7 +104,7 @@ export default function DocumentTitle() {
   const metadata = metadataForPath(pathname);
 
   useEffect(() => {
-    document.title = `${metadata.title} | Perplexity 금융`;
+    document.title = `${metadata.title} | Synapsu`;
     upsertMetaDescription(metadata.description);
   }, [metadata.description, metadata.title]);
 

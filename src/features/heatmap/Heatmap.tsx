@@ -396,7 +396,7 @@ export default function Heatmap({ height = 420 }: { height?: number }) {
           <span className="hm-scale-label num">+3%</span>
         </div>
         <span className="hm-wordmark" aria-hidden="true">
-          perplexity
+          synapsu
         </span>
       </div>
 

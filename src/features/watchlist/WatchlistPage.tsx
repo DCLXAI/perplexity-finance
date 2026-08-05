@@ -6,10 +6,21 @@ import { memo, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { Card, ChangeBadge, LogoChip, Sparkline } from '@/components/ui';
 import { engine } from '@/data/engine';
-import { clsx, fmtCompact, fmtQuoteChange, fmtQuoteValue } from '@/data/format';
+import { KRW_PER_USD } from '@/data/universe.kr';
+import { clsx, fmtCompact, fmtKrwCompact, fmtQuoteChange, fmtQuoteValue } from '@/data/format';
 import { useQuotes, useWatchlist } from '@/data/store';
 import type { Quote } from '@/data/types';
 import './watchlist.css';
+
+/**
+ * The watchlist is deliberately cross-region (Step 3): a US row and a Korean row sit in the
+ * same table, each rendering in its own currency. `quote.marketCap` is always USD (see
+ * universe.kr.ts), so a KR row converts back to won for display — same pattern as Heatmap.tsx.
+ */
+function fmtRowMarketCap(quote: Pick<Quote, 'unit' | 'marketCap'>): string {
+  const cap = quote.marketCap ?? 0;
+  return quote.unit === 'KRW' ? fmtKrwCompact(cap * KRW_PER_USD) : `US$${fmtCompact(cap)}`;
+}
 
 const WlRow = memo(function WlRow({
   quote,
@@ -40,7 +51,7 @@ const WlRow = memo(function WlRow({
         {fmtQuoteChange(quote, quote.change)}
       </td>
       <td><ChangeBadge value={quote.changePct} /></td>
-      <td className="num">{quote.marketCap ? `US$${fmtCompact(quote.marketCap)}` : '—'}</td>
+      <td className="num">{quote.marketCap ? fmtRowMarketCap(quote) : '—'}</td>
       <td className="wl-spark-cell">
         <Sparkline data={quote.spark} width={110} height={30} baseline={quote.prevClose} />
       </td>

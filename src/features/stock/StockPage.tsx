@@ -9,7 +9,8 @@ import { engine } from '@/data/engine';
 import { useQuote, useQuotes, useWatchlist } from '@/data/store';
 import { GENERAL_NEWS } from '@/data/content';
 import { SECTOR_BY_ID } from '@/data/universe';
-import { clsx, fmtAssetVolume, fmtQuoteChange, fmtQuoteValue, fmtUsdCompact } from '@/data/format';
+import { KRW_PER_USD } from '@/data/universe.kr';
+import { clsx, fmtAssetVolume, fmtKrwCompact, fmtQuoteChange, fmtQuoteValue, fmtUsdCompact } from '@/data/format';
 import type { AssetKind, NewsItem, Quote, QuoteSessionSnapshot } from '@/data/types';
 import AlertDialog from '@/features/alerts/AlertDialog';
 import PriceChart from './PriceChart.js';
@@ -29,6 +30,12 @@ function displaySession(quote: Quote): QuoteSessionSnapshot {
   return session;
 }
 
+/** `quote.marketCap` is always USD (see universe.kr.ts); KR-priced rows convert back to won for display. */
+function fmtMarketCap(quote: Pick<Quote, 'unit' | 'marketCap'>): string {
+  const cap = quote.marketCap ?? 0;
+  return quote.unit === 'KRW' ? fmtKrwCompact(cap * KRW_PER_USD) : fmtUsdCompact(cap);
+}
+
 function sessionName(session: QuoteSessionSnapshot): string {
   if (session.kind === 'continuous') return '24/7 세션';
   if (session.kind === 'after-hours') return '시간외 세션';
@@ -36,7 +43,7 @@ function sessionName(session: QuoteSessionSnapshot): string {
 }
 
 function sessionAsOfLabel(quote: Quote, session: QuoteSessionSnapshot): string {
-  const timeZone = quote.kind === 'crypto' ? 'Asia/Seoul' : 'America/New_York';
+  const timeZone = quote.kind === 'crypto' || quote.region === 'KR' ? 'Asia/Seoul' : 'America/New_York';
   return new Intl.DateTimeFormat('ko-KR', {
     month: 'short',
     day: 'numeric',
@@ -109,7 +116,7 @@ function StatsCard({ symbol }: { symbol: string }) {
     { label: `${label} 저가`, value: fmtQuoteValue(quote, session.low) },
     { label: '전일 종가', value: fmtQuoteValue(quote, quote.prevClose) },
     { label: `${label} 거래량`, value: fmtAssetVolume(quote, session.volume) },
-    { label: '시가총액', value: quote.marketCap !== undefined ? fmtUsdCompact(quote.marketCap) : '-' },
+    { label: '시가총액', value: quote.marketCap !== undefined ? fmtMarketCap(quote) : '-' },
     { label: '52주 최고 · 최저', value: yearRange ? `${fmtQuoteValue(quote, yearRange.hi)} · ${fmtQuoteValue(quote, yearRange.lo)}` : '-' },
     { label: '섹터', value: sectorLabel, numeric: false },
     { label: '세션 상태', value: session.status === 'open' ? '열림' : '마감', numeric: false },
@@ -176,10 +183,15 @@ function PeersCard({ symbol }: { symbol: string }) {
     if (q.kind === 'crypto') {
       pool = engine.getCrypto();
     } else if (q.kind === 'stock' || q.kind === 'etf') {
-      pool = engine.getStocks().filter((p) => !q.sectorId || p.sectorId === q.sectorId);
+      // Scope to the quote's own region (not a URL param — this page has no region param by
+      // design), so a Korean stock's peers don't pull in US names sharing the same sector.
+      pool = engine.getStocks(q.region).filter((p) => !q.sectorId || p.sectorId === q.sectorId);
     } else {
-      // index / future → show the other macro quotes
-      pool = engine.getAll().filter((p) => p.kind === 'index' || p.kind === 'future');
+      // index / future → show the other macro quotes from the same region, for the same
+      // reason as the stock/etf branch above: a KR benchmark's peers shouldn't be US futures.
+      pool = engine
+        .getAll(q.region)
+        .filter((p) => p.kind === 'index' || p.kind === 'future');
     }
     return pool
       .filter((p) => p.symbol !== q.symbol)

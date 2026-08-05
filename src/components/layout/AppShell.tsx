@@ -123,7 +123,7 @@ export default function AppShell() {
       </a>
 
       <header className="app-header">
-        <Link className="hdr-brand" to="/" aria-label="Synapsu 미국 시장 홈">
+        <Link className="hdr-brand" to="/" aria-label={`Synapsu ${REGION_LABELS[region].label} 홈`}>
           {/* Synapse motif: a signal crossing a cleft between two nodes. */}
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <g stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
@@ -199,7 +199,7 @@ export default function AppShell() {
           <span className="tabbar-sentiment">
             <SentimentBars score={SNAPSHOT.sentimentScore} /> {SNAPSHOT.sentimentLabel}
           </span>
-          <span>{marketStatus.label} · {marketStatus.asOfISO ? `공급자 ${new Date(marketStatus.asOfISO).toLocaleString('ko-KR')}` : `로컬 기준 ${SNAPSHOT.closeLabelKo}`}</span>
+          <span>{marketStatus.label} · {marketStatus.asOfISO ? `공급자 ${new Date(marketStatus.asOfISO).toLocaleString('ko-KR')}` : `로컬 기준 ${region === 'KR' ? SNAPSHOT.krAsOfLabelKo : SNAPSHOT.closeLabelKo}`}</span>
         </div>
       </nav>
 

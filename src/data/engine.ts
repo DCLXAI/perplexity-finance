@@ -52,7 +52,17 @@ const SPARK_POINTS = 80;
 const EMPTY_QUOTES: readonly Quote[] = Object.freeze([]);
 const EMPTY_CANDLES: readonly CandlePoint[] = Object.freeze([]);
 const EQUITY_AS_OF_TS = Math.floor(new Date(SNAPSHOT.asOfISO).getTime() / 1000);
+const KR_EQUITY_AS_OF_TS = Math.floor(new Date(SNAPSHOT.krAsOfISO).getTime() / 1000);
 const CRYPTO_AS_OF_TS = Math.floor(new Date(SNAPSHOT.cryptoAsOfISO).getTime() / 1000);
+
+/** Korean equities were captured a session after the US anchor (see universe.kr.ts) — route non-crypto quotes through the right as-of by region rather than always assuming the US close. */
+function equityAsOfISO(region: MarketRegion): string {
+  return region === 'KR' ? SNAPSHOT.krAsOfISO : SNAPSHOT.asOfISO;
+}
+
+function equityAsOfTs(region: MarketRegion): number {
+  return region === 'KR' ? KR_EQUITY_AS_OF_TS : EQUITY_AS_OF_TS;
+}
 
 function localProvenance(asOfISO: string): DataProvenance {
   return Object.freeze({
@@ -130,7 +140,7 @@ function buildQuote(seed: (typeof SEED_ASSETS)[number]): Quote {
   const activeSession: QuoteSessionSnapshot = {
     kind: seed.kind === 'crypto' ? 'continuous' : 'regular',
     status: seed.kind === 'crypto' ? 'open' : 'closed',
-    asOfISO: seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : SNAPSHOT.asOfISO,
+    asOfISO: seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : equityAsOfISO(seed.region),
     price: seed.price,
     volume,
     high,
@@ -149,7 +159,7 @@ function buildQuote(seed: (typeof SEED_ASSETS)[number]): Quote {
     open,
     spark,
     seq: 0,
-    provenance: localProvenance(seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : SNAPSHOT.asOfISO),
+    provenance: localProvenance(seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : equityAsOfISO(seed.region)),
     sessions:
       seed.kind === 'crypto'
         ? { continuous: activeSession }
@@ -358,9 +368,9 @@ export class MarketEngine {
     if (!quote) return EMPTY_CANDLES;
 
     const calendar = calendarForAsset(quote.kind, quote.region);
-    const asOfISO = quote.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : SNAPSHOT.asOfISO;
+    const asOfISO = quote.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : equityAsOfISO(quote.region);
     const endDateISO = asOfISO.slice(0, 10);
-    const endTimestamp = quote.kind === 'crypto' ? CRYPTO_AS_OF_TS : EQUITY_AS_OF_TS;
+    const endTimestamp = quote.kind === 'crypto' ? CRYPTO_AS_OF_TS : equityAsOfTs(quote.region);
     let candles: CandlePoint[];
 
     if (range === '1D' || range === '5D' || range === '7D') {

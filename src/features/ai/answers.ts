@@ -187,14 +187,20 @@ function marketBrief(): string {
     lines.push(`· **${q.nameKo ?? q.name}** ${fmtQuoteValue(q, q.price)} (${fmtPct(q.changePct)})${note}`);
   }
 
+  // `movers()` is a listing (same rule as MoversCard), so it needs a region — this rule-based
+  // fallback bot has no request-time region context (the client fetch/localFallbackAnswer path
+  // carries only message text), so it defaults to 'US' rather than leaving the region
+  // unspecified. Leaving it unspecified silently mixed US and KR stocks into one ranked list,
+  // which was the actual bug (not merely "shows US movers under KR"). See task-10-report.md
+  // for why full region plumbing through the AI request contract was judged out of scope here.
   lines.push('');
   lines.push('**상승 상위**');
-  for (const q of engine.movers('up', 3)) {
+  for (const q of engine.movers('up', 3, 0, 'US')) {
     lines.push(`· ${q.nameKo ?? q.name} (${q.symbol}) **${fmtPct(q.changePct)}** · ${fmtQuoteValue(q, q.price)}`);
   }
   lines.push('');
   lines.push('**하락 상위**');
-  for (const q of engine.movers('down', 3)) {
+  for (const q of engine.movers('down', 3, 0, 'US')) {
     lines.push(`· ${q.nameKo ?? q.name} (${q.symbol}) **${fmtPct(q.changePct)}** · ${fmtQuoteValue(q, q.price)}`);
   }
 

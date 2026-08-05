@@ -1,7 +1,8 @@
 import { memo, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { Card, LogoChip } from '@/components/ui';
 import { engine } from '@/data/engine';
+import { regionFromSearch } from '@/data/region';
 import { SNAPSHOT } from '@/data/universe';
 import { apiFetch } from '@/live/apiClient';
 import type { EarningsResponse, LiveEarningsEntry } from '@/shared/api';
@@ -32,6 +33,8 @@ const EntryRow = memo(function EntryRow({ entry }: { entry: LiveEarningsEntry })
 });
 
 export default function EarningsPage() {
+  const [searchParams] = useSearchParams();
+  const region = regionFromSearch(searchParams);
   const [response, setResponse] = useState<EarningsResponse | null>(null);
   const [selected, setSelected] = useState(SNAPSHOT.todayISO);
   const [showAll, setShowAll] = useState(false);
@@ -54,11 +57,18 @@ export default function EarningsPage() {
     return () => controller.abort();
   }, []);
 
-  const dates = useMemo(() => [...new Set((response?.entries ?? []).map((entry) => entry.reportDate))].sort().slice(0, 14), [response]);
+  // The provider calendar (Alpha Vantage, or its static US fallback) only ever carries US-listed
+  // symbols — there is no Korean earnings feed yet. Scope to the active region rather than
+  // showing US disclosures under a Korean label: an entry with no resolvable quote in our
+  // universe is treated as US, since every entry in this feed is a real US-listed company.
+  const regionEntries = useMemo(
+    () => (response?.entries ?? []).filter((entry) => (engine.getQuote(entry.symbol)?.region ?? 'US') === region),
+    [response, region],
+  );
+  const dates = useMemo(() => [...new Set(regionEntries.map((entry) => entry.reportDate))].sort().slice(0, 14), [regionEntries]);
   const entries = useMemo(() => {
-    const source = response?.entries ?? Object.freeze([]);
-    return showAll ? source.slice(0, 100) : source.filter((entry) => entry.reportDate === selected);
-  }, [response, selected, showAll]);
+    return showAll ? regionEntries.slice(0, 100) : regionEntries.filter((entry) => entry.reportDate === selected);
+  }, [regionEntries, selected, showAll]);
 
   const step = (direction: -1 | 1) => {
     const index = dates.indexOf(selected);
@@ -74,7 +84,7 @@ export default function EarningsPage() {
             <div>
               <h1 className="section-title">실적 일정</h1>
               <div className="er-sub muted">
-                {!response ? '공급자 연결 중…' : response.fallback ? 'Alpha Vantage 미연결 · 정적 폴백 예시' : `Alpha Vantage 스냅숏 · ${response.entries.length}개 일정`}
+                {!response ? '공급자 연결 중…' : response.fallback ? 'Alpha Vantage 미연결 · 정적 폴백 예시' : `Alpha Vantage 스냅숏 · ${regionEntries.length}개 일정`}
               </div>
             </div>
             <div className="er-actions">
@@ -98,7 +108,7 @@ export default function EarningsPage() {
 
           <div className="er-week" role="group" aria-label="실적 발표 날짜">
             {dates.map((date) => {
-              const dayCount = response?.entries.filter((entry) => entry.reportDate === date).length ?? 0;
+              const dayCount = regionEntries.filter((entry) => entry.reportDate === date).length;
               const day = new Date(`${date}T12:00:00Z`);
               return (
                 <button key={date} type="button" className={`er-day${!showAll && selected === date ? ' selected' : ''}`} onClick={() => { setSelected(date); setShowAll(false); }} aria-pressed={!showAll && selected === date}>
@@ -128,7 +138,7 @@ export default function EarningsPage() {
             </p>
           </div>
         </div>
-        <aside><MarketRail predictionsFilter="earnings" /></aside>
+        <aside><MarketRail region={region} predictionsFilter="earnings" /></aside>
       </div>
       <AskBar placeholder="실적 일정과 종목에 대해 물어보세요" />
     </>

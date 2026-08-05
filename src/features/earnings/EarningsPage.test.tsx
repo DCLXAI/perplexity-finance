@@ -1,0 +1,104 @@
+// @vitest-environment jsdom
+import { act, cleanup, render, screen } from '@testing-library/react';
+import { createMemoryRouter, RouterProvider } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { engine } from '@/data/engine';
+import { SNAPSHOT } from '@/data/universe';
+import type { EarningsResponse } from '@/shared/api';
+
+const { apiFetchMock } = vi.hoisted(() => ({ apiFetchMock: vi.fn() }));
+vi.mock('@/live/apiClient', () => ({ apiFetch: apiFetchMock }));
+// EarningsPage also renders <AskBar/> and <MarketRail/>, which pull in auth context and
+// runtime-config fetches unrelated to the region-filtering behavior under test here — stub
+// them out so this test stays focused on EarningsPage's own entry-scoping logic.
+vi.mock('@/features/ai/AskBar', () => ({ default: () => null }));
+vi.mock('@/features/rail/RailWidgets', () => ({ MarketRail: () => null }));
+
+import EarningsPage from './EarningsPage.js';
+
+function fixtureResponse(): EarningsResponse {
+  return {
+    requestId: 'test',
+    generatedAt: '2026-08-05T00:00:00.000Z',
+    fallback: false,
+    provider: {
+      provider: 'alpha-vantage',
+      configured: true,
+      status: 'up',
+      mode: 'delayed',
+      message: 'ok',
+      checkedAt: '2026-08-05T00:00:00.000Z',
+    },
+    entries: [
+      {
+        symbol: 'AAPL',
+        name: 'Apple Inc.',
+        reportDate: SNAPSHOT.todayISO,
+        estimate: 1.5,
+        currency: 'USD',
+        providerTimestamp: '2026-08-05T00:00:00.000Z',
+      },
+      {
+        symbol: '005930',
+        name: 'Samsung Electronics Co., Ltd.',
+        reportDate: SNAPSHOT.todayISO,
+        currency: 'KRW',
+        providerTimestamp: '2026-08-05T00:00:00.000Z',
+      },
+      {
+        // No matching quote in either universe — per the "every entry in this feed is a real
+        // US-listed company" reasoning in EarningsPage.tsx, this must default to US, not vanish.
+        symbol: 'ZZZUNKNOWN',
+        name: 'Unknown Co',
+        reportDate: SNAPSHOT.todayISO,
+        currency: 'USD',
+        providerTimestamp: '2026-08-05T00:00:00.000Z',
+      },
+    ],
+  };
+}
+
+function mount(initialEntry: string) {
+  const router = createMemoryRouter([{ path: '/earnings', element: <EarningsPage /> }], {
+    initialEntries: [initialEntry],
+  });
+  return render(<RouterProvider router={router} />);
+}
+
+beforeEach(() => {
+  engine.stop();
+  apiFetchMock.mockReset();
+  apiFetchMock.mockResolvedValue(fixtureResponse());
+});
+
+afterEach(() => cleanup());
+
+/**
+ * Regression guard for Task 10 Step 1: the earnings feed (Alpha Vantage, or its static
+ * fallback) only ever carries US-listed symbols — there is no Korean earnings provider.
+ * EarningsPage must scope by resolving each entry's symbol against the engine and matching
+ * it to the active region, rather than showing every entry under every region label.
+ */
+describe('EarningsPage region scoping', () => {
+  it('shows only US-resolvable entries (plus unresolvable ones, treated as US) with no region param', async () => {
+    await act(async () => {
+      mount('/earnings');
+    });
+
+    expect(await screen.findByText('Apple Inc.')).toBeTruthy();
+    expect(screen.getByText('Unknown Co')).toBeTruthy();
+    expect(screen.queryByText('Samsung Electronics Co., Ltd.')).toBeNull();
+    expect(screen.getByText(/2개 일정/)).toBeTruthy();
+  });
+
+  it('shows only the Korean entry under ?region=kr', async () => {
+    await act(async () => {
+      mount('/earnings?region=kr');
+    });
+
+    expect(await screen.findByText('Samsung Electronics Co., Ltd.')).toBeTruthy();
+    expect(screen.queryByText('Apple Inc.')).toBeNull();
+    expect(screen.queryByText('Unknown Co')).toBeNull();
+    expect(screen.getByText(/1개 일정/)).toBeTruthy();
+  });
+});

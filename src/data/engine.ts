@@ -19,7 +19,9 @@ import {
 } from './calendar.js';
 import { bridgePath, gaussian, historyAtTimes, rngFor } from './seed.js';
 import { SEED_ASSETS, SNAPSHOT } from './universe.js';
+import { KR_SEED_ASSETS } from './universe.kr.js';
 import type { DataProvenance, RemoteCandle, RemoteQuotePatch } from '../shared/api.js';
+import type { MarketRegion } from './region.js';
 import type {
   CandlePoint,
   HistoryRange,
@@ -27,6 +29,9 @@ import type {
   Quote,
   QuoteSessionSnapshot,
 } from './types.js';
+
+/** Both universes merged: symbol lookup spans US tickers and KR codes alike. */
+const ALL_SEED_ASSETS = Object.freeze([...SEED_ASSETS, ...KR_SEED_ASSETS]);
 
 type QuoteListener = (quote: Quote) => void;
 type BatchListener = (batch: MarketBatch) => void;
@@ -186,7 +191,7 @@ export class MarketEngine {
   private externallyManagedUntil = new Map<string, number>();
 
   constructor() {
-    for (const seed of SEED_ASSETS) {
+    for (const seed of ALL_SEED_ASSETS) {
       const quote = buildQuote(seed);
       this.quotes.set(seed.symbol, quote);
       this.order.push(seed.symbol);
@@ -206,6 +211,20 @@ export class MarketEngine {
 
   getQuote(symbol: string): Quote | undefined {
     return this.quotes.get(symbol);
+  }
+
+  /**
+   * Symbol lookup across both universes — no region parameter. `AssetMeta`
+   * carries its own region, so a six-digit KR code and an alphabetic US
+   * ticker each resolve here without the caller knowing which market it's in.
+   */
+  quote(symbol: string): Quote | undefined {
+    return this.quotes.get(symbol);
+  }
+
+  /** All assets listed by one region, frozen. Region scopes listings, not lookups. */
+  listAssets(region: MarketRegion): readonly Quote[] {
+    return freezeQuoteList(this.allSnapshot.filter((quote) => quote.region === region));
   }
 
   getQuotes(symbols: readonly string[]): readonly Quote[] {
@@ -300,7 +319,7 @@ export class MarketEngine {
     const quote = this.quotes.get(symbol);
     if (!quote) return EMPTY_CANDLES;
 
-    const calendar = calendarForAsset(quote.kind);
+    const calendar = calendarForAsset(quote.kind, quote.region);
     const asOfISO = quote.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : SNAPSHOT.asOfISO;
     const endDateISO = asOfISO.slice(0, 10);
     const endTimestamp = quote.kind === 'crypto' ? CRYPTO_AS_OF_TS : EQUITY_AS_OF_TS;

@@ -2,6 +2,7 @@
    Core data types for the market engine & static content
    ============================================================ */
 import type { DataProvenance } from '../shared/api.js';
+import type { MarketRegion } from './region.js';
 
 
 export type SectorId =
@@ -38,6 +39,8 @@ export interface AssetMeta {
   readonly exchange: string;
   readonly kind: AssetKind;
   readonly unit: InstrumentUnit;
+  /** Which market lists this asset. Drives the trading calendar and the price unit. */
+  readonly region: MarketRegion;
   readonly sectorId?: SectorId;
   /** market cap in USD (stocks/crypto), used for heatmap weighting */
   readonly marketCap?: number;

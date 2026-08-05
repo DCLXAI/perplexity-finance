@@ -22,8 +22,10 @@
    ARCHITECTURE.md.
    ============================================================ */
 import type { AssetKind, AssetMeta, SectorId, SectorInfo } from './types.js';
+import type { MarketRegion } from './region.js';
 
-export const SECTORS: SectorInfo[] = [
+/** US sector index levels (renamed from `SECTORS`; see `SECTORS_BY_REGION`). */
+export const US_SECTORS: SectorInfo[] = [
   { id: 'tech',        nameKo: '기술',              nameEn: 'Technology',             indexValue: 185.78, changePct: 0.23 },
   { id: 'energy',      nameKo: '에너지',            nameEn: 'Energy',                 indexValue: 55.08,  changePct: 0.47 },
   { id: 'cons-cyc',    nameKo: '경기소비재',        nameEn: 'Consumer Cyclical',      indexValue: 117.24, changePct: 0.33 },
@@ -37,9 +39,21 @@ export const SECTORS: SectorInfo[] = [
   { id: 'healthcare',  nameKo: '의료',              nameEn: 'Healthcare',             indexValue: 160.84, changePct: -0.82 },
 ];
 
+/** Kept as an alias of `US_SECTORS` so existing imports keep compiling; Task 7 onward migrates them. */
+export const SECTORS = US_SECTORS;
+
 export const SECTOR_BY_ID: Record<SectorId, SectorInfo> = Object.fromEntries(
-  SECTORS.map((s) => [s.id, s]),
+  US_SECTORS.map((s) => [s.id, s]),
 ) as Record<SectorId, SectorInfo>;
+
+export const SECTORS_BY_REGION: Readonly<Record<MarketRegion, readonly SectorInfo[]>> =
+  Object.freeze({
+    US: US_SECTORS,
+    // TODO(Task 5): replace with KR_SECTORS from universe.kr.ts. Until that lands,
+    // this is a deliberate placeholder — KR sector composition/labels/index levels
+    // are the US ones, not approximations of Korean sectors. Known-wrong, not silent.
+    KR: US_SECTORS,
+  });
 
 /** [symbol, name, nameKo, sector, marketCap($B), price, dayChangePct] */
 type StockRow = [string, string, string, SectorId, number, number, number];
@@ -340,6 +354,7 @@ function stockAsset([symbol, name, nameKo, sectorId, capB, price, changePct]: St
     exchange: nasdaq.has(symbol) ? 'NASDAQ' : 'NYSE',
     kind: 'stock',
     unit: 'USD',
+    region: 'US',
     sectorId,
     marketCap: capB * 1e9,
     price, changePct,
@@ -365,6 +380,7 @@ function macroAsset([symbol, name, nameKo, price, changePct, exchange]: MacroRow
     exchange,
     kind,
     unit,
+    region: 'US',
     price,
     changePct,
     logoBg: '#20808d',
@@ -374,7 +390,7 @@ function macroAsset([symbol, name, nameKo, price, changePct, exchange]: MacroRow
 
 function cryptoAsset([symbol, name, nameKo, price, changePct, capB]: CryptoRow): SeedAsset {
   return {
-    symbol, name, nameKo, exchange: 'CRYPTO', kind: 'crypto', unit: 'USD',
+    symbol, name, nameKo, exchange: 'CRYPTO', kind: 'crypto', unit: 'USD', region: 'US',
     marketCap: capB * 1e9, price, changePct,
     logoBg: chipColor(symbol), logoText: name.slice(0, 1),
   };

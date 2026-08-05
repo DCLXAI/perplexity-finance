@@ -3,6 +3,7 @@ import { isUsEquityTradingDay } from '../src/data/calendar.js';
 import { EARNINGS, EARNINGS_WEEK, PREDICTIONS } from '../src/data/content.js';
 import { engine } from '../src/data/engine.js';
 import { SEED_ASSETS, SNAPSHOT } from '../src/data/universe.js';
+import { KR_SEED_ASSETS } from '../src/data/universe.kr.js';
 import type { CandlePoint, HistoryRange } from '../src/data/types.js';
 
 function isoDate(timestamp: number): string {
@@ -41,7 +42,7 @@ async function main(): Promise<void> {
   assert.ok(SEED_ASSETS.every((asset) => Boolean(asset.unit)), 'all assets need an explicit unit');
 
   const quotes = engine.getAll();
-  assert.equal(quotes.length, SEED_ASSETS.length);
+  assert.equal(quotes.length, SEED_ASSETS.length + KR_SEED_ASSETS.length);
   assert.ok(quotes.every((quote) => quote.dayLow <= quote.open && quote.open <= quote.dayHigh));
   assert.ok(quotes.every((quote) => quote.dayLow <= quote.price && quote.price <= quote.dayHigh));
   const separatedOpens = quotes.filter(
@@ -198,7 +199,7 @@ async function main(): Promise<void> {
   console.log(
     JSON.stringify(
       {
-        assets: SEED_ASSETS.length,
+        assets: SEED_ASSETS.length + KR_SEED_ASSETS.length,
         stocks: engine.getStocks().length,
         crypto: engine.getCrypto().length,
         equity1DBars: amd1d.length,

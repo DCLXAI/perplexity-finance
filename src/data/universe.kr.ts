@@ -10,11 +10,31 @@
    extend `KR_STOCKS` in place rather than reshaping it:
      [code, name, nameKo, sectorId, marketCapTrillionKrw, priceKrw, dayChangePct]
    `marketCapTrillionKrw` is trillions of KRW (조원) — the KR analogue of the
-   US rows' `capB` ($B) column — multiplied out to raw won below, the same
-   way `capB * 1e9` works for US rows.
+   US rows' `capB` ($B) column, and the number a human can check against a
+   Korean quote page. `price` stays in raw KRW (`unit: 'KRW'` — display
+   renders it natively via `fmtKrw`/`fmtKrwCompact`).
+
+   `AssetMeta.marketCap`, however, is documented in types.ts as USD and is
+   compared across the whole engine (heatmap weighting, movers, search
+   ranking) via `getAll()`/`getStocks()`/etc, which span both regions. A
+   raw-won marketCap would out-rank every US mega-cap by ~100x on unit alone.
+   So the authored trillion-KRW column is converted to USD once, here, via
+   the single `KRW_PER_USD` constant below — never re-derive it elsewhere.
    ============================================================ */
 import type { SectorId } from './types.js';
 import type { SeedAsset } from './universe.js';
+
+/**
+ * Illustrative KRW/USD spot rate for this synthetic seed, as of the
+ * 2026-08-04 snapshot window used by `SNAPSHOT.asOfISO` in universe.ts.
+ * Not a sourced/verified rate — same demo status as the rest of this file.
+ * The only place a KRW->USD marketCap conversion happens; do not scatter
+ * this constant or a re-derived rate into consumers. Exported so a future
+ * KR-native display (Task 8-10) can reverse the conversion for won-facing
+ * UI (e.g. `fmtKrwCompact(quote.marketCap * KRW_PER_USD)`) against this same
+ * rate, instead of hardcoding a second one.
+ */
+export const KRW_PER_USD = 1_392.5;
 
 /** [code, name, nameKo, sectorId, marketCapTrillionKrw, priceKrw, dayChangePct] */
 type KrStockRow = [string, string, string, SectorId, number, number, number];
@@ -34,7 +54,9 @@ function krStockAsset([code, name, nameKo, sectorId, capT, price, changePct]: Kr
     unit: 'KRW',
     region: 'KR',
     sectorId,
-    marketCap: capT * 1e12,
+    // capT is trillions of won (조원); marketCap must be USD (see AssetMeta's
+    // doc comment) — convert once, here, via KRW_PER_USD.
+    marketCap: (capT * 1e12) / KRW_PER_USD,
     price,
     changePct,
     logoBg: '#20808d',

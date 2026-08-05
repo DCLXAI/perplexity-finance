@@ -181,14 +181,15 @@ describe('monitorRules — failure isolation', () => {
   });
 
   it('still attempts a second user\'s digest after the first user\'s digest enqueue throws', async () => {
-    // Both rules breach (armed -> latched), so both users end up with an opened digest. Digest
-    // payload assembly is unimplemented until Task 7 and throws unconditionally — the run must
-    // still finish, and both users' enqueue attempts must be independently logged.
+    // Both rules breach (armed -> latched), so both users end up with an opened digest. The
+    // enqueue RPC itself fails for both (e.g. a transient store fault) — the run must still
+    // finish, and both users' enqueue attempts must be independently logged.
     claimDueMonitorRulesMock.mockResolvedValue([
       rule({ id: 'a', portfolio_id: 'p1', user_id: 'u1' }),
       rule({ id: 'b', portfolio_id: 'p2', user_id: 'u2' }),
     ]);
     buildMonitorObservationMock.mockImplementation((_userId: string, portfolioId: string) => Promise.resolve(observation(portfolioId)));
+    enqueueMonitorDigestDeliveriesMock.mockRejectedValue(new Error('digest queue down'));
 
     const result = await monitorRules('req-3', FAR_DEADLINE);
 

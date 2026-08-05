@@ -1,5 +1,7 @@
 import { loadConfig } from '../config.js';
 import { logger } from '../observability/logger.js';
+import { buildDigestPayload } from './digest.js';
+import type { MonitorDigestBreachInput } from './digest.js';
 import { evaluateRule, nextState, shouldNotify } from './evaluate.js';
 import type { MonitorLatchState, MonitorObservation, MonitorRuleInput } from './evaluate.js';
 import { buildMonitorObservation } from './observations.js';
@@ -62,19 +64,6 @@ export interface MonitorRunResult {
   readonly budgetExhausted: boolean;
 }
 
-/**
- * TASK 7 TODO: replace this with the real `buildDigestPayload` from `./digest.js`. There is no
- * safe placeholder body for a payload real users will read: `enqueue_monitor_digest_deliveries`
- * inserts the delivery rows AND flips the digest to `dispatched` in the same call, so a payload
- * shipped empty here would reach a user as an email/push carrying nothing but a UUID, with no
- * way to re-enqueue it. Throwing instead is caught per-user by the digest-enqueue loop below, so
- * Task 7's absence cannot take down the rest of the run — it only means today's digests do not
- * go out (loudly, logged) until Task 7 lands.
- */
-function placeholderDigestPayload(digestId: string): Record<string, unknown> {
-  throw new Error(`P10 Task 7: buildDigestPayload is not wired yet (digest ${digestId})`);
-}
-
 interface RuleEvaluationCounters {
   evaluated: number;
   breached: number;
@@ -120,6 +109,7 @@ async function evaluateGroup(
   group: PortfolioRuleGroup,
   observation: MonitorObservation,
   digestByUser: Map<string, string>,
+  breachesByDigest: Map<string, MonitorDigestBreachInput[]>,
   counters: RuleEvaluationCounters,
 ): Promise<void> {
   for (const rule of group.rules) {
@@ -163,6 +153,16 @@ async function evaluateGroup(
           sourceSnapshotId: null,
         });
         breachAppended = true;
+        const breachInput: MonitorDigestBreachInput = {
+          kind: rule.kind,
+          symbol: rule.symbol,
+          spec: rule.spec,
+          observed_value: result.observedValue ?? null,
+          threshold_value: result.threshold ?? null,
+        };
+        const digestBreaches = breachesByDigest.get(digestId);
+        if (digestBreaches) digestBreaches.push(breachInput);
+        else breachesByDigest.set(digestId, [breachInput]);
       }
 
       await recordMonitorEvaluation({
@@ -207,6 +207,7 @@ export async function monitorRules(requestId: string, deadlineMs: number): Promi
 
   const counters: RuleEvaluationCounters = { evaluated: 0, breached: 0, deferred: 0, errored: 0 };
   const digestByUser = new Map<string, string>();
+  const breachesByDigest = new Map<string, MonitorDigestBreachInput[]>();
   let portfolios = 0;
   let budgetExhausted = false;
 
@@ -233,7 +234,7 @@ export async function monitorRules(requestId: string, deadlineMs: number): Promi
     // it should not throw. If it somehow did, one bad group must still not end the run — the
     // remaining groups' rules keep their existing `next_evaluation_at` and are retried next run.
     try {
-      await evaluateGroup(group, observation, digestByUser, counters);
+      await evaluateGroup(group, observation, digestByUser, breachesByDigest, counters);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logger.warn('monitor.group_failed', { requestId, portfolioId: group.portfolioId, message });
@@ -242,7 +243,8 @@ export async function monitorRules(requestId: string, deadlineMs: number): Promi
 
   for (const [userId, digestId] of digestByUser) {
     try {
-      await enqueueMonitorDigestDeliveries(digestId, placeholderDigestPayload(digestId));
+      const breaches = breachesByDigest.get(digestId) ?? [];
+      await enqueueMonitorDigestDeliveries(digestId, buildDigestPayload(breaches, config.publicOrigin ?? ''));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logger.warn('monitor.digest_enqueue_failed', { userId, digestId, message });

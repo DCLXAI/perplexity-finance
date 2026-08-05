@@ -1,11 +1,13 @@
 /* ============================================================
    주식 스크리너 — accessible sort/filter/pagination table.
    ============================================================ */
-import { memo, useState } from 'react';
-import { Link } from 'react-router';
+import { memo, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
 import { Card, ChipTabs, LogoChip, Sparkline } from '@/components/ui';
 import { useAllQuotes } from '@/data/store';
-import { SECTORS, SECTOR_BY_ID } from '@/data/universe';
+import { SECTORS_BY_REGION, SECTOR_BY_ID } from '@/data/universe';
+import { regionAdj } from '@/features/heatmap/Heatmap';
+import { regionFromSearch } from '@/data/region';
 import { clsx, fmtCompact, fmtPct, fmtQuoteValue } from '@/data/format';
 import type { Quote, SectorId } from '@/data/types';
 import './screener.css';
@@ -103,6 +105,8 @@ const ScreenerRow = memo(function ScreenerRow({ quote }: { quote: Quote }) {
 });
 
 export default function ScreenerPage() {
+  const [searchParams] = useSearchParams();
+  const region = regionFromSearch(searchParams);
   const all = useAllQuotes(2000);
   const [quick, setQuick] = useState<QuickKey>('all');
   const [sector, setSector] = useState<SectorId | 'all'>('all');
@@ -111,8 +115,19 @@ export default function ScreenerPage() {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(0);
 
+  // A sector chosen under one region's chip list has no guaranteed meaning under
+  // another's (the two `SECTORS_BY_REGION` lists are not the same set of ids), and
+  // silently keeping it would show zero rows with no visible cause. Reset on region
+  // switch so the listing always starts from "전체 섹터" for the newly selected market.
+  useEffect(() => {
+    setSector('all');
+    setPage(0);
+  }, [region]);
+
+  const sectors = SECTORS_BY_REGION[region];
   const term = search.trim().toLowerCase();
   const filtered = all.filter((quote) => {
+    if (quote.region !== region) return false;
     if (quote.kind !== 'stock') return false;
     if (!passesQuick(quote, quick)) return false;
     if (sector !== 'all' && quote.sectorId !== sector) return false;
@@ -174,7 +189,7 @@ export default function ScreenerPage() {
             }}
           >
             <option value="all">전체 섹터</option>
-            {SECTORS.map((item) => (
+            {sectors.map((item) => (
               <option key={item.id} value={item.id}>{item.nameKo}</option>
             ))}
           </select>
@@ -201,7 +216,7 @@ export default function ScreenerPage() {
       <Card className="sc-tablecard">
         <div className="sc-tablewrap" role="region" aria-label="주식 스크리너 결과" tabIndex={0}>
           <table className="ui-table sc-table">
-            <caption className="sr-only">필터와 정렬 조건에 따른 미국 주식 표본 결과</caption>
+            <caption className="sr-only">필터와 정렬 조건에 따른 {regionAdj(region)} 주식 표본 결과</caption>
             <thead>
               <tr>
                 {COLUMNS.map((column) => {

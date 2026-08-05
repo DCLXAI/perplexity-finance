@@ -36,7 +36,7 @@ export default withFunction('portfolio.monitor-status', ['GET'], async (request,
     lastEvaluatedAt: rule.last_evaluated_at,
     lastObservation: rule.last_observation,
     nextEvaluationAt: rule.next_evaluation_at,
-    recentBreaches: (await listMonitorBreaches(user.id, rule.id, 20)).map(toMonitorBreach),
+    recentBreaches: Object.freeze((await listMonitorBreaches(user.id, rule.id, 20)).map(toMonitorBreach)),
   })));
 
   const response: MonitorStatusResponse = Object.freeze({

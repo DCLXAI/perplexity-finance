@@ -112,7 +112,11 @@ export default function EarningsPage() {
             </div>
           </div>
 
-          {response && (
+          {/* The provider calendar (Alpha Vantage, or its static fallback) only ever carries
+              US-listed earnings — same reasoning as `regionEntries` above. Under `?region=kr`
+              this banner's US `generatedAt`/status has nothing to do with the "0개 일정" shown
+              below it, so it's scoped to `region === 'US'` rather than displayed unconditionally. */}
+          {response && region === 'US' && (
             <div className={`er-provider-status ${response.provider.status}`}>
               <span>{response.provider.provider}</span>
               <strong>{response.provider.status}</strong>

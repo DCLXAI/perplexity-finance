@@ -16,8 +16,9 @@ import {
   fmtUsdCompact,
   weekdayKo,
 } from '../../data/format.js';
-import { SECTORS, SECTOR_BY_ID, SNAPSHOT } from '../../data/universe.js';
-import type { Quote } from '../../data/types.js';
+import { SECTORS, SECTORS_BY_REGION, SNAPSHOT } from '../../data/universe.js';
+import type { MarketRegion } from '../../data/region.js';
+import type { Quote, SectorId } from '../../data/types.js';
 
 const KIND_KO: Record<Quote['kind'], string> = {
   stock: '주식',
@@ -26,6 +27,16 @@ const KIND_KO: Record<Quote['kind'], string> = {
   crypto: '암호화폐',
   etf: 'ETF',
 };
+
+/**
+ * Resolve a sector within the quote's OWN region's table. `SECTORS_BY_REGION` gives US and KR
+ * their own `changePct`/`indexValue` per sector id, unlike the US-only `SECTOR_BY_ID` this
+ * replaced at this file's two call sites (see the review that flagged a KR quote's changePct
+ * being judged against the US sector average under an identical Korean label).
+ */
+function sectorFor(region: MarketRegion, id: SectorId) {
+  return SECTORS_BY_REGION[region].find((sector) => sector.id === id);
+}
 
 /* ---------- symbol / company detection ---------- */
 
@@ -77,7 +88,7 @@ function symbolAnswer(q: Quote): string {
   );
   if (q.marketCap) {
     const tail = q.sectorId
-      ? ` · ${SECTOR_BY_ID[q.sectorId].nameKo} 섹터`
+      ? ` · ${sectorFor(q.region, q.sectorId)?.nameKo} 섹터`
       : q.kind === 'crypto'
         ? ' · 암호화폐'
         : '';
@@ -87,8 +98,12 @@ function symbolAnswer(q: Quote): string {
 
   lines.push('');
   lines.push('**모의 데이터 인사이트**');
-  if (q.sectorId) {
-    const sec = SECTOR_BY_ID[q.sectorId];
+  // A quote is judged against its OWN region's sector table — `SECTOR_BY_ID` was US-only
+  // (see universe.ts), so a KR quote's changePct was silently compared to the US sector's
+  // figure under an identical Korean sector label, which reads as a same-market comparison
+  // but isn't one. `sectorFor(q.region, ...)` resolves within `SECTORS_BY_REGION` instead.
+  const sec = q.sectorId ? sectorFor(q.region, q.sectorId) : undefined;
+  if (sec) {
     const diff = q.changePct - sec.changePct;
     lines.push(
       `· ${sec.nameKo} 섹터 예시 평균(${fmtPct(sec.changePct)}) 대비 **${Math.abs(diff).toFixed(2)}%p ${diff >= 0 ? '아웃퍼폼' : '언더퍼폼'}**입니다.`,
@@ -116,6 +131,14 @@ function symbolAnswer(q: Quote): string {
   return lines.join('\n');
 }
 
+// This rule-based fallback bot has no region context at its call sites (the client fetch body
+// and the server route carry only message text — see `marketBrief()`'s note on the same
+// constraint), and `sectorAnswer()` has no symbol to read a region off of the way `symbolAnswer`
+// does via `quote.region`. Plumbing region through the AI request contract for this one
+// no-symbol query shape was judged out of proportion to a demo rule-engine's fallback path, so
+// the smaller fix is here: always show the US table (as before), but say so explicitly, so
+// `기술`/`의료` here are never mistaken for the KR sector rail's same-named, different-valued
+// figures shown one column away on a `?region=kr` page.
 function sectorAnswer(): string {
   const sorted = [...SECTORS].sort((a, b) => b.changePct - a.changePct);
   const best = sorted[0];
@@ -123,7 +146,7 @@ function sectorAnswer(): string {
   const worst = sorted[sorted.length - 1];
   const up = sorted.filter((s) => s.changePct > 0).length;
   return [
-    `**모의 섹터 동향** (${SNAPSHOT.closeLabelKo} 스냅숏) — ${SECTORS.length}개 섹터 중 **${up}개가 상승**했습니다.`,
+    `**모의 섹터 동향 (미국 시장 기준)** (${SNAPSHOT.closeLabelKo} 스냅숏) — ${SECTORS.length}개 섹터 중 **${up}개가 상승**했습니다.`,
     '',
     `· 최강 섹터: **${best.nameKo}** ${fmtPct(best.changePct)} (지수 ${fmtPrice(best.indexValue)} pt)`,
     `· 상위권: ${sorted

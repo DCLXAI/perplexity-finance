@@ -6,9 +6,11 @@ import { Link, useSearchParams } from 'react-router';
 import { Card, ChipTabs, LogoChip, Sparkline } from '@/components/ui';
 import { useAllQuotes } from '@/data/store';
 import { SECTORS_BY_REGION, SECTOR_BY_ID } from '@/data/universe';
+import { KRW_PER_USD } from '@/data/universe.kr';
 import { regionAdj } from '@/features/heatmap/Heatmap';
 import { regionFromSearch } from '@/data/region';
-import { clsx, fmtCompact, fmtPct, fmtQuoteValue } from '@/data/format';
+import type { MarketRegion } from '@/data/region';
+import { clsx, fmtCompact, fmtMarketCap, fmtPct, fmtQuoteValue } from '@/data/format';
 import type { Quote, SectorId } from '@/data/types';
 import './screener.css';
 
@@ -18,13 +20,37 @@ type QuickKey = 'all' | 'up' | 'down' | 'large' | 'small';
 type SortKey = 'symbol' | 'name' | 'price' | 'changePct' | 'marketCap' | 'volume' | 'sector';
 type SortDir = 'asc' | 'desc';
 
-const QUICK_FILTERS: { key: QuickKey; label: string }[] = [
-  { key: 'all', label: '전체' },
-  { key: 'up', label: '상승' },
-  { key: 'down', label: '하락' },
-  { key: 'large', label: '대형주(≥$100B)' },
-  { key: 'small', label: '중소형주(<$10B)' },
-];
+/**
+ * `AssetMeta.marketCap` is always stored in USD (see `universe.kr.ts`'s `KRW_PER_USD` doc
+ * comment), so a raw `$100B`/`$10B` threshold compares correctly regardless of region — but a
+ * label naming a dollar figure next to a won-priced row (`fmtMarketCap` renders every KR row as
+ * `₩…조`/`억`) told a Korean-market user nothing about which of their rows would match. Each
+ * region gets its own round-number, market-appropriate threshold (10조원 / 3조원 for KR) and a
+ * label stating the unit the row actually shows, converted back to the same USD space
+ * `marketCap` is compared in via this same `KRW_PER_USD` rate — never re-derive it elsewhere.
+ */
+const CAP_THRESHOLDS_BY_REGION: Readonly<Record<MarketRegion, { large: number; small: number }>> =
+  Object.freeze({
+    US: { large: 100e9, small: 10e9 },
+    KR: { large: (10e12) / KRW_PER_USD, small: (3e12) / KRW_PER_USD },
+  });
+
+const QUICK_FILTER_LABELS_BY_REGION: Readonly<Record<MarketRegion, { large: string; small: string }>> =
+  Object.freeze({
+    US: { large: '대형주(≥$100B)', small: '중소형주(<$10B)' },
+    KR: { large: '대형주(≥10조원)', small: '중소형주(<3조원)' },
+  });
+
+function quickFiltersFor(region: MarketRegion): { key: QuickKey; label: string }[] {
+  const labels = QUICK_FILTER_LABELS_BY_REGION[region];
+  return [
+    { key: 'all', label: '전체' },
+    { key: 'up', label: '상승' },
+    { key: 'down', label: '하락' },
+    { key: 'large', label: labels.large },
+    { key: 'small', label: labels.small },
+  ];
+}
 
 const COLUMNS: { key: SortKey | 'spark'; label: string; sortable: boolean; left?: boolean }[] = [
   { key: 'symbol', label: '심볼', sortable: true, left: true },
@@ -60,7 +86,8 @@ function compareBy(a: Quote, b: Quote, key: SortKey): number {
   }
 }
 
-function passesQuick(quote: Quote, quick: QuickKey): boolean {
+function passesQuick(quote: Quote, quick: QuickKey, region: MarketRegion): boolean {
+  const thresholds = CAP_THRESHOLDS_BY_REGION[region];
   switch (quick) {
     case 'all':
       return true;
@@ -69,9 +96,9 @@ function passesQuick(quote: Quote, quick: QuickKey): boolean {
     case 'down':
       return quote.changePct < 0;
     case 'large':
-      return (quote.marketCap ?? 0) >= 100e9;
+      return (quote.marketCap ?? 0) >= thresholds.large;
     case 'small':
-      return (quote.marketCap ?? 0) < 10e9;
+      return (quote.marketCap ?? 0) < thresholds.small;
   }
 }
 
@@ -94,7 +121,7 @@ const ScreenerRow = memo(function ScreenerRow({ quote }: { quote: Quote }) {
       </td>
       <td className="num">{fmtQuoteValue(quote, quote.price)}</td>
       <td className={clsx('num', up ? 'pos' : 'neg')}>{fmtPct(quote.changePct)}</td>
-      <td className="num">{quote.marketCap ? fmtCompact(quote.marketCap) : '—'}</td>
+      <td className="num">{quote.marketCap ? fmtMarketCap(quote) : '—'}</td>
       <td className="num">{fmtCompact(quote.volume)}</td>
       <td><span className="sc-sectorchip">{sectorNameKo(quote) || '—'}</span></td>
       <td className="sc-sparkcell">
@@ -129,7 +156,7 @@ export default function ScreenerPage() {
   const filtered = all.filter((quote) => {
     if (quote.region !== region) return false;
     if (quote.kind !== 'stock') return false;
-    if (!passesQuick(quote, quick)) return false;
+    if (!passesQuick(quote, quick, region)) return false;
     if (sector !== 'all' && quote.sectorId !== sector) return false;
     if (
       term &&
@@ -172,7 +199,7 @@ export default function ScreenerPage() {
       <Card className="ui-card-pad sc-filtercard">
         <div className="sc-filterbar">
           <ChipTabs
-            items={QUICK_FILTERS}
+            items={quickFiltersFor(region)}
             value={quick}
             onChange={(key) => {
               setQuick(key as QuickKey);

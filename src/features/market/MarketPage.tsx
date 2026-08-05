@@ -413,7 +413,13 @@ export default function MarketPage() {
           <MarketRail region={region} />
         </aside>
       </div>
-      <AskBar placeholder={`${label}에 대해 무엇이든 질문하세요`} />
+      {/* `marketBrief()` (the no-symbol fallback answer) is pinned to US data — this rule-based
+          bot has no request-time region context (see answers.ts). Under `?region=kr` the old
+          placeholder ("한국 시장에 대해 무엇이든 질문하세요") promised Korean market coverage the
+          general-question path can't deliver; per-symbol questions ARE region-aware (`quote.region`),
+          so the accurate, still-cheap fix is to point the placeholder at that working path instead
+          of the market-wide brief. */}
+      <AskBar placeholder={region === 'KR' ? '삼성전자, 005930 등 한국 종목을 질문하세요' : `${label}에 대해 무엇이든 질문하세요`} />
     </>
   );
 }

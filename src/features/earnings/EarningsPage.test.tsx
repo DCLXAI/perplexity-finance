@@ -148,3 +148,30 @@ describe('EarningsPage initial date selection is region-scoped', () => {
     expect(screen.queryByText('2026-07-13에 등록된 실적 발표가 없습니다.')).toBeNull();
   });
 });
+
+/**
+ * Final whole-branch review minor finding: the feed is US-only (see `regionEntries`'s own doc
+ * comment above), so under `?region=kr` the page already correctly shows "0개 일정" — but it
+ * still rendered the `er-provider-status` banner with the *US* feed's `provider.status` and
+ * `generatedAt`, right next to that "0개 일정" text, implying the banner's freshness/status
+ * applied to the (empty) Korean listing it sits beside. Scoped to `region === 'US'` instead.
+ */
+describe('EarningsPage provider-status banner is US-only', () => {
+  it('hides the Alpha Vantage provider banner under ?region=kr', async () => {
+    await act(async () => {
+      mount('/earnings?region=kr');
+    });
+
+    await screen.findByText('Samsung Electronics Co., Ltd.');
+    expect(screen.queryByText('alpha-vantage')).toBeNull();
+  });
+
+  it('still shows the provider banner for the default US region (no regression)', async () => {
+    await act(async () => {
+      mount('/earnings');
+    });
+
+    await screen.findByText('Apple Inc.');
+    expect(screen.getByText('alpha-vantage')).toBeTruthy();
+  });
+});

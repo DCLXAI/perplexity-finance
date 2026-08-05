@@ -149,7 +149,7 @@ for (const entry of apiFunctionEntries) {
 assert.deepEqual(Object.keys(vercel.functions), ['api/**/*.ts'], 'Vercel function settings must target all API entries safely');
 const routeRegistry = readFileSync(new URL('../routes/registry.ts', import.meta.url), 'utf8');
 const registeredPaths = [...routeRegistry.matchAll(/\['(\/api\/[^']+)',/g)].map((match) => match[1]);
-assert.equal(new Set(registeredPaths).size, 30, 'all 30 existing API contracts must remain registered');
+assert.equal(new Set(registeredPaths).size, 32, 'all 32 existing API contracts must remain registered');
 assert.equal(vercel.crons.length, 2, 'Hobby deployments allow at most two cron jobs');
 assert.ok(vercel.crons.some((entry) => entry.path === '/api/cron/evaluate-alerts' && entry.schedule === '5 0 * * *'));
 assert.ok(vercel.crons.some((entry) => entry.path === '/api/cron/daily-maintenance' && entry.schedule === '20 0 * * *'));

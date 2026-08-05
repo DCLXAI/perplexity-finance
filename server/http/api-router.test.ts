@@ -5,12 +5,14 @@ import { apiRoutes } from '../../routes/registry.js';
 
 describe('consolidated API router', () => {
   it('registers every existing route behind Hobby-compatible grouped functions', () => {
-    expect(apiRoutes.size).toBe(30);
+    expect(apiRoutes.size).toBe(32);
     expect(apiRoutes.has('/api/cron/evaluate-alerts')).toBe(true);
     expect(apiRoutes.has('/api/cron/daily-maintenance')).toBe(true);
     expect(apiRoutes.has('/api/portfolio/rebalances')).toBe(true);
     expect(apiRoutes.has('/api/portfolio/goal')).toBe(true);
     expect(apiRoutes.has('/api/portfolio/contributions')).toBe(true);
+    expect(apiRoutes.has('/api/portfolio/monitor-rules')).toBe(true);
+    expect(apiRoutes.has('/api/portfolio/monitor-status')).toBe(true);
   });
 
   it('dispatches an existing route with its public URL unchanged', async () => {

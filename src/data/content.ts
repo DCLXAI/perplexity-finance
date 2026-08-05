@@ -12,6 +12,8 @@ import type {
   PoliticianTrade,
   PredictionMarket,
 } from './types.js';
+import type { MarketRegion } from './region.js';
+import { KR_EXPLORE_CARDS, KR_GENERAL_NEWS, KR_MARKET_SUMMARY } from './content.kr.js';
 
 /* ---------- 시장 요약 (market summary accordion) ---------- */
 
@@ -478,3 +480,12 @@ export const APP_GALLERY: AppGalleryItem[] = [
   { id: 'ag11', nameKo: '어닝콜 요약기', description: 'AI 기반 실적 발표 콜 요약 콘셉트', icon: '🎙️', category: 'AI' },
   { id: 'ag12', nameKo: '상관관계 매트릭스', description: '자산 간 상관계수 히트맵', icon: '🧩', category: '퀀트' },
 ];
+
+/* ---------- region-keyed content map (Task 8 migrates consumers to this) ---------- */
+
+export const CONTENT_BY_REGION: Readonly<
+  Record<MarketRegion, Readonly<{ summary: MarketSummaryItem[]; news: NewsItem[]; explore: ExploreCard[] }>>
+> = Object.freeze({
+  US: Object.freeze({ summary: MARKET_SUMMARY, news: GENERAL_NEWS, explore: EXPLORE_CARDS }),
+  KR: Object.freeze({ summary: KR_MARKET_SUMMARY, news: KR_GENERAL_NEWS, explore: KR_EXPLORE_CARDS }),
+});

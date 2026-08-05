@@ -218,7 +218,7 @@ function StockDetail({ quote }: { quote: Quote }) {
     <div className="page st-page">
       <header className="st-header fade-in-up">
         <div className="st-header-top">
-          <LogoChip bg={quote.logoBg} text={quote.logoText} size={40} />
+          <LogoChip symbol={quote.symbol} bg={quote.logoBg} text={quote.logoText} size={40} />
           <div className="st-idblock">
             <h1 className="st-name">{quote.nameKo ?? quote.name}</h1>
             <div className="st-meta muted truncate">

@@ -75,7 +75,7 @@ function TradeRow({ trade }: { trade: PoliticianTrade }) {
       <div className="po-trade">
         <span className={clsx('po-action', buy ? 'buy' : 'sell')}>{trade.action}</span>
         <Link className="po-stock" to={'/stock/' + encodeURIComponent(trade.symbol)}>
-          <LogoChip bg={meta?.logoBg} text={meta?.logoText} size={18} />
+          <LogoChip symbol={meta?.symbol} bg={meta?.logoBg} text={meta?.logoText} size={18} />
           <span className="po-sym num">{trade.symbol}</span>
         </Link>
         <span className="po-company muted truncate">{trade.company}</span>

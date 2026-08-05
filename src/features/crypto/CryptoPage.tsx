@@ -75,7 +75,7 @@ function HeroCard({ quote }: { quote: Quote }) {
     <Card className="cr-hero-card cr-hero-quote">
       <Link className="cr-hero-hit" to={`/stock/${encodeURIComponent(quote.symbol)}`} aria-label={`${quote.nameKo ?? quote.name} 상세 보기`}>
         <div className="cr-hero-top">
-          <LogoChip bg={quote.logoBg} text={quote.logoText} size={26} />
+          <LogoChip symbol={quote.symbol} bg={quote.logoBg} text={quote.logoText} size={26} />
           <div className="cr-hero-names">
             <span className="cr-hero-name">{quote.nameKo ?? quote.name}</span>
             <span className="cr-hero-sym">{quote.symbol.replace(/USD$/, '')}</span>
@@ -111,7 +111,7 @@ const CryptoRow = memo(function CryptoRow({
           to={`/stock/${encodeURIComponent(quote.symbol)}`}
           aria-label={`${quote.nameKo ?? quote.name} 상세 보기`}
         >
-          <LogoChip bg={quote.logoBg} text={quote.logoText} size={22} />
+          <LogoChip symbol={quote.symbol} bg={quote.logoBg} text={quote.logoText} size={22} />
           <span className="cr-name">{quote.name}</span>
           <span className="cr-sym">{quote.symbol.replace(/USD$/, '')}</span>
         </Link>

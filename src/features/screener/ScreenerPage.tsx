@@ -85,7 +85,7 @@ const ScreenerRow = memo(function ScreenerRow({ quote }: { quote: Quote }) {
           to={destination}
           aria-label={`${quote.nameKo ?? quote.name} (${quote.symbol}) 상세 보기`}
         >
-          <LogoChip bg={quote.logoBg} text={quote.logoText} size={20} />
+          <LogoChip symbol={quote.symbol} bg={quote.logoBg} text={quote.logoText} size={20} />
           <span className="sc-name truncate">{quote.name}</span>
           <span className="sc-nameko muted truncate">{quote.nameKo}</span>
         </Link>

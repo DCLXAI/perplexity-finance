@@ -1468,7 +1468,13 @@ In `routes/cron/daily-maintenance.ts`, after `const rebalanceDelivery = await de
   // Monitors run last on purpose. Contributions and rebalances create reviewable plans that
   // lead to ledger writes; monitors only notify. If the 60s budget runs short, dropping a
   // day of monitoring costs less than dropping a contribution.
-  const monitorDeadlineMs = Date.now() + loadConfig().monitorBudgetMs;
+  // The second term is what keeps the whole run inside the platform limit. A Vercel timeout
+  // kills the function rather than throwing, so it bypasses the try/catch below entirely and
+  // would lose the whole response body — including the earlier steps' real results.
+  const monitorDeadlineMs = Math.min(
+    Date.now() + loadConfig().monitorBudgetMs,
+    runStartMs + FUNCTION_BUDGET_MS - SAFETY_MARGIN_MS,
+  );
   const monitor = await monitorRules(`${requestId}:monitor`, monitorDeadlineMs);
   const monitorDelivery = await deliverPendingMonitorDigests();
 ```

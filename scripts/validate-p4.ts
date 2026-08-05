@@ -15,7 +15,7 @@ import type {
 } from '../src/shared/api.js';
 
 resetConfigForTests();
-assert.equal(loadConfig().version, '1.11.0');
+assert.equal(loadConfig().version, '1.12.0');
 
 function transaction(id: string, kind: PortfolioTransaction['kind'], values: Partial<PortfolioTransaction>): PortfolioTransaction {
   const tradeAt = `2026-01-${id.slice(-2)}T15:00:00.000Z`;
@@ -176,7 +176,7 @@ for (const relative of [
 ]) assert.ok(readFileSync(new URL(relative, import.meta.url), 'utf8').length > 100, `missing P4 surface: ${relative}`);
 
 console.log(JSON.stringify({
-  version: '1.11.0',
+  version: '1.12.0',
   fifoLedger: 'PASS',
   immutableReversalContract: 'PASS',
   verifiedValuation: 'PASS',

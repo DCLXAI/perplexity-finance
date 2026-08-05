@@ -17,7 +17,7 @@ process.env.REQUIRE_LIVE_DATA = 'false';
 resetConfigForTests();
 
 const config = loadConfig();
-assert.equal(config.version, '1.11.0');
+assert.equal(config.version, '1.12.0');
 assert.equal(config.marketProviderMode, 'failover');
 
 const fallback = await getMarketQuotes(['AMD', 'BTCUSD'], 'p3-validation');

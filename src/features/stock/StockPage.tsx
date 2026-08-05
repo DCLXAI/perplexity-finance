@@ -7,10 +7,10 @@ import { Link, useParams } from 'react-router';
 import { Card, CardHeader, ChangeBadge, LogoChip, QuoteRow } from '@/components/ui';
 import { engine } from '@/data/engine';
 import { useQuote, useQuotes, useWatchlist } from '@/data/store';
-import { GENERAL_NEWS } from '@/data/content';
+import { CONTENT_BY_REGION } from '@/data/content';
 import { SECTOR_BY_ID } from '@/data/universe';
-import { KRW_PER_USD } from '@/data/universe.kr';
-import { clsx, fmtAssetVolume, fmtKrwCompact, fmtQuoteChange, fmtQuoteValue, fmtUsdCompact } from '@/data/format';
+import { clsx, fmtAssetVolume, fmtMarketCap, fmtQuoteChange, fmtQuoteValue } from '@/data/format';
+import type { MarketRegion } from '@/data/region';
 import type { AssetKind, NewsItem, Quote, QuoteSessionSnapshot } from '@/data/types';
 import AlertDialog from '@/features/alerts/AlertDialog';
 import PriceChart from './PriceChart.js';
@@ -28,12 +28,6 @@ function displaySession(quote: Quote): QuoteSessionSnapshot {
   const session = quote.sessions.continuous ?? quote.sessions.afterHours ?? quote.sessions.regular;
   if (!session) throw new Error(`Missing session snapshot for ${quote.symbol}`);
   return session;
-}
-
-/** `quote.marketCap` is always USD (see universe.kr.ts); KR-priced rows convert back to won for display. */
-function fmtMarketCap(quote: Pick<Quote, 'unit' | 'marketCap'>): string {
-  const cap = quote.marketCap ?? 0;
-  return quote.unit === 'KRW' ? fmtKrwCompact(cap * KRW_PER_USD) : fmtUsdCompact(cap);
 }
 
 function sessionName(session: QuoteSessionSnapshot): string {
@@ -151,11 +145,15 @@ const NewsRow = memo(function NewsRow({ item }: { item: NewsItem }) {
   );
 });
 
-function NewsCard({ symbol }: { symbol: string }) {
+function NewsCard({ symbol, region }: { symbol: string; region: MarketRegion }) {
   const items = useMemo(() => {
-    const related = GENERAL_NEWS.filter((n) => n.symbols.includes(symbol));
-    return related.length > 0 ? related : GENERAL_NEWS.slice(0, 3);
-  }, [symbol]);
+    // A Korean stock's related news must come from the Korean pool — showing US headlines
+    // (Palantir, S&P 500, ...) under a Korean symbol's "관련 뉴스" would assert them as related,
+    // which is a wrong row, not a missing one.
+    const pool = CONTENT_BY_REGION[region].news;
+    const related = pool.filter((n) => n.symbols.includes(symbol));
+    return related.length > 0 ? related : pool.slice(0, 3);
+  }, [symbol, region]);
   return (
     <Card className="fade-in-up st-d3">
       <CardHeader title="관련 뉴스" />
@@ -265,7 +263,7 @@ function StockDetail({ quote }: { quote: Quote }) {
       <StatsCard symbol={quote.symbol} />
 
       <div className="st-bottom">
-        <NewsCard symbol={quote.symbol} />
+        <NewsCard symbol={quote.symbol} region={quote.region} />
         <PeersCard symbol={quote.symbol} />
       </div>
 

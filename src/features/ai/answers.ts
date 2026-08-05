@@ -3,11 +3,12 @@
    from deterministic mock quotes and static editorial examples.
    No external AI model or market-data API is called.
    ============================================================ */
-import { engine } from '../../data/engine.js';
+import { engine, priceInUsd } from '../../data/engine.js';
 import { EARNINGS, GENERAL_NEWS, MARKET_SUMMARY } from '../../data/content.js';
 import {
   fmtAssetVolume,
   fmtDateKo,
+  fmtMarketCap,
   fmtPct,
   fmtPrice,
   fmtQuoteChange,
@@ -80,7 +81,7 @@ function symbolAnswer(q: Quote): string {
       : q.kind === 'crypto'
         ? ' · 암호화폐'
         : '';
-    lines.push(`· 모의 시가총액: ${fmtUsdCompact(q.marketCap)}${tail}`);
+    lines.push(`· 모의 시가총액: ${fmtMarketCap(q)}${tail}`);
   }
   lines.push(`· 모의 거래량: ${fmtAssetVolume(q, q.volume)} (${q.exchange})`);
 
@@ -98,8 +99,12 @@ function symbolAnswer(q: Quote): string {
   const span = q.dayHigh - q.dayLow;
   const posInRange = span > 0 ? (q.price - q.dayLow) / span : 0.5;
   const rangeWord = posInRange > 0.66 ? '상단' : posInRange < 0.33 ? '하단' : '중간';
+  // `q.price` is native-unit (KRW for KR rows) — volume × price must be normalized to one
+  // currency before it can be labeled `US$`, or a KR row's won-denominated total is
+  // mislabeled and overstated by ~`KRW_PER_USD`x (same hazard `engine.movers`'s active-sort
+  // documents and guards against via this same `priceInUsd` helper).
   lines.push(
-    `· 현재 모의 값은 범위의 **${rangeWord}** 부근이며, 단순 가격×수량 기준 거래 규모는 약 ${fmtUsdCompact(q.volume * q.price)}입니다.`,
+    `· 현재 모의 값은 범위의 **${rangeWord}** 부근이며, 단순 가격×수량 기준 거래 규모는 약 ${fmtUsdCompact(q.volume * priceInUsd(q.price, q.unit))}입니다.`,
   );
 
   const news = GENERAL_NEWS.filter((n) => n.symbols.includes(q.symbol)).slice(0, 2);

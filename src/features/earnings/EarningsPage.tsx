@@ -46,9 +46,6 @@ export default function EarningsPage() {
       .then((value) => {
         setResponse(value);
         setError('');
-        const dates = [...new Set(value.entries.map((entry) => entry.reportDate))].sort();
-        const first = dates.find((date) => date >= SNAPSHOT.todayISO) ?? dates[0];
-        if (first) setSelected(first);
       })
       .catch((cause: unknown) => {
         if (cause instanceof DOMException && cause.name === 'AbortError') return;
@@ -66,6 +63,25 @@ export default function EarningsPage() {
     [response, region],
   );
   const dates = useMemo(() => [...new Set(regionEntries.map((entry) => entry.reportDate))].sort().slice(0, 14), [regionEntries]);
+
+  // Auto-pick a sensible initial/replacement date whenever the *region-scoped* date set
+  // changes — on first load, and again if the region changes and strands `selected` on a date
+  // that belongs to the other region's (unfiltered) calendar. Previously this derived `dates`
+  // from the raw, unfiltered provider response, so under `?region=kr` the empty state named an
+  // unreachable US-derived date (no day pill for it existed, and the pager was a no-op). Only
+  // acts when the current selection isn't already valid for this region, so it doesn't clobber
+  // a date the user picked by hand.
+  useEffect(() => {
+    if (dates.length === 0) {
+      // Nothing to pick from for this region — fall back to today rather than stranding
+      // `selected` on a date that belonged to the other region's calendar.
+      if (selected !== SNAPSHOT.todayISO) setSelected(SNAPSHOT.todayISO);
+      return;
+    }
+    if (dates.includes(selected)) return;
+    const first = dates.find((date) => date >= SNAPSHOT.todayISO) ?? dates[0];
+    if (first) setSelected(first);
+  }, [dates, selected]);
   const entries = useMemo(() => {
     return showAll ? regionEntries.slice(0, 100) : regionEntries.filter((entry) => entry.reportDate === selected);
   }, [regionEntries, selected, showAll]);

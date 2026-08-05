@@ -58,6 +58,32 @@ function fixtureResponse(): EarningsResponse {
   };
 }
 
+function fixtureUsOnlyPastDateResponse(): EarningsResponse {
+  return {
+    requestId: 'test-2',
+    generatedAt: '2026-08-05T00:00:00.000Z',
+    fallback: false,
+    provider: {
+      provider: 'alpha-vantage',
+      configured: true,
+      status: 'up',
+      mode: 'delayed',
+      message: 'ok',
+      checkedAt: '2026-08-05T00:00:00.000Z',
+    },
+    entries: [
+      {
+        symbol: 'AAPL',
+        name: 'Apple Inc.',
+        reportDate: '2026-07-13', // strictly before SNAPSHOT.todayISO, and the only date present
+        estimate: 1.5,
+        currency: 'USD',
+        providerTimestamp: '2026-08-05T00:00:00.000Z',
+      },
+    ],
+  };
+}
+
 function mount(initialEntry: string) {
   const router = createMemoryRouter([{ path: '/earnings', element: <EarningsPage /> }], {
     initialEntries: [initialEntry],
@@ -100,5 +126,25 @@ describe('EarningsPage region scoping', () => {
     expect(screen.queryByText('Apple Inc.')).toBeNull();
     expect(screen.queryByText('Unknown Co')).toBeNull();
     expect(screen.getByText(/1개 일정/)).toBeTruthy();
+  });
+});
+
+/**
+ * Regression guard for review round 2's minor finding: the initial-date auto-pick derived
+ * `dates`/`first` from the raw, unfiltered provider response, so under `?region=kr` (with a
+ * feed that is entirely US, as it always is today) the empty state named an unreachable
+ * US-derived date — no day pill for it existed, and the pager was a no-op. It must fall back to
+ * `SNAPSHOT.todayISO` instead when the region-scoped date set is empty.
+ */
+describe('EarningsPage initial date selection is region-scoped', () => {
+  it('falls back to today, not a stranded US-derived date, when the KR-scoped date set is empty', async () => {
+    apiFetchMock.mockResolvedValue(fixtureUsOnlyPastDateResponse());
+    await act(async () => {
+      mount('/earnings?region=kr');
+    });
+
+    await screen.findByText(/등록된 실적 발표가 없습니다\./);
+    expect(screen.getByText(`${SNAPSHOT.todayISO}에 등록된 실적 발표가 없습니다.`)).toBeTruthy();
+    expect(screen.queryByText('2026-07-13에 등록된 실적 발표가 없습니다.')).toBeNull();
   });
 });

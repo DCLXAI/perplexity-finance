@@ -4,7 +4,10 @@
    P1 guarantees:
    - Quote objects and historical bars are immutable snapshots.
    - Each mock-tick interval emits one batched notification.
-   - US stocks/indices/futures stay fixed at the Jul 10, 2026 close.
+   - US stocks/indices/futures stay fixed at the Aug 4, 2026 close
+     (`SNAPSHOT.asOfISO`); KR equities and benchmarks stay fixed at their own,
+     one-session-later Aug 5, 2026 KRX close (`SNAPSHOT.krAsOfISO`) — see
+     `equityAsOfISO`/`equityAsOfTs` below for the region routing.
    - Crypto is the only 24/7 asset class receiving local mock ticks.
    - Session-specific snapshots prevent regular/continuous values
      from being silently merged.
@@ -40,8 +43,13 @@ const ALL_SEED_ASSETS = Object.freeze([...SEED_ASSETS, ...KR_SEED_ASSETS]);
  * below needs both sides in the same currency, or it silently produces a
  * count too small by ~`KRW_PER_USD`x for KR-priced assets. USD and KRW are
  * the only units that carry a marketCap today.
+ *
+ * Exported: any price×volume-style "dollar value" computation over a possibly-KR quote needs
+ * this same normalization — `src/features/ai/answers.ts`'s trading-size sentence is the other
+ * call site (it independently reimplemented the hazard this comment warns about before being
+ * fixed to import this).
  */
-function priceInUsd(price: number, unit: InstrumentUnit): number {
+export function priceInUsd(price: number, unit: InstrumentUnit): number {
   return unit === 'KRW' ? price / KRW_PER_USD : price;
 }
 

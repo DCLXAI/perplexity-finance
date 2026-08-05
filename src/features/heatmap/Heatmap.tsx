@@ -15,18 +15,11 @@ import {
 import { Link, useNavigate } from 'react-router';
 import { useAllQuotes } from '@/data/store';
 import { SECTOR_BY_ID } from '@/data/universe';
-import { KRW_PER_USD } from '@/data/universe.kr';
-import { fmtCompact, fmtKrwCompact, fmtPct, fmtQuoteValue } from '@/data/format';
+import { fmtMarketCap, fmtPct, fmtQuoteValue } from '@/data/format';
 import { REGION_LABELS, type MarketRegion } from '@/data/region';
 import { ChangeBadge, LogoChip } from '@/components/ui';
 import type { Quote, SectorId } from '@/data/types';
 import './heatmap.css';
-
-/** `quote.marketCap` is always USD (see universe.kr.ts); KR-priced rows convert back to won for display. */
-function fmtQuoteCap(quote: Quote): string {
-  const cap = quote.marketCap ?? 0;
-  return quote.unit === 'KRW' ? fmtKrwCompact(cap * KRW_PER_USD) : `US$${fmtCompact(cap)}`;
-}
 
 /**
  * Adjective form ("미국"/"한국") derived from the canonical region label, for headings like
@@ -454,7 +447,7 @@ export default function Heatmap({
                   <td>{sector}</td>
                   <td className="num">{fmtQuoteValue(quote, quote.price)}</td>
                   <td className={quote.changePct >= 0 ? 'num pos' : 'num neg'}>{fmtPct(quote.changePct)}</td>
-                  <td className="num">{fmtQuoteCap(quote)}</td>
+                  <td className="num">{fmtMarketCap(quote)}</td>
                 </tr>
               ))}
             </tbody>
@@ -483,7 +476,7 @@ export default function Heatmap({
           </div>
           <div className="hm-tip-cap">
             <span>시가총액</span>
-            <span className="num">{fmtQuoteCap(hoverQuote)}</span>
+            <span className="num">{fmtMarketCap(hoverQuote)}</span>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@
    Price units are explicit so indices and futures are not rendered
    as if every instrument were a US-dollar cash asset.
    ============================================================ */
+import { KRW_PER_USD } from './universe.kr.js';
 import type { InstrumentUnit, Quote } from './types.js';
 
 export function fmtPrice(value: number): string {
@@ -78,6 +79,19 @@ export function fmtQuoteValue(quote: Pick<Quote, 'unit'>, value: number): string
 
 export function fmtQuoteChange(quote: Pick<Quote, 'unit'>, value: number): string {
   return fmtInstrumentChange(quote.unit, value);
+}
+
+/**
+ * `AssetMeta.marketCap` is always stored in USD (see `universe.kr.ts`'s `KRW_PER_USD` doc
+ * comment) — a KR-priced quote's cap converts back to won for display; a US-priced one passes
+ * through unchanged. This was independently reimplemented at three call sites (StockPage,
+ * WatchlistPage, Heatmap) before being centralized here — a fourth call site
+ * (`src/features/ai/answers.ts`) skipped the conversion entirely because no shared helper
+ * existed to reach for, so route every marketCap display through this one instead.
+ */
+export function fmtMarketCap(quote: Pick<Quote, 'unit' | 'marketCap'>): string {
+  const cap = quote.marketCap ?? 0;
+  return quote.unit === 'KRW' ? fmtKrwCompact(cap * KRW_PER_USD) : fmtUsdCompact(cap);
 }
 
 /** 1_268_000_000_000 → '1.27조', 66_000_000_000 → '660.0억'. */

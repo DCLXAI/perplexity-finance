@@ -1,6 +1,7 @@
 // src/data/format.krw.test.ts
 import { describe, expect, it } from 'vitest';
-import { fmtInstrumentChange, fmtInstrumentValue, fmtKrw, fmtKrwCompact } from './format.js';
+import { engine } from './engine.js';
+import { fmtInstrumentChange, fmtInstrumentValue, fmtKrw, fmtKrwCompact, fmtMarketCap } from './format.js';
 
 describe('fmtKrw', () => {
   it('renders whole won with thousands separators and no decimals', () => {
@@ -23,6 +24,31 @@ describe('fmtKrwCompact', () => {
 
   it('falls back to plain won below 억', () => {
     expect(fmtKrwCompact(4_300_000)).toBe('₩4,300,000');
+  });
+});
+
+/**
+ * `fmtMarketCap` centralizes what was independently reimplemented at four call sites
+ * (`StockPage.tsx`, `WatchlistPage.tsx`, `Heatmap.tsx`, and — until it was missed there —
+ * `src/features/ai/answers.ts`). `AssetMeta.marketCap` is always stored in USD; this must
+ * convert back to won for a KR-priced quote and pass a US-priced quote through unchanged.
+ */
+describe('fmtMarketCap', () => {
+  it("converts a KR quote's USD-stored market cap back to the authored won figure", () => {
+    const quote = engine.getQuote('005930');
+    expect(quote?.unit).toBe('KRW');
+    expect(fmtMarketCap(quote!)).toBe('₩1,568.32조');
+  });
+
+  it('passes a US quote through as plain compact dollars (no conversion)', () => {
+    const quote = engine.getQuote('AAPL');
+    expect(quote?.unit).toBe('USD');
+    expect(fmtMarketCap(quote!)).toBe('US$4.52T');
+  });
+
+  it('defaults to zero (not NaN) for a quote with no market cap field', () => {
+    expect(fmtMarketCap({ unit: 'USD', marketCap: undefined })).toBe('US$0');
+    expect(fmtMarketCap({ unit: 'KRW', marketCap: undefined })).toBe('₩0');
   });
 });
 

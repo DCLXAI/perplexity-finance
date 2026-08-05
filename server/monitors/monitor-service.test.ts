@@ -13,6 +13,7 @@ const {
   openMonitorDigestMock,
   appendMonitorBreachMock,
   enqueueMonitorDigestDeliveriesMock,
+  listMonitorBreachesByDigestMock,
   buildMonitorObservationMock,
   loggerWarnMock,
 } = vi.hoisted(() => ({
@@ -21,6 +22,7 @@ const {
   openMonitorDigestMock: vi.fn(),
   appendMonitorBreachMock: vi.fn(),
   enqueueMonitorDigestDeliveriesMock: vi.fn(),
+  listMonitorBreachesByDigestMock: vi.fn(),
   buildMonitorObservationMock: vi.fn(),
   loggerWarnMock: vi.fn(),
 }));
@@ -31,6 +33,7 @@ vi.mock('./store.js', () => ({
   openMonitorDigest: openMonitorDigestMock,
   appendMonitorBreach: appendMonitorBreachMock,
   enqueueMonitorDigestDeliveries: enqueueMonitorDigestDeliveriesMock,
+  listMonitorBreachesByDigest: listMonitorBreachesByDigestMock,
 }));
 
 vi.mock('./observations.js', () => ({
@@ -76,10 +79,41 @@ describe('nextEvaluationAt', () => {
 describe('monitorRules — failure isolation', () => {
   const FAR_DEADLINE = Date.now() + 60_000;
 
+  // Stands in for the durable `monitor_breaches` table: `appendMonitorBreach` writes to it and
+  // `listMonitorBreachesByDigest` reads back from it, which is exactly the property the digest
+  // payload now depends on (it must reflect every breach attached to the digest, including ones
+  // appended by an earlier run, not just the ones this run produced).
+  interface FakeBreachRow {
+    readonly digest_id: string;
+    readonly kind: string;
+    readonly portfolio_id: string;
+    readonly spec: Record<string, unknown>;
+    readonly observed_value: number | null;
+    readonly threshold_value: number | null;
+  }
+  let breachTable: FakeBreachRow[] = [];
+
   beforeEach(() => {
     vi.clearAllMocks();
+    breachTable = [];
     openMonitorDigestMock.mockImplementation((userId: string) => Promise.resolve({ id: `digest-${userId}` }));
-    appendMonitorBreachMock.mockResolvedValue('breach-id');
+    appendMonitorBreachMock.mockImplementation((input: {
+      digestId: string; kind: string; portfolioId: string; spec: Record<string, unknown>;
+      observedValue: number | null; thresholdValue: number | null;
+    }) => {
+      breachTable.push({
+        digest_id: input.digestId,
+        kind: input.kind,
+        portfolio_id: input.portfolioId,
+        spec: input.spec,
+        observed_value: input.observedValue,
+        threshold_value: input.thresholdValue,
+      });
+      return Promise.resolve('breach-id');
+    });
+    listMonitorBreachesByDigestMock.mockImplementation((digestId: string) => Promise.resolve(
+      breachTable.filter((row) => row.digest_id === digestId),
+    ));
     recordMonitorEvaluationMock.mockResolvedValue(undefined);
     enqueueMonitorDigestDeliveriesMock.mockResolvedValue(1);
   });
@@ -216,5 +250,48 @@ describe('monitorRules — failure isolation', () => {
     const emptyDigestWarnings = loggerWarnMock.mock.calls.filter(([event]) => event === 'monitor.digest_empty_skipped');
     expect(emptyDigestWarnings).toHaveLength(1);
     expect(emptyDigestWarnings[0][1]).toMatchObject({ userId: 'u1' });
+  });
+
+  it('includes a breach appended by an earlier run when the open digest is reused', async () => {
+    // Run 1 appended breach A and latched rule A, then its enqueue failed, leaving digest
+    // `digest-u1` open with A attached. Run 2 breaches rule B for the same user, so
+    // `open_monitor_digest` hands back the same digest. The payload must carry BOTH: rule A is
+    // already latched and can never notify again, so if A is dropped here it is never delivered
+    // at all — while the status panel keeps showing it as fired.
+    breachTable.push({
+      digest_id: 'digest-u1',
+      kind: 'thesis_invalidation',
+      portfolio_id: 'p0',
+      spec: { condition: 'price_below', symbol: 'AAPL', value: 150 },
+      observed_value: 140,
+      threshold_value: 150,
+    });
+    claimDueMonitorRulesMock.mockResolvedValue([rule({ id: 'b', portfolio_id: 'p1', user_id: 'u1' })]);
+    buildMonitorObservationMock.mockResolvedValue(observation('p1'));
+
+    await monitorRules('req-5', FAR_DEADLINE);
+
+    expect(enqueueMonitorDigestDeliveriesMock).toHaveBeenCalledTimes(1);
+    const [digestId, payload] = enqueueMonitorDigestDeliveriesMock.mock.calls[0] as [string, {
+      breachCount: number;
+      items: readonly { readonly kind: string }[];
+    }];
+    expect(digestId).toBe('digest-u1');
+    expect(payload.breachCount).toBe(2);
+    expect(payload.items.map((item) => item.kind)).toEqual(['thesis_invalidation', 'risk_threshold']);
+  });
+
+  it('warns when the enqueue reports the digest was not fanned out', async () => {
+    // 0 means the digest was no longer `open` — nothing will ever be sent for it, so it must
+    // not pass silently.
+    claimDueMonitorRulesMock.mockResolvedValue([rule({ id: 'a', portfolio_id: 'p1', user_id: 'u1' })]);
+    buildMonitorObservationMock.mockResolvedValue(observation('p1'));
+    enqueueMonitorDigestDeliveriesMock.mockResolvedValue(0);
+
+    await monitorRules('req-6', FAR_DEADLINE);
+
+    const warnings = loggerWarnMock.mock.calls.filter(([event]) => event === 'monitor.digest_not_fanned_out');
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0][1]).toMatchObject({ userId: 'u1', digestId: 'digest-u1', breaches: 1 });
   });
 });

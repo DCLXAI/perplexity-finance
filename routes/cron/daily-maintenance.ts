@@ -62,7 +62,14 @@ export default withFunction('cron.daily-maintenance', ['GET'], async (request, r
   // prevents a same-day drift scan from racing an expected cash contribution.
   const contribution = await monitorPortfolioContributions(`${requestId}:contribution`);
   const rebalance = await monitorPortfolioRebalances(`${requestId}:rebalance`);
-  const rebalanceDelivery = await deliverPendingRebalances();
+  // Every remaining step is bounded by the same absolute wall-clock: what the platform grants
+  // this invocation, less the margin needed to serialize the response. Delivery steps are
+  // unbounded external-network work (batch 50 x 12s timeout / concurrency 5 = up to 120s in the
+  // worst case), so without this bound a slow provider could push the function past its limit
+  // and get it killed — destroying the entire response, including the market, snapshot,
+  // contribution and rebalance results already computed above.
+  const wallClockDeadlineMs = runStartMs + FUNCTION_BUDGET_MS - SAFETY_MARGIN_MS;
+  const rebalanceDelivery = await deliverPendingRebalances(wallClockDeadlineMs);
 
   // Monitors run last on purpose. Contributions and rebalances create reviewable plans that
   // lead to ledger writes; monitors only notify. If the 60s budget runs short, dropping a
@@ -78,7 +85,7 @@ export default withFunction('cron.daily-maintenance', ['GET'], async (request, r
     // losing this response's already-computed results along with it.
     const monitorDeadlineMs = Math.min(
       Date.now() + loadConfig().monitorBudgetMs,
-      runStartMs + FUNCTION_BUDGET_MS - SAFETY_MARGIN_MS,
+      wallClockDeadlineMs,
     );
     monitor = await monitorRules(`${requestId}:monitor`, monitorDeadlineMs);
   } catch (error) {
@@ -89,7 +96,7 @@ export default withFunction('cron.daily-maintenance', ['GET'], async (request, r
 
   let monitorDelivery: { readonly attempted: number; readonly sent: number; readonly failed: number } | { readonly error: string };
   try {
-    monitorDelivery = await deliverPendingMonitorDigests();
+    monitorDelivery = await deliverPendingMonitorDigests(wallClockDeadlineMs);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.warn('monitor.delivery_failed', { requestId, message });

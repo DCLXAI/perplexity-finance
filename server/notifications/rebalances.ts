@@ -58,8 +58,19 @@ async function deliverOne(row: RebalanceDeliveryRow): Promise<'sent' | 'failed'>
   }
 }
 
-export async function deliverPendingRebalances(): Promise<{ attempted: number; sent: number; failed: number }> {
+/**
+ * `deadlineMs` (optional, absolute epoch ms) bounds this step against the caller's remaining
+ * wall-clock, exactly as for monitor digests. Rows claimed but not attempted stay `processing`
+ * and are recovered by `claim_due_portfolio_rebalance_deliveries`'s stale-lease sweep.
+ */
+export async function deliverPendingRebalances(
+  deadlineMs?: number,
+): Promise<{ attempted: number; sent: number; failed: number }> {
+  if (deadlineMs !== undefined && Date.now() >= deadlineMs) {
+    logger.warn('rebalance.delivery_skipped', { reason: 'budget exhausted' });
+    return Object.freeze({ attempted: 0, sent: 0, failed: 0 });
+  }
   const config = loadConfig();
   const rows = await claimDueRebalanceDeliveries(config.deliveryBatchSize);
-  return drainQueue(rows, deliverOne, config.deliveryConcurrency);
+  return drainQueue(rows, deliverOne, config.deliveryConcurrency, deadlineMs);
 }

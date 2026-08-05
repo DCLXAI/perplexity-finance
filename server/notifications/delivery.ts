@@ -101,16 +101,31 @@ export async function sendPushMessage(input: SendPushMessageInput): Promise<void
   if (!sent) throw new Error('No active push subscription accepted the notification');
 }
 
+/**
+ * Delivers `rows` with bounded concurrency, optionally stopping at `deadlineMs`.
+ *
+ * The deadline matters because a claimed batch is an unbounded external-network step: with the
+ * default batch size 50, concurrency 5 and a 12s per-send timeout, a fully-timing-out batch
+ * takes ten rounds — 120s — which is twice the whole serverless function budget. A platform
+ * kill is not catchable, so it would destroy the entire cron response, including work already
+ * completed by earlier steps. Rows left unprocessed stay in `processing` and are recovered by
+ * the claim function's stale-lease sweep on a later run, so stopping early loses nothing.
+ *
+ * `attempted` counts rows actually handed to `deliverOne`, which equals `rows.length` whenever
+ * no deadline is supplied or the deadline is never reached.
+ */
 export async function drainQueue<TRow>(
   rows: readonly TRow[],
   deliverOne: (row: TRow) => Promise<'sent' | 'failed'>,
   concurrency: number,
+  deadlineMs?: number,
 ): Promise<{ attempted: number; sent: number; failed: number }> {
   let cursor = 0;
   let sent = 0;
   let failed = 0;
   const workers = Array.from({ length: Math.min(concurrency, rows.length) }, async () => {
     while (cursor < rows.length) {
+      if (deadlineMs !== undefined && Date.now() >= deadlineMs) return;
       const index = cursor++;
       const result = await deliverOne(rows[index]);
       if (result === 'sent') sent += 1;
@@ -118,5 +133,9 @@ export async function drainQueue<TRow>(
     }
   });
   await Promise.all(workers);
-  return Object.freeze({ attempted: rows.length, sent, failed });
+  const attempted = sent + failed;
+  if (attempted < rows.length) {
+    logger.warn('delivery.deadline_reached', { claimed: rows.length, attempted, skipped: rows.length - attempted });
+  }
+  return Object.freeze({ attempted, sent, failed });
 }

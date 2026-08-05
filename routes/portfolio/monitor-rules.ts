@@ -95,7 +95,7 @@ function mapMonitorStoreError(error: unknown): never {
     throw new ApiError(404, 'MONITOR_RULE_NOT_FOUND', '감시 규칙을 찾을 수 없습니다.');
   }
   if (
-    /thesis_invalidation spec requires|unknown thesis condition|thesis threshold must be positive|unknown risk metric|unknown comparison|stress_scenario requires|maxProjectedLossPct must be non-negative|unknown monitor rule kind|violates check constraint/i
+    /thesis_invalidation spec requires|unknown thesis condition|thesis threshold must be positive|unknown risk metric|unknown comparison|stress_scenario requires|maxProjectedLossPct must be positive|unknown monitor rule kind|violates check constraint/i
       .test(message)
   ) {
     throw new ApiError(400, 'MONITOR_RULE_SPEC_INVALID', '감시 규칙 조건이 올바르지 않습니다.');

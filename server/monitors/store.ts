@@ -230,6 +230,21 @@ export async function deleteMonitorRule(userId: string, ruleId: string): Promise
   ensure(error, 'monitor_rules.delete');
 }
 
+/**
+ * Every breach attached to a digest, oldest first — including breaches appended by an earlier
+ * run that failed to enqueue. `open_monitor_digest` reuses an existing `open` digest, so the
+ * digest payload must be assembled from this durable list rather than from whatever the current
+ * run happened to append; otherwise an earlier run's breach is silently dropped from the
+ * notification while its rule stays latched and can never fire again.
+ */
+export async function listMonitorBreachesByDigest(digestId: string): Promise<readonly MonitorBreachRow[]> {
+  const { data, error } = await getSupabaseAdmin().from('monitor_breaches').select('*')
+    .eq('digest_id', digestId)
+    .order('created_at', { ascending: true });
+  ensure(error, 'monitor_breaches.list_by_digest');
+  return Object.freeze([...(data ?? [])] as MonitorBreachRow[]);
+}
+
 export async function listMonitorBreaches(
   userId: string,
   ruleId: string,

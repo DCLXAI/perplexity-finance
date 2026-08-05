@@ -69,6 +69,35 @@ assert.throws(
   'empty shock list must be rejected',
 );
 
+// A 0 threshold breaches on any projected loss, so the rule latches permanently on its first
+// evaluation and can never notify again.
+assert.throws(
+  () => parseMonitorRuleSpec('stress_scenario', {
+    shocks: [{ targetType: 'all', target: '*', changePct: -30 }],
+    maxProjectedLossPct: 0,
+  }),
+  ZodError,
+  'maxProjectedLossPct of 0 must be rejected',
+);
+
+// The nested shock object must be .strict() like every other union member.
+assert.throws(
+  () => parseMonitorRuleSpec('stress_scenario', {
+    shocks: [{ targetType: 'all', target: '*', changePct: -30, unknownExtraKey: true }],
+    maxProjectedLossPct: 20,
+  }),
+  ZodError,
+  'stress shock must reject an unknown key (.strict())',
+);
+
+// resolveRuleSymbol derives the persisted symbol column FROM spec.symbol, so the route's own
+// character-class check never reaches the stored value -- the spec schema has to carry it.
+assert.throws(
+  () => parseMonitorRuleSpec('thesis_invalidation', { condition: 'price_below', symbol: 'AAPL BAR', value: 195 }),
+  ZodError,
+  'a spec symbol with an illegal character must be rejected',
+);
+
 const validSpecs = {
   thesis_invalidation: { condition: 'price_below', symbol: 'AAPL', value: 195 },
   risk_threshold: { metric: 'annualizedVolatilityPct', comparison: 'above', value: 20 },
@@ -169,6 +198,27 @@ assert.equal(
   'every security-definer function must have exactly one matching revoke',
 );
 
+// --- migration: the digest-delivery claim must recover stale `processing` rows -----------------
+
+// Without this sweep a delivery whose worker died mid-flight is stranded forever: the digest is
+// already 'dispatched' so open_monitor_digest will not reuse it, enqueue_monitor_digest_deliveries
+// returns 0 on a repeat call, and the breached rules are 'latched' so shouldNotify stays false.
+// The panel would show 경보 발동 and no notification would ever arrive.
+const claimDigestDeliveries = migration.match(
+  /create or replace function public\.claim_due_monitor_digest_deliveries\([\s\S]*?\$\$;/,
+)?.[0] ?? '';
+assert.ok(claimDigestDeliveries.length > 0, 'claim_due_monitor_digest_deliveries must exist');
+assert.match(
+  claimDigestDeliveries,
+  /status = 'processing' and updated_at < timezone\('utc', now\(\)\) - interval '5 minutes'/,
+  'claim_due_monitor_digest_deliveries must sweep stale processing rows, as p7 does',
+);
+assert.match(
+  claimDigestDeliveries,
+  /status = 'retry', next_attempt_at = timezone\('utc', now\(\)\)/,
+  'the stale-processing sweep must return rows to retry with an immediate next attempt',
+);
+
 // --- vercel.json: still exactly two Cron entries -----------------------------------------------
 
 const vercelConfig = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')) as {
@@ -185,6 +235,7 @@ console.log(JSON.stringify({
   deferralDoesNotConsumeInterval: 'PASS',
   migrationCreatesMonitorRules: 'PASS',
   everySecurityDefinerFunctionRevoked: 'PASS',
+  staleProcessingDeliverySweep: 'PASS',
   exactlyTwoCronSchedules: 'PASS',
   result: 'PASS',
 }, null, 2));

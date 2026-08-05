@@ -1,7 +1,6 @@
 import { loadConfig } from '../config.js';
 import { logger } from '../observability/logger.js';
 import { buildDigestPayload } from './digest.js';
-import type { MonitorDigestBreachInput } from './digest.js';
 import { evaluateRule, nextState, shouldNotify } from './evaluate.js';
 import type { MonitorLatchState, MonitorObservation, MonitorRuleInput } from './evaluate.js';
 import { buildMonitorObservation } from './observations.js';
@@ -9,6 +8,7 @@ import {
   appendMonitorBreach,
   claimDueMonitorRules,
   enqueueMonitorDigestDeliveries,
+  listMonitorBreachesByDigest,
   openMonitorDigest,
   recordMonitorEvaluation,
 } from './store.js';
@@ -109,7 +109,6 @@ async function evaluateGroup(
   group: PortfolioRuleGroup,
   observation: MonitorObservation,
   digestByUser: Map<string, string>,
-  breachesByDigest: Map<string, MonitorDigestBreachInput[]>,
   counters: RuleEvaluationCounters,
 ): Promise<void> {
   for (const rule of group.rules) {
@@ -153,16 +152,6 @@ async function evaluateGroup(
           sourceSnapshotId: null,
         });
         breachAppended = true;
-        const breachInput: MonitorDigestBreachInput = {
-          kind: rule.kind,
-          symbol: rule.symbol,
-          spec: rule.spec,
-          observed_value: result.observedValue ?? null,
-          threshold_value: result.threshold ?? null,
-        };
-        const digestBreaches = breachesByDigest.get(digestId);
-        if (digestBreaches) digestBreaches.push(breachInput);
-        else breachesByDigest.set(digestId, [breachInput]);
       }
 
       await recordMonitorEvaluation({
@@ -207,7 +196,6 @@ export async function monitorRules(requestId: string, deadlineMs: number): Promi
 
   const counters: RuleEvaluationCounters = { evaluated: 0, breached: 0, deferred: 0, errored: 0 };
   const digestByUser = new Map<string, string>();
-  const breachesByDigest = new Map<string, MonitorDigestBreachInput[]>();
   let portfolios = 0;
   let budgetExhausted = false;
 
@@ -234,7 +222,7 @@ export async function monitorRules(requestId: string, deadlineMs: number): Promi
     // it should not throw. If it somehow did, one bad group must still not end the run — the
     // remaining groups' rules keep their existing `next_evaluation_at` and are retried next run.
     try {
-      await evaluateGroup(group, observation, digestByUser, breachesByDigest, counters);
+      await evaluateGroup(group, observation, digestByUser, counters);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logger.warn('monitor.group_failed', { requestId, portfolioId: group.portfolioId, message });
@@ -243,7 +231,14 @@ export async function monitorRules(requestId: string, deadlineMs: number): Promi
 
   for (const [userId, digestId] of digestByUser) {
     try {
-      const breaches = breachesByDigest.get(digestId) ?? [];
+      // The payload is built from the DURABLE breach rows attached to this digest, not from
+      // whatever this run happened to append. `open_monitor_digest` reuses any still-`open`
+      // digest for the user, so a digest reached here may already carry breaches from an
+      // earlier run whose enqueue failed (the catch below leaves the digest `open` on purpose).
+      // Building from an in-run map would ship a payload containing only this run's breaches:
+      // the earlier breach would never be delivered, and its rule is already `latched`, so it
+      // could never notify again.
+      const breaches = await listMonitorBreachesByDigest(digestId);
       // A digest id can be reserved (`openMonitorDigest`) before its first breach is durably
       // appended. If that append then fails, and nothing else breaches for this user in the same
       // run, the digest ends up with zero breaches — enqueueing that would send a real user a
@@ -254,7 +249,16 @@ export async function monitorRules(requestId: string, deadlineMs: number): Promi
         logger.warn('monitor.digest_empty_skipped', { userId, digestId });
         continue;
       }
-      await enqueueMonitorDigestDeliveries(digestId, buildDigestPayload(breaches, config.publicOrigin ?? ''));
+      const enqueued = await enqueueMonitorDigestDeliveries(
+        digestId,
+        buildDigestPayload(breaches, config.publicOrigin ?? ''),
+      );
+      // 0 means the digest was not fanned out: it was no longer `open` (already dispatched by a
+      // concurrent run, or its delivery rows already exist). Nothing will be sent for this
+      // digest, so it must not pass silently.
+      if (enqueued === 0) {
+        logger.warn('monitor.digest_not_fanned_out', { userId, digestId, breaches: breaches.length });
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logger.warn('monitor.digest_enqueue_failed', { userId, digestId, message });

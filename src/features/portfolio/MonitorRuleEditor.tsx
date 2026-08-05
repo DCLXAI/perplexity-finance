@@ -350,8 +350,10 @@ export default function MonitorRuleEditor({ portfolioId, thesisId, symbol, allow
         return;
       }
       const maxProjectedLossPct = Number(stressDraft.maxProjectedLossPct);
-      if (!Number.isFinite(maxProjectedLossPct) || maxProjectedLossPct < 0 || maxProjectedLossPct > 1000) {
-        setFormError('최대 허용 손실은 0~1000 사이여야 합니다.');
+      // Must be greater than 0: a 0 threshold breaches on any projected loss, latching the rule
+      // permanently on its first evaluation.
+      if (!Number.isFinite(maxProjectedLossPct) || maxProjectedLossPct <= 0 || maxProjectedLossPct > 1000) {
+        setFormError('최대 허용 손실은 0보다 크고 1000 이하여야 합니다.');
         return;
       }
       spec = { shocks, maxProjectedLossPct };

@@ -180,11 +180,14 @@ begin
     if v_shocks_invalid then
       raise exception 'stress_scenario requires 1..20 shocks';
     end if;
+    -- Must be strictly positive: a threshold of 0 breaches on any projected loss at all, so the
+    -- rule latches permanently on its very first evaluation and can never notify again. Same
+    -- reasoning as the thesis/risk thresholds above.
     if jsonb_typeof(p_spec->'maxProjectedLossPct') <> 'number' then
-      raise exception 'maxProjectedLossPct must be non-negative';
+      raise exception 'maxProjectedLossPct must be positive';
     end if;
-    if (p_spec->>'maxProjectedLossPct')::numeric < 0 then
-      raise exception 'maxProjectedLossPct must be non-negative';
+    if (p_spec->>'maxProjectedLossPct')::numeric <= 0 then
+      raise exception 'maxProjectedLossPct must be positive';
     end if;
   else
     raise exception 'unknown monitor rule kind %', p_kind;
@@ -372,9 +375,25 @@ $$;
 revoke all on function public.enqueue_monitor_digest_deliveries(uuid, jsonb) from public, anon, authenticated;
 grant execute on function public.enqueue_monitor_digest_deliveries(uuid, jsonb) to service_role;
 
+-- Follows the claim_due_portfolio_rebalance_deliveries shape in
+-- 202607130002_p7_rebalance_workflow.sql, including its stale-lease recovery sweep and its
+-- 5 minute interval.
+--
+-- The sweep is not optional. A row is flipped to 'processing' the moment it is claimed; if the
+-- worker then dies (platform timeout, deploy, crash) before calling one of the mark_* RPCs, the
+-- row is stranded, and nothing else in the system can rescue it: the digest is already
+-- 'dispatched' so open_monitor_digest will not reuse it, enqueue_monitor_digest_deliveries
+-- returns 0 on a repeat call, and the breached rules are 'latched' so shouldNotify stays false
+-- forever. The user would see 경보 발동 in the status panel and never receive a notification.
+-- The partial index monitor_digest_deliveries_due_idx covers 'processing' precisely so this
+-- sweep is index-supported.
 create or replace function public.claim_due_monitor_digest_deliveries(p_limit integer default 50)
 returns setof public.monitor_digest_deliveries language plpgsql security definer set search_path = public as $$
 begin
+  update public.monitor_digest_deliveries set
+    status = 'retry', next_attempt_at = timezone('utc', now()),
+    last_error = 'Recovered stale delivery lease', updated_at = timezone('utc', now())
+  where status = 'processing' and updated_at < timezone('utc', now()) - interval '5 minutes';
   return query
   update public.monitor_digest_deliveries set status = 'processing', updated_at = timezone('utc', now())
   where id in (

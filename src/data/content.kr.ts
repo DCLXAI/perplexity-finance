@@ -22,9 +22,9 @@ export const KR_MARKET_SUMMARY: MarketSummaryItem[] = [
   },
   {
     id: 'ms-kr-hynix-adr',
-    title: '월가 증권사 6곳, SK하이닉스 ADR에 일제히 매수 의견',
-    body: '뱅크오브아메리카·UBS·로젠블랫증권·니덤·RBC캐피털마켓·윌리엄블레어 등 월가 증권사 6곳이 SK하이닉스 ADR에 매수 또는 비중확대 의견을 내며 목표주가를 최고 320달러(로젠블랫증권)까지 제시했다. 마이크론 대비 저평가됐다는 분석이 이어지며 ADR은 장중 8% 넘게 올랐고, 국내 SK하이닉스 주가가 상승 폭을 키우는 데도 힘을 보탰다.',
-    sources: 27,
+    title: '월가 다수 증권사, SK하이닉스 ADR에 매수 러브콜…목표주가 최고 330달러',
+    body: '이투데이에 따르면 뱅크오브아메리카를 포함해 최소 6개 금융회사가 SK하이닉스 ADR에 대한 분석을 새로 개시하며 매수 또는 비중확대 의견을 냈다. 글로벌이코노믹은 이를 더 넓게 짚어 ADR을 다루는 11개 증권사 중 10곳이 매수 이상 의견이며 평균 목표주가는 245.5달러, 개별 목표주가는 바클레이즈의 330달러부터 UBS의 204달러까지 다양하다고 전했다. 마이크론 대비 저평가됐다는 논리 속에 ADR은 장중 8% 넘게 올랐다(머니투데이).',
+    sources: 18,
   },
   {
     id: 'ms-kr-lginnotek',
@@ -41,7 +41,7 @@ export const KR_MARKET_SUMMARY: MarketSummaryItem[] = [
   {
     id: 'ms-kr-engines',
     title: '한화엔진 변동성완화장치 발동…조선기자재주 동반 급등',
-    body: '한화엔진이 이날 오후 1시 57분 전 거래일 대비 13.01% 오른 4만 6,050원까지 치솟으며 정적 변동성완화장치(VI)가 발동됐다. STX엔진, HD현대마린엔진 등 엔진·기자재주가 동반 강세를 보이며 코스피·코스닥 상승에 힘을 보탰다.',
+    body: '한화엔진이 이날 장중인 오후 1시 57분 전 거래일 대비 13.01% 오른 4만 6,050원까지 치솟으며 정적 변동성완화장치(VI)가 발동됐다(종가는 4만 6,000원, +12.88%). STX엔진, HD현대마린엔진 등 엔진·기자재주가 동반 강세를 보이며 코스피·코스닥 상승에 힘을 보탰다.',
     sources: 15,
   },
   {
@@ -57,8 +57,8 @@ export const KR_MARKET_SUMMARY: MarketSummaryItem[] = [
 export const KR_EXPLORE_CARDS: ExploreCard[] = [
   {
     id: 'ex-kr-hynix-adr',
-    title: '월가 증권사 6곳, SK하이닉스 ADR 매수 총공세…목표가 최고 320달러',
-    sources: 27,
+    title: 'SK하이닉스 ADR, 월가 매수 의견 확산…목표주가 최고 330달러',
+    sources: 18,
     gradient: 'linear-gradient(135deg,#1f3d33,#4f8a6d)',
     art: 'chips',
   },
@@ -112,9 +112,9 @@ export const KR_GENERAL_NEWS: NewsItem[] = [
   },
   {
     id: 'n-kr-2',
-    title: '월가 증권사 6곳, SK하이닉스 ADR에 매수 러브콜…목표가 최고 320달러',
-    summary: 'BofA·UBS·로젠블랫증권 등이 SK하이닉스 ADR에 매수 또는 비중확대 의견을 제시했다. 마이크론 대비 저평가 논리가 부각되며 ADR은 장중 8% 넘게 올랐다.',
-    source: '이투데이',
+    title: 'SK하이닉스 ADR, 월가 매수 의견 확산…목표주가 최고 330달러',
+    summary: 'SK하이닉스 ADR을 다루는 11개 증권사 중 10곳이 매수 이상 의견을 냈다. 평균 목표주가는 245.5달러이며, 바클레이즈가 330달러로 가장 높은 목표주가를 제시했다.',
+    source: '글로벌이코노믹',
     timeAgo: '3시간 전',
     symbols: ['000660'],
   },
@@ -137,7 +137,7 @@ export const KR_GENERAL_NEWS: NewsItem[] = [
   {
     id: 'n-kr-5',
     title: '한화엔진, 장중 VI 발동…조선기자재주 동반 강세',
-    summary: '한화엔진이 전 거래일 대비 13.01% 오른 4만 6,050원까지 치솟으며 변동성완화장치가 발동됐다. STX엔진, HD현대마린엔진 등도 함께 올랐다.',
+    summary: '한화엔진이 장중 한때 전 거래일 대비 13.01% 오른 4만 6,050원까지 치솟으며 변동성완화장치가 발동됐다(종가 기준 +12.88%). STX엔진, HD현대마린엔진 등도 함께 올랐다.',
     source: 'CBC뉴스',
     timeAgo: '6시간 전',
     symbols: ['082740', '071970'],

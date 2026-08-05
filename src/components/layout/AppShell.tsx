@@ -8,7 +8,7 @@ import AccountButton from '@/cloud/AccountButton';
 import { useAuth } from '@/cloud/AuthProvider';
 import DataStatusButton from '@/live/DataStatusButton';
 import { useMarketRuntimeStatus } from '@/live/marketRuntime';
-import { REGION_PARAM, regionFromSearch } from '@/data/region';
+import { REGION_LABELS, REGION_PARAM, regionFromSearch } from '@/data/region';
 import { useTheme } from '@/data/store';
 import AlertsButton from '@/features/alerts/AlertsButton';
 import ToastHost from '@/features/alerts/ToastHost';
@@ -165,20 +165,30 @@ export default function AppShell() {
 
       <nav className="app-tabbar" aria-label="주요 금융 화면">
         <div className="tabbar-tabs">
-          {visibleTabs.map((tab) => (
-            <NavLink
-              key={tab.to}
-              to={withRegion(tab.to, regionParam)}
-              end={tab.to === '/'}
-              className={({ isActive }) =>
-                `tabbar-tab${isActive || (tab.to === '/' && location.pathname.startsWith('/stock')) ? ' active' : ''}`
-              }
-            >
-              {tab.flag && <span aria-hidden="true">{tab.flag}</span>}
-              {tab.label}
-              {tab.to === '/' && <span className="tabbar-caret" aria-hidden="true">▾</span>}
-            </NavLink>
-          ))}
+          {visibleTabs.map((tab) => {
+            // Tab 0 points at the region-scoped market home, so its label/flag follow the
+            // active region — otherwise a KR link would sit under a "미국 시장 🇺🇸" tab.
+            const isHome = tab.to === '/';
+            const homeLabels = REGION_LABELS[region];
+            return (
+              <NavLink
+                key={tab.to}
+                to={withRegion(tab.to, regionParam)}
+                end={isHome}
+                className={({ isActive }) =>
+                  `tabbar-tab${isActive || (isHome && location.pathname.startsWith('/stock')) ? ' active' : ''}`
+                }
+              >
+                {isHome ? (
+                  <span aria-hidden="true">{homeLabels.flag}</span>
+                ) : (
+                  tab.flag && <span aria-hidden="true">{tab.flag}</span>
+                )}
+                {isHome ? homeLabels.label : tab.label}
+                {isHome && <span className="tabbar-caret" aria-hidden="true">▾</span>}
+              </NavLink>
+            );
+          })}
           {isOps && (
             <NavLink to="/ops" className={({ isActive }) => `tabbar-tab${isActive ? ' active' : ''}`}>
               운영

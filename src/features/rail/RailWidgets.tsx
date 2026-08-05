@@ -8,8 +8,9 @@ import { Card, CardHeader, ChangeBadge, QuoteRow, SegTabs } from '@/components/u
 import { engine } from '@/data/engine';
 import { useAllQuotes, useQuotes, useWatchlist } from '@/data/store';
 import { PREDICTIONS } from '@/data/content';
-import { SECTORS } from '@/data/universe';
+import { SECTORS_BY_REGION } from '@/data/universe';
 import { fmtAssetVolume, fmtPrice, fmtUsdCompact } from '@/data/format';
+import type { MarketRegion } from '@/data/region';
 import type { PredictionMarket, Quote } from '@/data/types';
 import './rail.css';
 
@@ -155,10 +156,10 @@ const MOVER_TABS: { key: MoverKey; label: string }[] = [
   { key: 'active', label: '활성화' },
 ];
 
-export function MoversCard(): JSX.Element {
+export function MoversCard({ region }: { readonly region?: MarketRegion }): JSX.Element {
   const [tab, setTab] = useState<MoverKey>('up');
   useAllQuotes(2000); // 로컬 모의 틱 재계산 트리거 (스로틀)
-  const rows = engine.movers(tab, 4);
+  const rows = engine.movers(tab, 4, 0, region);
 
   return (
     <Card className="rail-card">
@@ -181,12 +182,13 @@ export function MoversCard(): JSX.Element {
    4. 주식 섹터
    ============================================================ */
 
-export function SectorsCard(): JSX.Element {
+export function SectorsCard({ region = 'US' }: { readonly region?: MarketRegion }): JSX.Element {
+  const sectors = SECTORS_BY_REGION[region];
   return (
     <Card className="rail-card">
       <CardHeader title="주식 섹터" />
       <div className="rail-rows">
-        {SECTORS.map((s) => (
+        {sectors.map((s) => (
           <div className="rail-sector-row" key={s.id}>
             <span className="rail-sector-name truncate">{s.nameKo}</span>
             <span className="rail-sector-right">
@@ -227,16 +229,18 @@ export function CryptoCard(): JSX.Element {
    ============================================================ */
 
 export function MarketRail({
+  region,
   predictionsFilter,
 }: {
+  readonly region?: MarketRegion;
   predictionsFilter?: 'earnings';
 }): JSX.Element {
   return (
     <div className="rail-stack">
       <WatchlistCard />
       <PredictionsCard filter={predictionsFilter} />
-      <MoversCard />
-      <SectorsCard />
+      <MoversCard region={region} />
+      <SectorsCard region={region} />
       <CryptoCard />
     </div>
   );

@@ -23,6 +23,7 @@
    ============================================================ */
 import type { AssetKind, AssetMeta, SectorId, SectorInfo } from './types.js';
 import type { MarketRegion } from './region.js';
+import { KR_SECTORS } from './universe.kr.js';
 
 /** US sector index levels (renamed from `SECTORS`; see `SECTORS_BY_REGION`). */
 export const US_SECTORS: SectorInfo[] = [
@@ -49,10 +50,7 @@ export const SECTOR_BY_ID: Record<SectorId, SectorInfo> = Object.fromEntries(
 export const SECTORS_BY_REGION: Readonly<Record<MarketRegion, readonly SectorInfo[]>> =
   Object.freeze({
     US: US_SECTORS,
-    // TODO(Task 5): replace with KR_SECTORS from universe.kr.ts. Until that lands,
-    // this is a deliberate placeholder — KR sector composition/labels/index levels
-    // are the US ones, not approximations of Korean sectors. Known-wrong, not silent.
-    KR: US_SECTORS,
+    KR: KR_SECTORS,
   });
 
 /** [symbol, name, nameKo, sector, marketCap($B), price, dayChangePct] */
@@ -417,5 +415,12 @@ export const SNAPSHOT = {
   asOfISO: '2026-08-04T16:00:00-04:00',
   cryptoAsOfISO: '2026-08-05T05:00:00Z',
   cryptoAsOfLabelKo: '2026년 8월 5일 14:00 KST',
+  // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks are all
+  // one 2026-08-05 KRX session close — a day after the US anchor above, and
+  // (per stockanalysis.com/investing.com corroboration) the same instant for
+  // both equities and indices, so one field covers both rather than implying
+  // a false precision of separate KR equity vs. KR index capture times.
+  krAsOfISO: '2026-08-05T15:30:00+09:00',
+  krAsOfLabelKo: '2026년 8월 5일 15:30 KST',
   todayISO: '2026-08-05',
 };

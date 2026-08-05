@@ -38,10 +38,17 @@ const TABS: readonly Tab[] = [
   { to: '/status', label: '시스템 상태' },
 ];
 
-/** Keep the region parameter on nav links so moving between tabs doesn't silently fall back to US. */
-function withRegion(to: string, region: string | null): string {
+/**
+ * Keep the region parameter on nav links so moving between tabs doesn't silently fall back to
+ * US. Merges into any query string `to` already carries rather than concatenating blindly — a
+ * second bare `?` would make `URLSearchParams` swallow the region into the previous value's tail.
+ */
+export function withRegion(to: string, region: string | null): string {
   if (!region) return to;
-  return `${to}?${REGION_PARAM}=${region}`;
+  const [path, search = ''] = to.split('?');
+  const params = new URLSearchParams(search);
+  params.set(REGION_PARAM, region);
+  return `${path}?${params.toString()}`;
 }
 
 function SentimentBars({ score }: { score: number }) {
@@ -65,7 +72,11 @@ export default function AppShell() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const region = regionFromSearch(searchParams);
-  const regionParam = searchParams.get(REGION_PARAM);
+  // Only propagate a region param when the URL explicitly carries one — otherwise plain US
+  // browsing stays free of `?region=us` cruft. When it does carry one, propagate the normalized
+  // value, not the raw (possibly garbage) input: the value that decided tab visibility above is
+  // the same one every nav link should agree on.
+  const regionParam = searchParams.has(REGION_PARAM) ? region.toLowerCase() : null;
   const marketStatus = useMarketRuntimeStatus();
   const { isOps } = useAuth();
   const mainRef = useRef<HTMLElement>(null);

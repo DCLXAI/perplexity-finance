@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_REGION, landingRegion, parseRegion, regionFromSearch, rememberRegion, REGION_LABELS,
 } from './region.js';
@@ -41,9 +41,20 @@ describe('landing default', () => {
     expect(landingRegion()).toBe('KR');
   });
 
-  it('ignores a corrupted stored value rather than throwing', () => {
-    localStorage.setItem('pf.region', 'not-a-region');
+  it('returns the default when reading storage throws', () => {
+    const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError: storage disabled');
+    });
     expect(landingRegion()).toBe(DEFAULT_REGION);
+    spy.mockRestore();
+  });
+
+  it('does not throw when writing to storage fails', () => {
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+    expect(() => rememberRegion('KR')).not.toThrow();
+    spy.mockRestore();
   });
 });
 

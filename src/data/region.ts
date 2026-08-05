@@ -41,9 +41,11 @@ export function rememberRegion(region: MarketRegion): void {
 }
 
 export function landingRegion(): MarketRegion {
+  let stored: string | null = null;
   try {
-    return parseRegion(localStorage.getItem(STORAGE_KEY));
+    stored = localStorage.getItem(STORAGE_KEY);
   } catch {
     return DEFAULT_REGION;
   }
+  return parseRegion(stored);
 }

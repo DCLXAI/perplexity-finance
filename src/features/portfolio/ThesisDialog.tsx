@@ -1,7 +1,10 @@
 import { useId, useRef, useState, type FormEvent } from 'react';
 import Modal from '@/components/ui/Modal';
 import { apiFetch } from '@/live/apiClient';
-import type { ResearchMutationResponse } from '@/shared/api';
+import type { MonitorRuleKind, ResearchMutationResponse } from '@/shared/api';
+import MonitorRuleEditor from './MonitorRuleEditor.js';
+
+const MONITOR_KINDS_THESIS: readonly MonitorRuleKind[] = Object.freeze(['thesis_invalidation']);
 
 interface ThesisDialogProps {
   readonly portfolioId: string;
@@ -72,6 +75,12 @@ export default function ThesisDialog({ portfolioId, accessToken, onClose, onSave
           <label><span>하방 근거</span><textarea maxLength={4000} rows={4} value={bearCase} onChange={(event) => setBearCase(event.target.value)} /></label>
           <label className="pf-form-wide"><span>촉매 · 쉼표로 구분</span><input value={catalysts} onChange={(event) => setCatalysts(event.target.value)} /></label>
           <label className="pf-form-wide"><span>무효화 조건</span><textarea maxLength={3000} rows={3} value={invalidation} onChange={(event) => setInvalidation(event.target.value)} /></label>
+          <MonitorRuleEditor
+            portfolioId={portfolioId}
+            symbol={symbol.trim() || undefined}
+            allowedKinds={MONITOR_KINDS_THESIS}
+            accessToken={accessToken}
+          />
           <label><span>목표가 · 선택</span><input type="number" min="0" step="any" value={targetPrice} onChange={(event) => setTargetPrice(event.target.value)} /></label>
         </div>
         {error && <p className="pf-form-error" role="alert">{error}</p>}

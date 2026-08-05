@@ -16,7 +16,11 @@ describe('isKrEquityTradingDay', () => {
 
   it('excludes every date in the table', () => {
     for (const year of KR_HOLIDAY_YEARS) {
-      for (const iso of KR_NON_TRADING_DAYS[year]) {
+      // KR_HOLIDAY_YEARS is derived from KR_NON_TRADING_DAYS's own keys, so
+      // this is never actually undefined — but the value type now honestly
+      // says `readonly string[] | undefined` (see kr-holidays.ts), so the
+      // fallback keeps the typechecker satisfied without an `as` assertion.
+      for (const iso of KR_NON_TRADING_DAYS[year] ?? []) {
         expect(isKrEquityTradingDay(utc(iso)), `${iso} should be closed`).toBe(false);
       }
     }

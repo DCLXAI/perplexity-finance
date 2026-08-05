@@ -99,6 +99,17 @@ export function isUsEquityTradingDay(date: Date): boolean {
   return !usEquityHolidayKeys(date.getUTCFullYear()).has(dateKey(date));
 }
 
+const krHolidayCache = new Map<number, Set<string>>();
+
+function krNonTradingKeys(year: number): Set<string> {
+  const cached = krHolidayCache.get(year);
+  if (cached) return cached;
+
+  const set = new Set(KR_NON_TRADING_DAYS[year] ?? []);
+  krHolidayCache.set(year, set);
+  return set;
+}
+
 /**
  * Weekends, then the table. A year absent from the table degrades to
  * weekdays-only rather than throwing: a missing year should cost accuracy
@@ -107,8 +118,7 @@ export function isUsEquityTradingDay(date: Date): boolean {
 export function isKrEquityTradingDay(date: Date): boolean {
   const weekday = date.getUTCDay();
   if (weekday === 0 || weekday === 6) return false;
-  const closed = KR_NON_TRADING_DAYS[date.getUTCFullYear()];
-  return !closed?.includes(dateKey(date));
+  return !krNonTradingKeys(date.getUTCFullYear()).has(dateKey(date));
 }
 
 export function isWeekday(date: Date): boolean {

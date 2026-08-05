@@ -4,7 +4,7 @@ import { loadConfig, resetConfigForTests } from '../server/config.js';
 import { canTransitionRebalance } from '../src/domain/portfolio/rebalance-workflow.js';
 
 resetConfigForTests();
-assert.equal(loadConfig().version, '1.10.0');
+assert.equal(loadConfig().version, '1.11.0');
 
 assert.equal(canTransitionRebalance('pending', 'approve'), true);
 assert.equal(canTransitionRebalance('pending', 'complete'), false);
@@ -91,7 +91,7 @@ for (const relative of [
 ]) assert.ok(readFileSync(new URL(relative, import.meta.url), 'utf8').length > 500, `missing P7 workflow surface: ${relative}`);
 
 console.log(JSON.stringify({
-  version: '1.10.0',
+  version: '1.11.0',
   immutableDecisionSnapshot: 'PASS',
   fairDailyDriftMonitor: 'PASS',
   duplicateOpenPlanPrevention: 'PASS',

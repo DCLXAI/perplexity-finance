@@ -29,6 +29,7 @@ describe('MonitorStatusPanel', () => {
         threshold: null,
         reason: '리스크 지표 상태가 insufficient-data입니다.',
       },
+      lastError: null,
       nextEvaluationAt: '2026-08-06T00:00:00.000Z',
       recentBreaches: [],
     };
@@ -40,6 +41,29 @@ describe('MonitorStatusPanel', () => {
     expect(await screen.findByText('리스크 지표 상태가 insufficient-data입니다.')).toBeTruthy();
     expect(screen.getByText('판정 보류 이유')).toBeTruthy();
     expect(screen.getByText('판정 보류')).toBeTruthy();
+  });
+
+  it('surfaces lastError for an error outcome instead of leaving the reason blank', async () => {
+    const status: MonitorRuleStatus = {
+      ruleId: 'rule-2',
+      kind: 'thesis_invalidation',
+      symbol: 'AAPL',
+      state: 'armed',
+      lastOutcome: 'error',
+      lastEvaluatedAt: '2026-08-05T00:00:00.000Z',
+      lastObservation: {},
+      lastError: '포트폴리오 관측치를 만들지 못했습니다.',
+      nextEvaluationAt: '2026-08-06T00:00:00.000Z',
+      recentBreaches: [],
+    };
+    const response: MonitorStatusResponse = { requestId: 'r', statuses: [status], generatedAt: '2026-08-05T00:00:00.000Z' };
+    apiFetchMock.mockResolvedValueOnce(response);
+
+    render(<MonitorStatusPanel portfolioId="pf-1" accessToken="token" />);
+
+    expect(await screen.findByText('포트폴리오 관측치를 만들지 못했습니다.')).toBeTruthy();
+    expect(screen.getByText('평가 오류 이유')).toBeTruthy();
+    expect(screen.getByText('평가 오류')).toBeTruthy();
   });
 
   it('shows the login-required note without an access token and never calls the API', () => {

@@ -1,6 +1,6 @@
-# P9 Runtime Contract
+# P10 Runtime Contract
 
-**Version 1.10.0 · 2026-07-14**
+**Version 1.11.0 · 2026-08-05**
 
 This document defines the invariants that every provider, API route, alert evaluator, operations action, and UI surface must preserve.
 
@@ -334,3 +334,92 @@ A thesis record separates the core claim, bull case, bear case, catalysts, inval
 13. Runs created before P9 remain readable under the legacy zero-cost model; compatibility must not relabel missing historical estimates as observed costs.
 14. The product never stores broker credentials, places an order, initiates a bank transfer, remits tax, or chooses a jurisdiction-specific tax treatment.
 15. Completion inputs are normalized before hashing and calculation to 12 decimal places for quantity and 8 for price and fee, matching database numeric canonicalization. Legacy runs may still show their recorded actual fee, but never invent historical slippage or tax estimates.
+
+## 25. Portfolio monitoring contract
+
+1. A monitor rule is one of three kinds — `thesis_invalidation`, `risk_threshold`, `stress_scenario` — each validated against a `.strict()` schema. An unknown key, an unknown enum value (risk metric, comparison, thesis condition), or an empty `shocks` array is rejected before storage, both by the server's Zod parse and by `validate_monitor_rule_spec` inside the security-definer RPC.
+2. A rule is evaluated only against input verified at its own scope: a thesis rule requires its watched holding to be `verified`, a risk rule requires `risk.dataQuality === 'verified'` and `risk.status === 'available'`, a stress rule requires portfolio `valuationQuality === 'verified'`. Any other case returns `deferred`, never a guessed verdict.
+3. A rule is `armed` or `latched`. Notification fires only on the `armed → latched` transition; a `deferred` or `error` outcome changes neither the latch state nor the rule's `next_evaluation_at`.
+4. Multiple breaches for one user within one evaluation run collapse into a single digest, delivered through the shared email/Web Push queue used by P7/P8.
+5. A breach never transitions `investment_theses.status`, writes `portfolio_transactions`, or creates a plan. Monitoring only notifies.
+6. `POST`/`PATCH` `/api/portfolio/monitor-rules` do not require an `Idempotency-Key`. There is no replay store for monitor rules and no unique constraint on `monitor_rules`, so this is a known, accepted gap: a client retry after a timeout can create a duplicate rule, which duplicates evaluations, breach rows, and digest lines for the same condition until the user deletes the extra rule.
+7. `PATCH` (edit) always re-arms the rule and increments `rule_version`, so an edited threshold can never be silently suppressed by a latch left over from the previous threshold.
+
+### `GET/POST/PATCH/DELETE /api/portfolio/monitor-rules`
+
+Request body for `POST` (create) and `PATCH` (edit, plus `ruleId`):
+
+```json
+{
+  "portfolioId": "uuid",
+  "thesisId": "uuid | null",
+  "symbol": "string | null",
+  "kind": "thesis_invalidation | risk_threshold | stress_scenario",
+  "spec": { "...": "kind-specific, see server/monitors/rules.ts" },
+  "enabled": true,
+  "minIntervalHours": 24
+}
+```
+
+`ruleId` (`uuid`) is additionally required for `PATCH`. `DELETE` accepts `{ "ruleId": "uuid" }`. `GET` takes `?portfolioId=<uuid>` and returns every rule for that portfolio.
+
+Response for `GET` (`200`):
+
+```json
+{ "requestId": "string", "rules": [ /* MonitorRule[] */ ], "generatedAt": "ISO-8601" }
+```
+
+Response for `POST` (`201`) / `PATCH` (`200`):
+
+```json
+{ "requestId": "string", "rule": { /* MonitorRule */ } }
+```
+
+Response for `DELETE` (`200`): `{ "requestId": "string", "ok": true }`.
+
+`MonitorRule` shape:
+
+```json
+{
+  "id": "uuid", "portfolioId": "uuid", "thesisId": "uuid | null", "symbol": "string | null",
+  "kind": "thesis_invalidation | risk_threshold | stress_scenario",
+  "spec": { "...": "kind-specific" }, "enabled": true,
+  "state": "armed | latched",
+  "lastOutcome": "breached | clear | deferred | error | null",
+  "lastEvaluatedAt": "ISO-8601 | null", "lastObservation": { "...": "..." },
+  "lastError": "string | null", "latchedAt": "ISO-8601 | null",
+  "minIntervalHours": 24, "nextEvaluationAt": "ISO-8601", "ruleVersion": 1,
+  "createdAt": "ISO-8601", "updatedAt": "ISO-8601"
+}
+```
+
+### `GET /api/portfolio/monitor-status`
+
+Takes `?portfolioId=<uuid>`. Response (`200`):
+
+```json
+{
+  "requestId": "string",
+  "statuses": [
+    {
+      "ruleId": "uuid", "kind": "thesis_invalidation | risk_threshold | stress_scenario",
+      "symbol": "string | null", "state": "armed | latched",
+      "lastOutcome": "breached | clear | deferred | error | null",
+      "lastEvaluatedAt": "ISO-8601 | null", "lastObservation": { "...": "..." },
+      "lastError": "string | null", "nextEvaluationAt": "ISO-8601",
+      "recentBreaches": [
+        {
+          "id": "uuid", "ruleId": "uuid", "digestId": "uuid | null", "ruleVersion": 1,
+          "kind": "thesis_invalidation | risk_threshold | stress_scenario",
+          "spec": { "...": "..." }, "observedValue": "number | string | null",
+          "thresholdValue": "number | string | null", "observedAt": "ISO-8601",
+          "inputQuality": "string", "createdAt": "ISO-8601"
+        }
+      ]
+    }
+  ],
+  "generatedAt": "ISO-8601"
+}
+```
+
+`lastError` is populated only when `lastOutcome === 'error'` and is the mapped failure reason from the run that produced it — it exists so the status panel can answer "why didn't this fire?" instead of only reporting that an error occurred.

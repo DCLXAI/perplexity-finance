@@ -35,6 +35,7 @@ export default withFunction('portfolio.monitor-status', ['GET'], async (request,
     lastOutcome: rule.last_outcome,
     lastEvaluatedAt: rule.last_evaluated_at,
     lastObservation: rule.last_observation,
+    lastError: rule.last_error,
     nextEvaluationAt: rule.next_evaluation_at,
     recentBreaches: Object.freeze((await listMonitorBreaches(user.id, rule.id, 20)).map(toMonitorBreach)),
   })));

@@ -155,6 +155,12 @@ export default function MonitorStatusPanel({ portfolioId, accessToken }: Monitor
                     <span>{observation.reason}</span>
                   </p>
                 )}
+                {status.lastOutcome === 'error' && status.lastError && (
+                  <p className="pf-monitor-deferred-reason" role="alert">
+                    <strong>평가 오류 이유</strong>
+                    <span>{status.lastError}</span>
+                  </p>
+                )}
                 {status.recentBreaches.length > 0 && (
                   <details className="pf-monitor-breach-history">
                     <summary>최근 위반 이력 {status.recentBreaches.length}건</summary>

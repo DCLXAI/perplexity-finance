@@ -131,7 +131,7 @@ export function loadConfig(): AppConfig {
   const publicOrigin = parseOrigin(optional('PUBLIC_ORIGIN'));
 
   cachedConfig = Object.freeze({
-    version: '1.10.0',
+    version: '1.11.0',
     deploymentStage,
     releaseChannel: optional('RELEASE_CHANNEL') ?? deploymentStage,
     gitSha: optional('VERCEL_GIT_COMMIT_SHA') ?? optional('GIT_SHA'),

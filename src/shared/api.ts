@@ -868,6 +868,7 @@ export interface MonitorRuleStatus {
   readonly lastOutcome: MonitorRuleOutcome | null;
   readonly lastEvaluatedAt: string | null;
   readonly lastObservation: Record<string, unknown>;
+  readonly lastError: string | null;
   readonly nextEvaluationAt: string;
   readonly recentBreaches: readonly MonitorBreach[];
 }

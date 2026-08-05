@@ -11,6 +11,15 @@ import { monitorPortfolioContributions } from '../../server/portfolio/contributi
 import { monitorPortfolioRebalances } from '../../server/portfolio/rebalance-service.js';
 
 export const config = { maxDuration: 60 };
+// FUNCTION_BUDGET_MS mirrors `config.maxDuration` above in milliseconds — the two must move
+// together, since FUNCTION_BUDGET_MS exists only to keep the monitor deadline inside whatever
+// wall-clock the platform actually grants this function.
+const FUNCTION_BUDGET_MS = config.maxDuration * 1_000;
+// Room left, after the monitor step's own deadline, to serialize and return the response. A
+// platform timeout kills the function outright — it does not throw — so nothing after it,
+// including the try/catch isolation below, ever runs. This margin is what keeps the whole
+// request inside the platform limit instead of racing it.
+const SAFETY_MARGIN_MS = 5_000;
 
 interface MaintenanceTaskResult {
   readonly status: number;
@@ -32,6 +41,7 @@ async function taskResult(response: Response): Promise<MaintenanceTaskResult> {
 }
 
 export default withFunction('cron.daily-maintenance', ['GET'], async (request, requestId) => {
+  const runStartMs = Date.now();
   requireCronSecret(request);
   const [marketResponse, snapshotResponse] = await Promise.all([
     captureMarketHandler(childRequest(request, '/api/cron/capture-market', `${requestId}:market`)),
@@ -60,7 +70,16 @@ export default withFunction('cron.daily-maintenance', ['GET'], async (request, r
   // so a monitor failure never fails the whole run or hides the results already gathered above.
   let monitor: MonitorRunResult | { readonly error: string };
   try {
-    const monitorDeadlineMs = Date.now() + loadConfig().monitorBudgetMs;
+    // Bounded by whichever is tighter: the monitor step's own configured budget, or what is
+    // actually left of the function's total wall-clock. Market capture, snapshots,
+    // contributions, rebalances, and rebalance delivery already burned time in this same
+    // invocation, so a fresh `monitorBudgetMs` window from "now" could still run past
+    // `runStartMs + FUNCTION_BUDGET_MS` and get the whole function killed by the platform —
+    // losing this response's already-computed results along with it.
+    const monitorDeadlineMs = Math.min(
+      Date.now() + loadConfig().monitorBudgetMs,
+      runStartMs + FUNCTION_BUDGET_MS - SAFETY_MARGIN_MS,
+    );
     monitor = await monitorRules(`${requestId}:monitor`, monitorDeadlineMs);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

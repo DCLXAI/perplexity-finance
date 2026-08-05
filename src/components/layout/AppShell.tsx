@@ -72,11 +72,13 @@ export default function AppShell() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const region = regionFromSearch(searchParams);
-  // Only propagate a region param when the URL explicitly carries one — otherwise plain US
-  // browsing stays free of `?region=us` cruft. When it does carry one, propagate the normalized
-  // value, not the raw (possibly garbage) input: the value that decided tab visibility above is
-  // the same one every nav link should agree on.
-  const regionParam = searchParams.has(REGION_PARAM) ? region.toLowerCase() : null;
+  // Same convention RailWidgets.tsx's MoversCard uses: only stamp `?region=` when it isn't the
+  // default US, so plain US browsing (including a URL that explicitly carries `?region=us` after
+  // switching back from KR) stays free of `?region=us` cruft on every link — including the
+  // region-agnostic tabs (crypto, portfolio, apps, status) that have no region to switch and must
+  // not carry a parameter that would do nothing there. `region` itself (not the raw search param)
+  // already decided tab visibility above, so this stays the one value every nav link agrees with.
+  const regionParam = region === 'KR' ? 'kr' : null;
   const marketStatus = useMarketRuntimeStatus();
   const { isOps } = useAuth();
   const mainRef = useRef<HTMLElement>(null);

@@ -304,7 +304,7 @@ A leaked service-role, provider, OpenAI, Resend, VAPID private, Cron, metrics, o
 
 P11 adds no database migration, no new Cron schedule, and no new environment variable — it is a data/UI-layer change only. `git diff --exit-code vercel.json` must still report no changes.
 
-1. Open `/#/market?region=kr` and confirm prices render in won (`fmtKrw`/`fmtKrwCompact`, e.g. `₩246,000`, `₩1.27조`) and the trading calendar reflects KRX sessions, not NYSE ones.
+1. Open `/#/?region=kr` and confirm prices render in won (`fmtKrw`/`fmtKrwCompact`, e.g. `₩246,000`, `₩1.27조`) and the trading calendar reflects KRX sessions, not NYSE ones.
 2. Confirm 정치인 and 예측 tabs are absent under `region=kr` and present under the default `region=us` (or no `region` parameter).
 3. Confirm a region-aware link (market home → screener/heatmap/stock detail) carries `?region=kr` when generated from a KR-scoped page, and carries no `region` parameter when generated from the default US market.
 4. Confirm `engine.listAssets('KR')` and `engine.listAssets('US')` are each non-empty and disjoint, and that a Korean symbol (e.g. `005930`) resolves correctly regardless of which region is currently selected on the page.

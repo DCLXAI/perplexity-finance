@@ -11,7 +11,11 @@
   transition: box-shadow var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
 }
 
-.ui-card:hover {
+/* Scoped to the interactive element types only, mirroring a.ui-qrow:hover below —
+   .ui-card itself is a plain div (see Card in index.tsx); a bare .ui-card must not
+   suggest clickability it doesn't have. */
+a.ui-card:hover,
+button.ui-card:hover {
   box-shadow: var(--shadow);
   border-color: var(--border-strong);
 }

@@ -1,7 +1,8 @@
 /* ============================================================
-   Region switcher — swaps the `region` search parameter between the US
-   and KR markets. Mounted only on region-scoped pages (Task 8), never in
-   AppShell: crypto, portfolio, apps and status have no region to switch.
+   Region switching — the market tab in the global tab bar. An earlier
+   in-page switcher on MarketPage did the same job; once the tab itself
+   worked, two controls for one piece of state on one screen was one
+   too many, so this is now the single control.
 
    The URL stays the single source of truth: the current value is read
    with `regionFromSearch(searchParams)` on every render. `rememberRegion`
@@ -14,7 +15,6 @@ import { useSearchParams } from 'react-router';
 import {
   REGIONS,
   REGION_LABELS,
-  REGION_PARAM,
   regionFromSearch,
   rememberRegion,
   type MarketRegion,
@@ -27,7 +27,7 @@ import './region-switcher.css';
  * does, so the logic lives in one place rather than being reimplemented per trigger.
  */
 function useRegionMenu() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const region = regionFromSearch(searchParams);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -74,15 +74,7 @@ function useRegionMenu() {
     commit(next);
   };
 
-  const chooseInPlace = chooseWith((next) => {
-    setSearchParams((prev) => {
-      const params = new URLSearchParams(prev);
-      params.set(REGION_PARAM, next.toLowerCase());
-      return params;
-    });
-  });
-
-  return { region, open, setOpen, wrapRef, triggerRef, menuRef, chooseWith, chooseInPlace };
+  return { region, open, setOpen, wrapRef, triggerRef, menuRef, chooseWith };
 }
 
 /** The menu body itself — identical options and semantics wherever it is anchored. */
@@ -117,38 +109,6 @@ function RegionMenu({
           </button>
         );
       })}
-    </div>
-  );
-}
-
-export function RegionSwitcher() {
-  const { region, open, setOpen, wrapRef, triggerRef, menuRef, chooseInPlace } = useRegionMenu();
-  const current = REGION_LABELS[region];
-
-  return (
-    <div className="region-switcher" ref={wrapRef}>
-      <button
-        ref={triggerRef}
-        type="button"
-        className="region-switcher-trigger"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={`시장 지역: ${current.label}`}
-        onClick={() => setOpen((value) => !value)}
-      >
-        <span aria-hidden="true">{current.flag}</span>
-        {current.label}
-        <span className="region-switcher-caret" aria-hidden="true">▾</span>
-      </button>
-
-      {open && (
-        <RegionMenu
-          region={region}
-          menuRef={menuRef}
-          choose={chooseInPlace}
-          className="region-switcher-menu"
-        />
-      )}
     </div>
   );
 }
@@ -211,7 +171,7 @@ export function RegionTab({
               region={region}
               menuRef={menuRef}
               choose={chooseWith(onNavigate)}
-              className="region-switcher-menu region-tab-menu"
+              className="region-switcher-menu"
             />
           </div>,
           document.body,

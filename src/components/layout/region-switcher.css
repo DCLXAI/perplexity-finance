@@ -1,16 +1,5 @@
-.region-switcher { position: relative; display: inline-flex; }
-.region-switcher-trigger { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-full); background: var(--bg-raised); color: var(--ink-strong); font-size: 12.5px; font-weight: 650; white-space: nowrap; }
-.region-switcher-trigger:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
-.region-switcher-caret { font-size: 9px; color: var(--ink-faint); }
-.region-switcher-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 200; min-width: 168px; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-raised); box-shadow: var(--shadow-lg); }
-.region-switcher-menu:focus { outline: none; }
-.region-switcher-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 9px; border-radius: var(--radius); color: var(--ink-secondary); font-size: 12.5px; font-weight: 600; text-align: left; }
-.region-switcher-item:hover { background: var(--bg-hover); color: var(--ink-strong); }
-.region-switcher-item.active { color: var(--ink-strong); background: var(--bg-inset); }
-.region-switcher-check { margin-left: auto; color: var(--teal); font-size: 11px; }
-
-/* Tab-bar variant: the market tab splits into a navigating label and a caret that opens the
-   same menu. The underline spans both halves so it still reads as one tab. */
+/* The market tab in the tab bar: a label that navigates and a caret that opens the region
+   menu. The underline spans both halves so it still reads as one tab. */
 .region-tab { position: relative; display: inline-flex; align-items: stretch; }
 .region-tab-label { padding-right: 4px; }
 .region-tab-caret {
@@ -30,7 +19,14 @@
 .region-tab:has(.region-tab-label.active) .region-tab-caret {
   border-bottom-color: var(--ink-strong);
 }
-.region-tab-menu { top: calc(100% - 1px); }
-/* Portalled out of the horizontally-scrolling tab bar, which would otherwise clip it. */
+
+/* `.tabbar-tabs` is an `overflow-x: auto` scroll container and clips absolutely positioned
+   descendants, so the menu is portalled to the body and pinned to the trigger's viewport box. */
 .region-tab-menu-anchor { position: fixed; z-index: 300; }
-.region-tab-menu { position: static; }
+
+.region-switcher-menu { min-width: 168px; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-raised); box-shadow: var(--shadow-lg); }
+.region-switcher-menu:focus { outline: none; }
+.region-switcher-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 9px; border-radius: var(--radius); color: var(--ink-secondary); font-size: 12.5px; font-weight: 600; text-align: left; }
+.region-switcher-item:hover { background: var(--bg-hover); color: var(--ink-strong); }
+.region-switcher-item.active { color: var(--ink-strong); background: var(--bg-inset); }
+.region-switcher-check { margin-left: auto; color: var(--teal); font-size: 11px; }

@@ -18,7 +18,6 @@ import { CONTENT_BY_REGION } from '@/data/content';
 import { clsx, fmtQuoteChange, fmtQuoteValue } from '@/data/format';
 import { apiFetch } from '@/live/apiClient';
 import { REGION_LABELS, regionAdj, regionFromSearch, type MarketRegion } from '@/data/region';
-import { RegionSwitcher } from '@/components/layout/RegionSwitcher';
 import type { NewsResponse } from '@/shared/api';
 import type { ExploreCard as ExploreCardData, Quote } from '@/data/types';
 import Heatmap from '@/features/heatmap/Heatmap';
@@ -78,7 +77,6 @@ function TopAssets({ region }: { readonly region: MarketRegion }) {
     <section className="mkt-section mkt-rise">
       <div className="mkt-sec-head">
         <h2 className="section-title">상위 자산</h2>
-        <RegionSwitcher />
       </div>
       <div className="mkt-idx-grid">
         {quotes.map((q) => (

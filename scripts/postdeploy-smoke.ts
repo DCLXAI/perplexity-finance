@@ -12,8 +12,12 @@ const requireProvider = process.env.SMOKE_REQUIRE_PROVIDER === '1';
 const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
 const commonHeaders = new Headers();
 if (bypass) {
+  // Header only, deliberately without `x-vercel-set-bypass-cookie`: that asks Vercel to
+  // establish a bypass cookie, which it does by answering 307 + Set-Cookie. Every call below
+  // uses `redirect: 'manual'` and asserts an exact status, so the 307 failed the run before the
+  // first assertion could ever be reached. A stateless script gains nothing from the cookie —
+  // it sends the header on every request anyway.
   commonHeaders.set('x-vercel-protection-bypass', bypass);
-  commonHeaders.set('x-vercel-set-bypass-cookie', 'true');
 }
 
 interface Result {

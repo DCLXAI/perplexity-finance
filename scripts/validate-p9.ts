@@ -8,7 +8,7 @@ import {
 } from '../src/domain/portfolio/order-optimizer.js';
 
 resetConfigForTests();
-assert.equal(loadConfig().version, '1.12.0');
+assert.equal(loadConfig().version, '1.13.0');
 
 function policy(overrides: Partial<PortfolioOrderCostPolicy> = {}): PortfolioOrderCostPolicy {
   return Object.freeze({
@@ -222,7 +222,7 @@ for (const relative of [
 }
 
 console.log(JSON.stringify({
-  version: '1.12.0',
+  version: '1.13.0',
   centSafeCostEnvelope: 'PASS',
   contributionCostFunding: 'PASS',
   deterministicFifoTaxEstimate: 'PASS',

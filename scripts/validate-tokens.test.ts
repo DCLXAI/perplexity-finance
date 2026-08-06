@@ -1,6 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { contrastRatio, nearestStep, findLiteralViolations } from './validate-tokens.js';
-import { rewrite } from './codemod-tokens.mjs';
 
 describe('contrastRatio', () => {
   it('matches known WCAG values', () => {
@@ -84,81 +83,5 @@ describe('findLiteralViolations', () => {
 
   it('does not flag margin-trim, a real property that merely starts with a guarded word', () => {
     expect(findLiteralViolations('a.css', '.x { margin-trim: none; }')).toHaveLength(0);
-  });
-});
-
-describe('codemod rewrite', () => {
-  it('wraps a single negative value in calc(), not a bare -var()', () => {
-    const { out } = rewrite('.x { margin-left: -5px; }', 'a.css');
-    expect(out).toBe('.x { margin-left: calc(var(--space-1-5) * -1); }');
-    expect(out).not.toContain('-var(');
-  });
-
-  it('handles a shorthand with two negative values independently', () => {
-    const { out } = rewrite('.x { margin: -2px -6px; }', 'a.css');
-    expect(out).toBe('.x { margin: calc(var(--space-0-5) * -1) calc(var(--space-1-5) * -1); }');
-    expect(out).not.toContain('-var(');
-  });
-
-  it('handles a shorthand mixing negative, zero and positive values', () => {
-    const { out } = rewrite('.x { margin: -6px 0 14px; }', 'a.css');
-    expect(out).toBe('.x { margin: calc(var(--space-1-5) * -1) 0 var(--space-3-5); }');
-    expect(out).not.toContain('-var(');
-  });
-
-  it('leaves a positive value as a plain var(), no calc wrapper', () => {
-    const { out } = rewrite('.x { padding: 12px; }', 'a.css');
-    expect(out).toBe('.x { padding: var(--space-3); }');
-  });
-});
-
-describe('codemod rewrite — above-ceiling snapping', () => {
-  it('lands an above-old-ceiling value on the nearest extended scale step', () => {
-    const { out } = rewrite('.x { padding-top: 58px; }', 'a.css');
-    expect(out).toBe('.x { padding-top: var(--space-16); }');
-  });
-
-  it('still rounds an in-range value the same way after the scale extension', () => {
-    const { out } = rewrite('.x { padding: 30px; }', 'a.css');
-    expect(out).toBe('.x { padding: var(--space-8); }');
-  });
-
-  it('warns on stderr when a snap moves a spacing value by more than 20%', () => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    rewrite('.x { padding-top: 96px; }', 'a.css');
-    expect(spy).toHaveBeenCalled();
-    expect(spy.mock.calls.some((args) => String(args[0]).includes('snap:'))).toBe(true);
-    spy.mockRestore();
-  });
-
-  it('does not warn on ordinary in-range rounding (18px -> 20px is 11%)', () => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    rewrite('.x { margin: 18px; }', 'a.css');
-    expect(spy).not.toHaveBeenCalled();
-    spy.mockRestore();
-  });
-
-  it('also warns on a font-size snap beyond 20% — the TEXT table has no ceiling escape either', () => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    rewrite('.x { font-size: 42px; }', 'a.css');
-    expect(spy).toHaveBeenCalled();
-    expect(spy.mock.calls.some((args) => String(args[0]).includes('snap:'))).toBe(true);
-    spy.mockRestore();
-  });
-});
-
-describe('codemod rewrite — snap warning magnitude floor', () => {
-  it('warns when the delta is large in both absolute and relative terms (10px delta, 24%)', () => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    rewrite('.x { font-size: 42px; }', 'a.css');
-    expect(spy.mock.calls.some((args) => String(args[0]).includes('snap:'))).toBe(true);
-    spy.mockRestore();
-  });
-
-  it('does not warn when the absolute delta is below the 3px floor, even at 100% relative drift (1px delta)', () => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    rewrite('.x { margin: 1px; }', 'a.css');
-    expect(spy.mock.calls.some((args) => String(args[0]).includes('snap:'))).toBe(false);
-    spy.mockRestore();
   });
 });

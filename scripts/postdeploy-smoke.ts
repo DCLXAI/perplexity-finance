@@ -6,7 +6,7 @@ if (!base) {
   process.exit(0);
 }
 
-const expectedVersion = process.env.SMOKE_EXPECT_VERSION ?? '1.12.0';
+const expectedVersion = process.env.SMOKE_EXPECT_VERSION ?? '1.13.0';
 const requireReady = process.env.SMOKE_REQUIRE_READY === '1';
 const requireProvider = process.env.SMOKE_REQUIRE_PROVIDER === '1';
 const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();

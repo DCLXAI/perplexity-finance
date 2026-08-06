@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { useAuth } from '@/cloud/AuthProvider';
 import { apiFetch } from '@/live/apiClient';
 import type {

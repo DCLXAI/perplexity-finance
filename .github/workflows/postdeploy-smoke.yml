@@ -30,16 +30,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Resolve expected version from package.json
+        id: version
+        run: echo "value=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Exercise public, protected, readiness, and provenance boundaries
         env:
           SMOKE_BASE_URL: ${{ inputs.base_url }}
-          SMOKE_EXPECT_VERSION: 1.5.0
+          SMOKE_EXPECT_VERSION: ${{ steps.version.outputs.value }}
           SMOKE_REQUIRE_READY: ${{ inputs.require_ready && '1' || '0' }}
           SMOKE_REQUIRE_PROVIDER: ${{ inputs.require_provider && '1' || '0' }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}

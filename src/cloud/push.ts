@@ -1,7 +1,7 @@
 import { apiFetch } from '@/live/apiClient';
 import type { PushSubscriptionPayload } from '@/shared/api';
 
-function decodeVapidKey(value: string): Uint8Array {
+function decodeVapidKey(value: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (value.length % 4)) % 4);
   const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
   const bytes = atob(base64);

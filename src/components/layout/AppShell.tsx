@@ -2,7 +2,7 @@
    App shell — sticky header, route tabs, title/focus management.
    ============================================================ */
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { SNAPSHOT } from '@/data/universe';
 import AccountButton from '@/cloud/AccountButton';
 import { useAuth } from '@/cloud/AuthProvider';

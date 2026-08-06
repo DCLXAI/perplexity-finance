@@ -3,7 +3,7 @@
    navigation and full focus management.
    ============================================================ */
 import { useEffect, useId, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { ChangeBadge, LogoChip } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import { engine } from '@/data/engine';

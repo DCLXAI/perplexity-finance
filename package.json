@@ -31,33 +31,33 @@
     "smoke:deployment": "tsx scripts/postdeploy-smoke.ts"
   },
   "dependencies": {
-    "lightweight-charts": "4.2.3",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-router-dom": "6.30.4",
-    "@supabase/supabase-js": "2.110.2",
+    "@supabase/supabase-js": "2.112.0",
     "@upstash/ratelimit": "2.0.8",
-    "@upstash/redis": "1.38.0",
+    "@upstash/redis": "1.38.2",
     "@vercel/analytics": "2.0.1",
     "@vercel/speed-insights": "2.0.0",
+    "lightweight-charts": "5.2.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-router": "8.3.0",
     "web-push": "3.6.7",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@testing-library/react": "16.3.2",
-    "@testing-library/user-event": "14.6.1",
+    "@testing-library/user-event": "14.6.3",
     "@types/node": "22.20.1",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
-    "@vitejs/plugin-react": "6.0.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@types/web-push": "3.6.4",
+    "@vitejs/plugin-react": "6.0.5",
     "jsdom": "29.1.1",
-    "tsx": "4.23.0",
-    "typescript": "5.6.3",
-    "vite": "8.1.4",
-    "vitest": "4.1.10",
-    "@types/web-push": "3.6.4"
+    "tsx": "4.23.5",
+    "typescript": "5.9.3",
+    "vite": "8.2.0",
+    "vitest": "4.1.10"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.22.0"
   }
 }

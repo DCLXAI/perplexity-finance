@@ -11,7 +11,7 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useAllQuotes } from '@/data/store';
 import { SECTOR_BY_ID } from '@/data/universe';
 import { fmtCompact, fmtPct, fmtQuoteValue } from '@/data/format';

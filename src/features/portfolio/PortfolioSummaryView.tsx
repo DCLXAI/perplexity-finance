@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import type { PortfolioSummary } from '@/shared/api';
 
 function usd(value?: number): string {

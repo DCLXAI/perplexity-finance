@@ -4,7 +4,7 @@
 
 ## 1. Prerequisites
 
-- Node.js 20.19+
+- Node.js 22.22+
 - Vercel project
 - Supabase project for cloud accounts, durable alerts, and operations history
 - at least one market provider for provider-backed mode

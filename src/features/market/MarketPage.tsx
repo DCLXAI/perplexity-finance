@@ -26,7 +26,7 @@ import './market.css';
 
 /* ---------- 공용: 요소 너비 측정 (스파크라인 반응형) ---------- */
 
-function useElementWidth(): [RefObject<HTMLDivElement>, number] {
+function useElementWidth(): [RefObject<HTMLDivElement | null>, number] {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   useEffect(() => {

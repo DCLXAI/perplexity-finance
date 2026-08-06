@@ -4,7 +4,7 @@
    전체 암호화폐 모의 시세 테이블 + 예시 뉴스
    ============================================================ */
 import { memo, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Card, ChangeBadge, LogoChip, Sparkline } from '@/components/ui';
 import { engine } from '@/data/engine';
 import { useAllQuotes, useQuotes } from '@/data/store';

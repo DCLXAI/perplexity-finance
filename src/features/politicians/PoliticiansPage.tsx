@@ -2,7 +2,7 @@
    정치인 거래 — 미 의회 주식 공시 추적 (route: /politicians)
    ============================================================ */
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Card, ChangeBadge, ChipTabs, LogoChip } from '@/components/ui';
 import { POLITICIAN_TRADES } from '@/data/content';
 import { engine } from '@/data/engine';

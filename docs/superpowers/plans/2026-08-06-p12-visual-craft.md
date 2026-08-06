@@ -362,7 +362,8 @@ function main(): void {
     if (name.startsWith('--font') || name.startsWith('--radius')) continue;
     if (name.startsWith('--space') || name.startsWith('--text') || name.startsWith('--dur')) continue;
     if (name.startsWith('--ease') || name === '--rail-w') continue;
-    if (name === '--header-h' || name === '--tabbar-h') continue;
+    // Geometry is theme-independent; requiring it in the dark block would duplicate it for nothing.
+    if (name === '--header-h' || name === '--tabbar-h' || name === '--askbar-h') continue;
     if (!dark.has(name)) failures.push(`theme parity: ${name} exists in :root but not in [data-theme='dark']`);
   }
 
@@ -514,8 +515,8 @@ git commit -m "feat(p12): add token discipline validator and literal codemod"
 
 - [ ] **Step 1: Record the before state**
 
-Run: `npx tsx -e "import('./scripts/validate-tokens.js')" 2>/dev/null; npm run validate:tokens 2>&1 | grep literals`
-Note the count.
+Run: `npm run validate:tokens 2>&1 | grep literals`
+Note the count — it must drop by exactly the number the codemod reports in Step 2.
 
 - [ ] **Step 2: Run the codemod on this file**
 
@@ -603,7 +604,8 @@ In `src/styles/global.css` add an AskBar height token beside `--header-h`:
   --askbar-h: 92px;
 ```
 
-Add it to the `[data-theme='dark']` block as well so Task 2's theme-parity check passes, with the same value.
+Task 2's parity check exempts `--header-h`, `--tabbar-h` and `--askbar-h`, so do **not** duplicate
+it into the `[data-theme='dark']` block — geometry does not vary by theme.
 
 In `src/components/layout/layout.css`, give `.app-main` bottom padding on the routes that mount the AskBar:
 

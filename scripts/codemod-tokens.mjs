@@ -27,10 +27,16 @@ const nearestEntry = (value, table) =>
 // zero raw px afterward and calls it migrated. This is the only thing that
 // notices, so it has to be loud rather than merely correct.
 const SNAP_THRESHOLD = 0.2;
+// Relative drift alone is noisy at the scale's fine (2px-granularity) low end —
+// 1px snapping to 2px is "100%" but is not a real problem. Requiring the absolute
+// delta to also clear 3px keeps the channel to genuine crushes, so four
+// implementers reading it don't learn to skim past routine rounding.
+const SNAP_MIN_DELTA = 3;
 
 function snapWarning(file, original, result, num, targetMag, token) {
-  const drift = Math.abs(targetMag - num) / num;
-  if (drift > SNAP_THRESHOLD) {
+  const delta = Math.abs(targetMag - num);
+  const drift = delta / num;
+  if (delta >= SNAP_MIN_DELTA && drift > SNAP_THRESHOLD) {
     console.error(
       `  snap: ${file}: "${original}" -> "${result}" moves ${num}px onto var(${token}) (${targetMag}px), a ${Math.round(drift * 100)}% change`,
     );

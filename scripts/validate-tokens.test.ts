@@ -146,3 +146,19 @@ describe('codemod rewrite — above-ceiling snapping', () => {
     spy.mockRestore();
   });
 });
+
+describe('codemod rewrite — snap warning magnitude floor', () => {
+  it('warns when the delta is large in both absolute and relative terms (10px delta, 24%)', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    rewrite('.x { font-size: 42px; }', 'a.css');
+    expect(spy.mock.calls.some((args) => String(args[0]).includes('snap:'))).toBe(true);
+    spy.mockRestore();
+  });
+
+  it('does not warn when the absolute delta is below the 3px floor, even at 100% relative drift (1px delta)', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    rewrite('.x { margin: 1px; }', 'a.css');
+    expect(spy.mock.calls.some((args) => String(args[0]).includes('snap:'))).toBe(false);
+    spy.mockRestore();
+  });
+});

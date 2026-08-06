@@ -56,7 +56,7 @@ Synthetic, stale, divergent, or degraded market data is never promoted to verifi
 
 ## P12 capabilities
 
-`validate:tokens` (part of `npm run check`) is the gate that keeps the spacing, type, motion, and colour scales in `src/styles/global.css` honest: it fails the build on any raw px in a guarded property (`font-size`, `padding`, `margin`, `gap`, `row-gap`, `column-gap`, `inset`, and their logical-property variants) outside `global.css`, on any raw hex colour outside `global.css`, on a token declared in `:root` with no `[data-theme='dark']` counterpart, on an ink/surface pair that falls short of its contrast threshold, and on a missing `prefers-reduced-motion` escape hatch. `global.css` is the only file allowed raw hex, and the only file allowed raw px in those guarded properties — every other stylesheet references a `--space-*`, `--text-*`, `--dur-*`, or `--ease-*` token. See `docs/P12_CHANGELOG.md` for the token axes, the colour corrections and the thresholds behind them, and the AskBar overlap fix.
+`validate:tokens` (part of `npm run check`) is the gate that keeps the spacing, type, motion, and colour scales in `src/styles/global.css` honest: it fails the build on any raw px in a guarded property (`font-size`, `padding`, `margin`, `gap`, `row-gap`, `column-gap`, `inset`, and their logical-property variants) outside `global.css`, on any raw hex colour outside `global.css`, on a token declared in `:root` with no `[data-theme='dark']` counterpart, on an ink/surface pair that falls short of its contrast threshold, and on a missing `prefers-reduced-motion` escape hatch. `global.css` is the only file allowed raw hex, and the only file allowed raw px in those guarded properties — every other stylesheet references a `--space-*`, `--text-*`, `--dur-*`, or `--ease-*` token. See `P12_CHANGELOG.md` for the token axes, the colour corrections and the thresholds behind them, and the AskBar overlap fix.
 
 ## P11 capabilities
 
@@ -354,4 +354,4 @@ SMOKE_REQUIRE_PROVIDER=1 \
 npm run smoke:deployment
 ```
 
-See `DEPLOYMENT.md`, `CONTRACT.md`, `ARCHITECTURE.md`, `docs/P12_CHANGELOG.md`, `P11_CHANGELOG.md`, `P10_CHANGELOG.md`, and `P9_CHANGELOG.md` for operational details and remaining credential-dependent acceptance tests.
+See `DEPLOYMENT.md`, `CONTRACT.md`, `ARCHITECTURE.md`, `P12_CHANGELOG.md`, `P11_CHANGELOG.md`, `P10_CHANGELOG.md`, and `P9_CHANGELOG.md` for operational details and remaining credential-dependent acceptance tests.

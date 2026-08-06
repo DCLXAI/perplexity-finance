@@ -4,7 +4,7 @@
 
 Synapsu is a Vite/React financial terminal with explicit provider provenance, durable alerts, an operations control plane, and an append-only personal investment decision ledger.
 
-P12 moves every screen's spacing, type, motion, and colour off hand-picked literals onto token scales, corrects four colour tokens that fell short of their contrast thresholds, and fixes the AI AskBar covering the last rows of on-load content.
+P12 moves every screen's spacing, type, motion, and colour off hand-picked literals onto token scales, corrects six colour tokens that fell short of their contrast thresholds, and fixes the AI AskBar covering the last rows of on-load content.
 
 P11 adds the Korean market (KRX) as a first-class region — won pricing, the KRX trading calendar, a 159-stock KOSPI/KOSDAQ universe, and a real region switcher that re-scopes market home, screener, heatmap, earnings, stock detail, and the watchlist between `US` and `KR`.
 
@@ -56,7 +56,7 @@ Synthetic, stale, divergent, or degraded market data is never promoted to verifi
 
 ## P12 capabilities
 
-`validate:tokens` (part of `npm run check`) is the gate that keeps the spacing, type, motion, and colour scales in `src/styles/global.css` honest: it fails the build on any raw px in a guarded property (`font-size`, `padding`, `margin`, `gap`, `row-gap`, `column-gap`, `inset`, and their logical-property variants) outside `global.css`, on any raw hex colour outside `global.css`, on a token declared in `:root` with no `[data-theme='dark']` counterpart, on an ink/surface pair that falls short of its contrast threshold, and on a missing `prefers-reduced-motion` escape hatch. `global.css` is the only file allowed raw hex, and the only file allowed raw px in those guarded properties — every other stylesheet references a `--space-*`, `--text-*`, `--dur-*`, or `--ease-*` token. See `P12_CHANGELOG.md` for the token axes, the colour corrections and the thresholds behind them, and the AskBar overlap fix.
+`validate:tokens` (part of `npm run check`) is the gate that keeps the spacing, type, motion, and colour scales in `src/styles/global.css` honest: it fails the build on any raw px in a guarded property (`font-size`, `padding`, `margin`, `gap`, `row-gap`, `column-gap`, `inset`, and their logical-property variants) outside `global.css`, on a token declared in `:root` with no `[data-theme='dark']` counterpart, on an ink/surface pair or a semantic ink-on-its-own-chip pair (`--warn`/`--warn-bg`, `--pos`/`--pos-bg`, `--neg`/`--neg-bg`, `--teal`/`--teal-soft`) that falls short of its contrast threshold, and on a missing `prefers-reduced-motion` escape hatch that doesn't zero every duration token. `global.css` is the only file allowed raw px in those guarded properties — every other stylesheet references a `--space-*`, `--text-*`, `--dur-*`, or `--ease-*` token. There is no raw-hex check: seven raw hex declarations ship outside `global.css` (`alerts.css`, `politicians.css`, `ui.css`), and each is a fixed white/near-black mark deliberately painted against a themed background so it stays constant while the surface swaps between light and dark — a category with no token equivalent, not an oversight. See `P12_CHANGELOG.md` for the token axes, the colour corrections and the thresholds behind them, and the AskBar overlap fix.
 
 ## P11 capabilities
 

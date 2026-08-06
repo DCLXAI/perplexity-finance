@@ -129,8 +129,8 @@ button.ui-card:hover {
 }
 
 .ui-btn.primary {
-  background: var(--teal);
-  border-color: var(--teal);
+  background: var(--teal-btn);
+  border-color: var(--teal-btn);
   color: #fff;
 }
 

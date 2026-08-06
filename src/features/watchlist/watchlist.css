@@ -175,7 +175,7 @@
 
 .wl-empty-hint {
   font-size: var(--text-sm);
-  color: var(--ink-faint);
+  color: var(--ink-muted);
 }
 
 .wl-empty-hint b {

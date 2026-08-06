@@ -509,7 +509,7 @@
 .ai-sources ul { display: grid; gap: var(--space-2); margin-top: var(--space-2); padding-left: var(--space-4); }
 .ai-sources li { display: grid; gap: var(--space-0-5); line-height: 1.4; }
 .ai-sources a, .ai-sources strong { color: var(--teal); }
-.ai-sources time { color: var(--ink-faint); }
+.ai-sources time { color: var(--ink-muted); }
 .ai-token-usage, .ai-fallback-note, .ai-disclaimer { margin-top: var(--space-1-5); line-height: 1.45; overflow-wrap: anywhere; }
 .ai-fallback-note { color: var(--warn); }
-.ai-disclaimer { color: var(--ink-faint); }
+.ai-disclaimer { color: var(--ink-muted); }

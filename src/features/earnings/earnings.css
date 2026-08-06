@@ -263,7 +263,7 @@ a.er-entry-names:hover .er-entry-company {
   margin: var(--space-3-5) 0 0;
   text-align: center;
   font-size: var(--text-sm);
-  color: var(--ink-faint);
+  color: var(--ink-muted);
 }
 
 .er-sub {

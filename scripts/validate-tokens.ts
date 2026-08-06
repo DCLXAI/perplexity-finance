@@ -83,7 +83,21 @@ function tokensIn(block: string): Map<string, string> {
 /** Text tokens are held to AA. `--ink-faint` carries carets and separator dots, not text. */
 const TEXT_INKS = ['--ink', '--ink-strong', '--ink-secondary', '--ink-muted', '--warn'];
 const NON_TEXT_INKS = ['--ink-faint'];
-const SURFACES = ['--bg', '--bg-raised', '--bg-inset'];
+const SURFACES = ['--bg', '--bg-raised', '--bg-inset', '--bg-subtle', '--bg-hover'];
+
+/**
+ * Semantic ink-on-its-own-chip pairs: --warn/--pos/--neg text rendered on their tinted
+ * badge backgrounds, and brand teal on its soft chip. These are a distinct class from
+ * TEXT_INKS × SURFACES above — a semantic ink is never actually painted on a neutral
+ * --bg/--bg-raised/--bg-inset surface, only on its matching *-bg/-soft chip — so the
+ * general surface sweep above cannot see this pairing at all.
+ */
+const SEMANTIC_PAIRS: ReadonlyArray<readonly [string, string]> = [
+  ['--warn', '--warn-bg'],
+  ['--pos', '--pos-bg'],
+  ['--neg', '--neg-bg'],
+  ['--teal', '--teal-soft'],
+];
 
 function main(): void {
   const failures: string[] = [];
@@ -124,6 +138,15 @@ function main(): void {
         }
       }
     }
+    for (const [ink, bg] of SEMANTIC_PAIRS) {
+      const fg = resolve(ink);
+      const bgValue = resolve(bg);
+      if (!/^#[0-9a-f]{6}$/i.test(fg) || !/^#[0-9a-f]{6}$/i.test(bgValue)) continue;
+      const ratio = contrastRatio(fg, bgValue);
+      if (ratio < 4.5) {
+        failures.push(`contrast: ${themeName} ${ink} on ${bg} is ${ratio.toFixed(2)}, needs 4.5`);
+      }
+    }
   }
 
   // 3. Literal discipline.
@@ -137,11 +160,19 @@ function main(): void {
     }
   }
 
-  // 4. The reduced-motion escape hatch exists and zeroes the duration tokens.
-  if (!/@media \(prefers-reduced-motion: reduce\)/.test(global)) {
+  // 4. The reduced-motion escape hatch exists and zeroes every duration token — the
+  // escape hatch's stated job is that every duration resolves to zero, not just the
+  // fastest one.
+  const reducedMotionIdx = global.indexOf('@media (prefers-reduced-motion: reduce)');
+  if (reducedMotionIdx === -1) {
     failures.push('motion: global.css has no prefers-reduced-motion block');
-  } else if (!/--dur-fast:\s*0ms/.test(global)) {
-    failures.push('motion: prefers-reduced-motion does not zero --dur-fast');
+  } else {
+    const reducedMotionBlock = global.slice(reducedMotionIdx);
+    for (const token of ['--dur-fast', '--dur-base', '--dur-slow']) {
+      if (!new RegExp(`${token}:\\s*0ms`).test(reducedMotionBlock)) {
+        failures.push(`motion: prefers-reduced-motion does not zero ${token}`);
+      }
+    }
   }
 
   const report = {

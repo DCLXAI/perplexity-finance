@@ -33,7 +33,7 @@ Light is the weaker theme. `--ink-faint` fails WCAG AA on every surface in both 
 
 ## Scope
 
-**In:** the four craft axes, across all fifteen routes — layout defects, density and type scale,
+**In:** the four craft axes, across all 13 routes — layout defects, density and type scale,
 dark mode brought to parity as a designed theme rather than a working one, and motion.
 
 **Out:** anything that changes what a screen *says*. The reference's sector-grouped heatmap
@@ -63,8 +63,8 @@ preference, rather than eleven files that each might.
 
 **Colour correction** — held to the threshold each token's *role* requires, not one blanket
 number. `--ink`, `--ink-strong`, `--ink-secondary`, `--ink-muted` and `--warn` carry text and
-answer to WCAG AA at 4.5:1. `--ink-faint` carries carets, chevrons and separator dots — non-text
-UI, governed by WCAG 1.4.11 at 3:1.
+answer to WCAG AA at 4.5:1. `--ink-faint` carries decorative, non-text UI marks — governed by
+WCAG 1.4.11 at 3:1.
 
 The distinction is load-bearing rather than pedantic. Forcing `--ink-faint` to 4.5:1 on a
 near-white surface lands it on `#6f7272` while `--ink-muted` lands on `#6e7274`: the two become
@@ -83,6 +83,25 @@ reads. Every other pair already clears its threshold and is left alone.
 Dark is already a parallel palette, so it needs scale adoption and the same contrast correction,
 not a redesign.
 
+**Correction (final review pass, post-ship):** the sentence above — "`--ink-faint` carries
+carets, chevrons and separator dots — non-text UI" — was not true of the shipped code. In
+addition to those decorative marks, `--ink-faint` also coloured the Ctrl-K keycap
+(`.hdr-search kbd`), news source attributions and `<time>` as-of stamps in market/AI news lists,
+the Alpaca-fallback provenance notices (`.mkt-news-foot`, `.st-news-foot`), the earnings footnote
+(`.er-footnote`), the AI disclaimer, and several alert/watchlist status labels — all real text, at
+3.0–3.4:1, below the 4.5:1 a text token needs. Eleven selectors were moved from `--ink-faint` to
+`--ink-muted`: `.mkt-news-meta`, `.mkt-news-foot` (`market.css`); `.st-news-foot` (`stock.css`);
+`.er-footnote` (`earnings.css`); `.al-panel-foot`, `.al-scope.local`, `.al-row-delivery`
+(`alerts.css`); `.ai-sources time`, `.ai-disclaimer` (`ai.css`); `.data-provider-row small`
+(`data-status.css`); `.wl-empty-hint` (`watchlist.css`). `.hdr-search kbd` (the keycap) was left
+on `--ink-faint` — it reads as a badge/chip rather than prose, closer in kind to the decorative
+marks than to the moved sentences. `--ink-faint`'s remaining shipped users are now exactly what
+the sentence above claims: carets (`.tabbar-caret`), separator/status dots
+(`.status-light`, `.data-status-dot`, `.data-provider-light`, `.st-history-dot`), the keycap
+badge, an `aria-hidden` decorative wordmark (`.hm-wordmark`), a gradient colour stop, an input
+placeholder, and two selectors with no live call site (`.er-day-none`, `.ai-msg-foot` — dead CSS
+noted elsewhere in this phase's known gaps, left as-is).
+
 ## Enforcement
 
 `scripts/validate-tokens.ts` joins `npm run check` and asserts four things.
@@ -94,15 +113,27 @@ WCAG AA. A token intended for large text only must say so explicitly to be held 
 Adding a token to light and forgetting dark is invisible to the eye — the value silently
 inherits — and this is the check that catches it.
 
-**Literal discipline.** Outside `global.css`, no raw hex and no raw px for `font-size`,
-`padding`, `margin`, or `gap`. Border widths of 1–2px, chart pixel heights, and media-query
-breakpoints stay exempt: forcing them onto a spacing scale would be a lie about what they are.
+**Literal discipline.** Outside `global.css`, no raw px for `font-size`, `padding`, `margin`, or
+`gap`. Border widths of 1–2px, chart pixel heights, and media-query breakpoints stay exempt:
+forcing them onto a spacing scale would be a lie about what they are.
 
-Counting them first changes where the work goes. There is exactly **one** raw hex outside
-`global.css` — `#1b1c1e`, once — so colour discipline is already sound and the hex rule costs
-nothing to keep. Size and spacing are the problem: **1,193 declarations across 23 files**, holding 1,463 individual px values, with 30
-distinct font sizes including 7.5, 8.8, 9.5, 10.5, 11.5 and 13.5px, and every integer from 1 to
-20 used as spacing. Portfolio alone holds 574 of them.
+**Correction (final review pass, post-ship):** this section originally also claimed a raw-hex
+ban — "no raw hex... outside `global.css`" — on the strength of a count of "exactly one raw hex
+outside `global.css` (`#1b1c1e`, once)". That count was wrong by sevenfold: seven raw hex
+declarations ship outside `global.css` (`alerts.css:18,117`, `politicians.css:90`,
+`ui.css:88,98,107,134`), and no task ever implemented the check the spec described — `validate-tokens.ts`
+has never had a hex rule. Re-examined, all seven are the same shape: a fixed white or near-black
+mark (badge text, logo-chip text, the logo backing plate) painted against a *themed* background
+(a semantic token or a per-entity brand colour) specifically so it stays constant while the
+surrounding surface swaps between light and dark — `.ui-logo-img`'s white backing and
+`.ui-logo-img.on-dark`'s dark backing are two ends of the same exemption, each documented in
+`ui.css` as deliberate. None of the seven represents a value that should have landed on the ink
+or surface scale and didn't; forcing one in would mean inventing a token whose only property is
+"never changes with the theme," which is a worse artifact than the raw value it replaces. The gate
+was corrected to match: no hex check exists, and none was added. Size and spacing remain the real
+problem this phase solved: **1,193 declarations across 23 files**, holding 1,463 individual px
+values, with 30 distinct font sizes including 7.5, 8.8, 9.5, 10.5, 11.5 and 13.5px, and every
+integer from 1 to 20 used as spacing. Portfolio alone holds 574 of them.
 
 A number that large is not a hand-editing job. A one-shot codemod maps each literal to its
 nearest scale step, breaking ties upward so nothing silently shrinks, and each screen-group task
@@ -114,7 +145,7 @@ gate by running it.
 
 ## Application order
 
-Shared layers first, because fifteen screens inherit from them.
+Shared layers first, because 13 screens inherit from them.
 
 1. Tokens and the contrast correction
 2. `validate-tokens`, wired into `npm run check`

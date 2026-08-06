@@ -142,7 +142,7 @@
   padding: var(--space-2-5) var(--space-3-5);
   border-top: 1px solid var(--border);
   font-size: var(--text-xs);
-  color: var(--ink-faint);
+  color: var(--ink-muted);
   background: var(--bg-inset);
 }
 
@@ -342,5 +342,5 @@
 .al-row-titleline { display: flex; align-items: center; gap: var(--space-1-5); min-width: 0; }
 .al-scope { flex: none; padding: var(--space-0-5) var(--space-1-5); border-radius: var(--radius-full); font-size: var(--text-2xs); font-weight: 800; }
 .al-scope.remote { background: color-mix(in srgb, var(--teal) 12%, transparent); color: var(--teal); }
-.al-scope.local { background: var(--bg-inset); color: var(--ink-faint); }
-.al-row-delivery { margin-top: var(--space-0-5); color: var(--ink-faint); font-size: var(--text-2xs); }
+.al-scope.local { background: var(--bg-inset); color: var(--ink-muted); }
+.al-row-delivery { margin-top: var(--space-0-5); color: var(--ink-muted); font-size: var(--text-2xs); }

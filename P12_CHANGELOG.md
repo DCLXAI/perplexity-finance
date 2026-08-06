@@ -42,7 +42,7 @@ The migration ran as an 11-file codemod pass (`scripts/codemod-tokens.mjs`, sinc
 
 ## AskBar overlap fix
 
-The AI AskBar (`.ai-askbar`, a `position: fixed` bar) covered the last one to two rows of on-load page content on narrow viewports across all fifteen routes. **The plan's prescribed fix — `padding-bottom` on `.app-main` — was proven unable to fix the defect** and was not shipped: trailing padding lengthens the *scroll range*, but a fixed-position overlay sitting mid-viewport cannot be pushed off content that renders above the fold; toggling that padding from 0 to 400px on production still left 2 rows covered every time, with `askbarTop` frozen at the same value.
+The AI AskBar (`.ai-askbar`, a `position: fixed` bar) covered the last one to two rows of on-load page content on narrow viewports across all 13 routes. **The plan's prescribed fix — `padding-bottom` on `.app-main` — was proven unable to fix the defect** and was not shipped: trailing padding lengthens the *scroll range*, but a fixed-position overlay sitting mid-viewport cannot be pushed off content that renders above the fold; toggling that padding from 0 to 400px on production still left 2 rows covered every time, with `askbarTop` frozen at the same value.
 
 What shipped instead (commit `2f891f8`, following a fix round that found three further defects in the first attempt at the corrected approach):
 
@@ -57,6 +57,54 @@ Measured effect: document scroll extent (the symptom that made `/#/crypto` rende
 ## Removed
 
 - `scripts/codemod-tokens.mjs` and its type-declaration sibling `scripts/codemod-tokens.d.mts`. It existed for the one-time migration described above; every screen has been migrated, `validate:tokens` reports zero literals, and leaving a file-mutating script beside the gate it fed would invite someone to "fix" a red gate by re-running the mutator instead of reading what broke. The test cases in `scripts/validate-tokens.test.ts` that covered the codemod's rewrite behavior were removed along with it; every test covering `validate-tokens.ts` itself (contrast, `nearestStep`, `findLiteralViolations`) remains.
+
+## Final review corrections
+
+A whole-branch review after Tasks 1–12 landed found five gaps between what the gate/docs claimed
+and what shipped. All five are closed; details and full before/after ratios are in
+`.superpowers/sdd/2026-08-06-p12-visual-craft/final-review-fixes.md`.
+
+- **Semantic-on-semantic-background pairs were unguarded.** `validate-tokens.ts` checked
+  `TEXT_INKS × SURFACES` only — `--warn` on `--warn-bg`, `--pos` on `--pos-bg`, `--neg` on
+  `--neg-bg`, and `--teal` on `--teal-soft` (the exact pairing the colour-corrections table above
+  exists to fix) had no gate at all. Added a `SEMANTIC_PAIRS` check at 4.5:1 in both themes, with
+  pinning tests and a proof that it fails when broken.
+- **`SURFACES` omitted `--bg-subtle` and `--bg-hover`.** `--ink-muted` measured 4.36:1 on
+  `--bg-subtle` in light (below AA) and co-occurs there in shipped rules (`search.css`,
+  `alerts.css`, `goal-contribution.css`, five sites in `portfolio.css`). Added both surfaces to
+  `SURFACES`, which also surfaced `--ink-faint` (below 3:1) and light `--warn` (4.48, just under
+  4.5) failing against `--bg-hover`, the binding surface in both themes (darkest light surface,
+  lightest dark surface). Corrected: light `--ink-muted` `#6e7274` → `#6a6d6f`, light `--ink-faint`
+  `#8b9090` → `#858a8a`, light `--warn` `#8a680f` → `#88670f`, dark `--ink-muted` `#7d8b8b` →
+  `#839090`, dark `--ink-faint` `#606b6b` → `#677373`. The light `--ink-secondary`/`--ink-muted`
+  ladder step lands at 1.29:1, just short of the 1.30 floor — the tightest value reachable at the
+  same hue/saturation while still clearing 4.5:1 on `--bg-hover` without inverting the ladder or
+  moving `--ink-secondary`; documented rather than forced.
+- **The README documented a raw-hex gate that never existed**, on a design-doc measurement of
+  "one raw hex outside `global.css`" that was wrong by sevenfold (actual: seven, in `alerts.css`,
+  `politicians.css`, `ui.css`). Re-examined, all seven are fixed white/near-black marks
+  deliberately painted against a themed background so they stay constant across light/dark — no
+  hex gate was implemented; README and the design doc now document the exemption instead of a
+  rule that was never enforced.
+- **`--ink-faint`'s exemption rested on an incomplete description.** Design said it "carries
+  carets, chevrons and separator dots — non-text UI"; in shipped code it also coloured the Ctrl-K
+  keycap, two provenance surfaces (`.mkt-news-foot`, `.st-news-foot`), news source attributions,
+  `<time>` stamps, the earnings footnote, the AI disclaimer, and alert/watchlist status text, all
+  at 3.0–3.4:1. Moved eleven selectors to `--ink-muted`: `.mkt-news-meta`, `.mkt-news-foot`,
+  `.st-news-foot`, `.er-footnote`, `.al-panel-foot`, `.al-scope.local`, `.al-row-delivery`,
+  `.ai-sources time`, `.ai-disclaimer`, `.data-provider-row small`, `.wl-empty-hint`. Left on
+  `--ink-faint`: the keycap (reads as a badge, not prose), decorative dots/carets, an
+  `aria-hidden` wordmark, and two dead selectors with no live call site.
+- **`.ui-btn.primary` failed AA in dark** — `#fff` on dark `--teal` (`#35a4b2`) is 2.96:1. Added
+  `--teal-btn` (identical to `--teal` in light; `#2a818c` in dark, 4.55:1 with `#fff`) rather than
+  changing `--teal` itself, which is used as the literal brand colour in ~20 other files.
+
+Also: `prefers-reduced-motion` now resets `animation-delay` (it previously left `.st-d1/d2/d3` and
+`MarketPage.tsx`'s inline `animationDelay` holding `opacity: 0` for up to 150ms under the
+preference); `validate-tokens.ts`'s `reducedMotion` check now asserts all three duration tokens
+zero, not just `--dur-fast`; and `.text-md`/`.text-lg`/`.text-sm` (unused, and colliding by name
+with `--text-md`/`--text-lg` at different pixel values) were deleted — `.text-xs`, the one with a
+real call site, stays.
 
 ## Known gaps carried out of this phase
 

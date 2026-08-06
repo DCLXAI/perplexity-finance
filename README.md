@@ -1,8 +1,10 @@
-# Perplexity Finance — P9 Cost-Aware Order Optimization
+# Synapsu — P10 Rule-Based Portfolio Monitoring
 
-**Version 1.10.0 · 2026-07-14**
+**Version 1.11.0 · 2026-08-05**
 
-Perplexity Finance is a Vite/React financial terminal with explicit provider provenance, durable alerts, an operations control plane, and an append-only personal investment decision ledger.
+Synapsu is a Vite/React financial terminal with explicit provider provenance, durable alerts, an operations control plane, and an append-only personal investment decision ledger.
+
+P10 adds structured monitor rules over investment theses, risk thresholds, and stress scenarios, evaluated against the same provider-quality data the rest of the product uses, with a transition-latched digest so a breach is reported once, not on every scan.
 
 P9 extends the P7/P8 review workflow with deterministic order optimization that accounts for configured commissions, estimated slippage, sell transaction tax, FIFO capital-gains tax, and a maximum acceptable cost ratio. These values are planning estimates, not tax advice or proof of tax payment.
 
@@ -22,6 +24,8 @@ transaction evidence
   → immutable decision-time price and allocation snapshots
   → approval, rejection, expiry, and completion audit history
   → user-entered fills linked atomically to the transaction ledger
+  → structured monitor rules evaluated against the shared observation
+  → armed/latched breach detection with per-user digest notification
 ```
 
 ## Runtime modes
@@ -45,6 +49,16 @@ With Supabase and market providers configured, the application supports:
 Without cloud credentials, `/#/portfolio` shows a deterministic demo. It is labelled `DEMO · 합성 시세`; it is not an account, brokerage statement, verified return, or investment recommendation.
 
 Synthetic, stale, divergent, or degraded market data is never promoted to verified data. It may be displayed as an estimated value with warnings, but it cannot create a strict snapshot or trigger a durable alert.
+
+## P10 capabilities
+
+Each portfolio can hold monitor rules of three kinds: thesis invalidation (price, drawdown-from-entry, allocation weight, or days without a verified price, scoped to one held symbol), risk threshold (any P4 risk metric compared above or below a value), and stress scenario (projected loss from the existing P4 shock model). Every rule spec is validated against a `.strict()` Zod schema on the server and re-validated inside the security-definer RPC that stores it, so a malformed shape can never reach the evaluator.
+
+Evaluation runs on one shared observation per portfolio — the same `buildPortfolioSummary` call `snapshot-portfolios` already makes — so a rule can never see input of different quality than a strict snapshot would use. Each rule kind gates on its own scope rather than the whole portfolio: a thesis rule defers only when its watched holding is unverified, a risk rule defers only when the risk history itself is unverified, and a stress rule defers when the portfolio valuation is unverified. This is deliberate — a portfolio-wide gate would let one unrelated stale position blind every thesis rule in the portfolio.
+
+A rule is `armed` or `latched`. It notifies only on the `armed → latched` transition and stays silent on every subsequent breach until it evaluates false again and re-arms. Breaches for one user in one run collapse into a single digest, delivered through the existing email/Web Push queue. A monitor never places an order, never transitions `investment_theses.status`, and never writes to the ledger — it only notifies. Configured thresholds are user assumptions for planning, not investment advice.
+
+Monitor-rule mutations are not idempotent: unlike contributions and rebalances there is no replay store, and `monitor_rules` carries no unique constraint, so a client retry after a timeout can create a duplicate rule — the same alert in every digest until the user deletes it. The Hobby profile scans once per day inside daily maintenance; stress rules default to a 168-hour interval, thesis and risk rules to 24 hours. Each run is bounded by a deadline derived from the remaining function budget, so monitoring can be skipped for a day under load — a skipped rule simply stays due for the next run.
 
 ## P9 capabilities
 
@@ -225,10 +239,12 @@ GET/POST             /api/portfolio/rebalances
 GET/PUT/PATCH        /api/portfolio/goal
 GET/POST             /api/portfolio/contributions
 POST                 /api/portfolio/scenario
+GET/POST/PATCH/DELETE /api/portfolio/monitor-rules
+GET                  /api/portfolio/monitor-status
 GET/POST/PATCH/DELETE /api/research
 ```
 
-Transaction and rebalance mutation `POST` requests require an `Idempotency-Key` header.
+Transaction and rebalance mutation `POST` requests require an `Idempotency-Key` header. `/api/portfolio/monitor-rules` mutations deliberately do not: there is no replay store for monitor rules, so requiring an unhonoured header would be worse than not requiring one — see the safety-boundary note in `P10_CHANGELOG.md`.
 
 ### Machine-protected jobs
 
@@ -252,7 +268,10 @@ Apply in order:
 202607130002_p7_rebalance_workflow.sql
 202607140001_p8_goal_contributions.sql
 202607140002_p9_order_cost_optimization.sql
+202608050001_p10_monitor_rules.sql
 ```
+
+The P10 migration adds `monitor_rules`, `monitor_digests`, `monitor_breaches`, and `monitor_digest_deliveries`, plus the security-definer RPCs that validate a rule spec, upsert/delete a rule, claim due rules with a lease, record an evaluation, and assemble/enqueue a digest. It is additive and applies after P9, before deploying version 1.11.0.
 
 The P9 migration adds allocation cost assumptions, immutable plan/fill cost evidence, server-side JSON validation, FIFO snapshots, and cost-aware wrappers around both P7 and P8 creation/completion RPCs. Apply it after P8 before deploying version 1.10.0.
 
@@ -299,6 +318,7 @@ npm run validate:p6
 npm run validate:p7
 npm run validate:p8
 npm run validate:p9
+npm run validate:p10
 npm run validate:migrations
 npm run build
 npm run security:scan
@@ -309,10 +329,10 @@ Post-deployment:
 
 ```bash
 SMOKE_BASE_URL=https://your-deployment.example \
-SMOKE_EXPECT_VERSION=1.10.0 \
+SMOKE_EXPECT_VERSION=1.11.0 \
 SMOKE_REQUIRE_READY=1 \
 SMOKE_REQUIRE_PROVIDER=1 \
 npm run smoke:deployment
 ```
 
-See `DEPLOYMENT.md`, `CONTRACT.md`, `ARCHITECTURE.md`, and `P9_CHANGELOG.md` for operational details and remaining credential-dependent acceptance tests.
+See `DEPLOYMENT.md`, `CONTRACT.md`, `ARCHITECTURE.md`, `P10_CHANGELOG.md`, and `P9_CHANGELOG.md` for operational details and remaining credential-dependent acceptance tests.

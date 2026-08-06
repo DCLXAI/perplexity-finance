@@ -815,6 +815,69 @@ export interface PortfolioSnapshotCronResponse {
   readonly generatedAt: string;
 }
 
+export type MonitorRuleKind = 'thesis_invalidation' | 'risk_threshold' | 'stress_scenario';
+export type MonitorRuleState = 'armed' | 'latched';
+export type MonitorRuleOutcome = 'breached' | 'clear' | 'deferred' | 'error';
+export interface MonitorRule {
+  readonly id: string;
+  readonly portfolioId: string;
+  readonly thesisId: string | null;
+  readonly symbol: string | null;
+  readonly kind: MonitorRuleKind;
+  readonly spec: Record<string, unknown>;
+  readonly enabled: boolean;
+  readonly state: MonitorRuleState;
+  readonly lastOutcome: MonitorRuleOutcome | null;
+  readonly lastEvaluatedAt: string | null;
+  readonly lastObservation: Record<string, unknown>;
+  readonly lastError: string | null;
+  readonly latchedAt: string | null;
+  readonly minIntervalHours: number;
+  readonly nextEvaluationAt: string;
+  readonly ruleVersion: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+export interface MonitorRulesResponse {
+  readonly requestId: string;
+  readonly rules: readonly MonitorRule[];
+  readonly generatedAt: string;
+}
+export interface MonitorRuleMutationResponse {
+  readonly requestId: string;
+  readonly rule: MonitorRule;
+}
+export interface MonitorBreach {
+  readonly id: string;
+  readonly ruleId: string;
+  readonly digestId: string | null;
+  readonly ruleVersion: number;
+  readonly kind: MonitorRuleKind;
+  readonly spec: Record<string, unknown>;
+  readonly observedValue: number | string | null;
+  readonly thresholdValue: number | string | null;
+  readonly observedAt: string;
+  readonly inputQuality: string;
+  readonly createdAt: string;
+}
+export interface MonitorRuleStatus {
+  readonly ruleId: string;
+  readonly kind: MonitorRuleKind;
+  readonly symbol: string | null;
+  readonly state: MonitorRuleState;
+  readonly lastOutcome: MonitorRuleOutcome | null;
+  readonly lastEvaluatedAt: string | null;
+  readonly lastObservation: Record<string, unknown>;
+  readonly lastError: string | null;
+  readonly nextEvaluationAt: string;
+  readonly recentBreaches: readonly MonitorBreach[];
+}
+export interface MonitorStatusResponse {
+  readonly requestId: string;
+  readonly statuses: readonly MonitorRuleStatus[];
+  readonly generatedAt: string;
+}
+
 export interface ApiErrorPayload {
   readonly error: Readonly<{ code: string; message: string; requestId: string }>;
 }

@@ -96,7 +96,7 @@ export default function AlertDialog({
       initialFocusRef={inputRef}
     >
       <div className="al-dlg-head">
-        <LogoChip bg={quote.logoBg} text={quote.logoText} size={34} />
+        <LogoChip symbol={quote.symbol} bg={quote.logoBg} text={quote.logoText} size={34} />
         <div>
           <h2 id={titleId} className="al-dlg-title">가격 알림 만들기</h2>
           <div className="al-dlg-sub">

@@ -109,7 +109,7 @@ export default function AlertsButton() {
                   const delivery = deliveryLabel(alert);
                   return (
                     <div key={alert.id} className={alert.triggeredAt ? 'al-row hit' : 'al-row'}>
-                      <LogoChip bg={quote?.logoBg} text={quote?.logoText} size={24} />
+                      <LogoChip symbol={quote?.symbol} bg={quote?.logoBg} text={quote?.logoText} size={24} />
                       <div className="al-row-main">
                         <div className="al-row-titleline">
                           <div className="al-row-name">{quote?.nameKo ?? quote?.name ?? alert.symbol}</div>

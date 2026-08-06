@@ -5,6 +5,7 @@ import { apiFetch } from '@/live/apiClient';
 import type {
   HistoryResponse,
   InvestmentThesis,
+  MonitorRuleKind,
   PortfolioAllocationPolicy,
   PortfolioAllocationResponse,
   PortfolioContributionMutationResponse,
@@ -42,12 +43,16 @@ import PerformancePanel from './PerformancePanel.js';
 import PortfolioSummaryView from './PortfolioSummaryView.js';
 import { GoalContributionPanel } from './GoalContributionPanel.js';
 import type { GoalPlanInput } from './GoalPlanDialog.js';
+import MonitorRuleEditor from './MonitorRuleEditor.js';
+import MonitorStatusPanel from './MonitorStatusPanel.js';
 import RebalancePanel from './RebalancePanel.js';
 import { RebalanceWorkflowPanel } from './RebalanceWorkflowPanel.js';
 import ScenarioPanel from './ScenarioPanel.js';
 import ThesisPanel from './ThesisPanel.js';
 import TransactionDialog from './TransactionDialog.js';
 import './portfolio.css';
+
+const MONITOR_KINDS_RISK: readonly MonitorRuleKind[] = Object.freeze(['risk_threshold', 'stress_scenario']);
 
 const DEMO_THESES: readonly InvestmentThesis[] = Object.freeze([
   Object.freeze({
@@ -601,6 +606,22 @@ export default function PortfolioPage() {
                 {!activeTransactions.length && <p className="pf-empty">거래가 없습니다.</p>}
               </div>
             </section>
+          </div>
+          <div className="pf-lower-grid pf-monitor-grid">
+            <section className="pf-panel pf-monitor-rules" aria-labelledby="pf-monitor-rules-title">
+              <div className="pf-panel-head">
+                <div>
+                  <h2 id="pf-monitor-rules-title">리스크 감시 규칙</h2>
+                  <p>포트폴리오 리스크 지표와 스트레스 시나리오 손실을 감시합니다. 위반해도 알림만 보내며 자동 주문은 실행하지 않습니다.</p>
+                </div>
+              </div>
+              <MonitorRuleEditor
+                portfolioId={activeSummary.portfolio.id}
+                allowedKinds={MONITOR_KINDS_RISK}
+                accessToken={accessToken}
+              />
+            </section>
+            <MonitorStatusPanel portfolioId={activeSummary.portfolio.id} accessToken={accessToken} />
           </div>
           <ThesisPanel
             portfolioId={activeSummary.portfolio.id}

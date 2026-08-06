@@ -5,12 +5,14 @@ import {
   memo,
   useEffect,
   useRef,
+  useState,
   useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
 } from 'react';
 import { Link } from 'react-router';
 import { clsx, fmtPct, fmtQuoteValue } from '@/data/format';
+import { logoUrl } from '@/data/logos';
 import type { Quote } from '@/data/types';
 import './ui.css';
 
@@ -84,14 +86,39 @@ export function ChangeBadge({
 /* ---------- Logo chip ---------- */
 
 export function LogoChip({
+  symbol,
   bg,
   text,
   size = 28,
 }: {
+  symbol?: string;
   bg?: string;
   text?: string;
   size?: number;
 }) {
+  const logo = symbol ? logoUrl(symbol) : undefined;
+  // A bundled mark can still fail to decode. Falling back on error keeps a broken
+  // image from replacing a chip that was already readable.
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [logo?.url]);
+
+  if (logo && !failed) {
+    return (
+      <img
+        className={clsx('ui-logo', 'ui-logo-img', logo.dark && 'on-dark')}
+        src={logo.url}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        width={size}
+        height={size}
+        style={{ width: size, height: size, borderRadius: size * 0.28 }}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
   return (
     <span
       className="ui-logo"
@@ -259,7 +286,7 @@ export function QuoteRow({
       to={to ?? `/stock/${encodeURIComponent(quote.symbol)}`}
       aria-label={`${quote.nameKo ?? quote.name} 상세 보기`}
     >
-      <LogoChip bg={quote.logoBg} text={quote.logoText} />
+      <LogoChip symbol={quote.symbol} bg={quote.logoBg} text={quote.logoText} />
       <div className="qr-main">
         <div className="qr-name">{quote.name}</div>
         <div className="qr-sub">

@@ -19,7 +19,7 @@ describe('DocumentTitle', () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(document.title).toContain('(AMD) | Perplexity 금융'));
+    await waitFor(() => expect(document.title).toContain('(AMD) | Synapsu'));
     const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     expect(description?.content).toContain('출처가 표시된 시세');
   });
@@ -30,6 +30,6 @@ describe('DocumentTitle', () => {
         <DocumentTitle />
       </MemoryRouter>,
     );
-    await waitFor(() => expect(document.title).toBe('페이지를 찾을 수 없음 | Perplexity 금융'));
+    await waitFor(() => expect(document.title).toBe('페이지를 찾을 수 없음 | Synapsu'));
   });
 });

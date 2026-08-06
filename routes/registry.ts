@@ -27,6 +27,8 @@ import portfolioTransactionsHandler from './portfolio/transactions.js';
 import portfolioSummaryHandler from './portfolio/summary.js';
 import portfolioSnapshotsHandler from './portfolio/snapshots.js';
 import portfolioScenarioHandler from './portfolio/scenario.js';
+import portfolioMonitorRulesHandler from './portfolio/monitor-rules.js';
+import portfolioMonitorStatusHandler from './portfolio/monitor-status.js';
 import researchHandler from './research.js';
 import type { FetchHandler } from '../server/http/function.js';
 
@@ -60,6 +62,8 @@ export const apiRoutes: ReadonlyMap<string, FetchHandler> = new Map([
   ['/api/portfolio/summary', portfolioSummaryHandler],
   ['/api/portfolio/snapshots', portfolioSnapshotsHandler],
   ['/api/portfolio/scenario', portfolioScenarioHandler],
+  ['/api/portfolio/monitor-rules', portfolioMonitorRulesHandler],
+  ['/api/portfolio/monitor-status', portfolioMonitorStatusHandler],
   ['/api/research', researchHandler],
 ]);
 

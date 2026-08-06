@@ -1,7 +1,10 @@
 import { useId, useRef, useState, type FormEvent } from 'react';
 import Modal from '@/components/ui/Modal';
 import { apiFetch } from '@/live/apiClient';
-import type { ResearchMutationResponse } from '@/shared/api';
+import type { InvestmentThesis, MonitorRuleKind, ResearchMutationResponse } from '@/shared/api';
+import MonitorRuleEditor from './MonitorRuleEditor.js';
+
+const MONITOR_KINDS_THESIS: readonly MonitorRuleKind[] = Object.freeze(['thesis_invalidation']);
 
 interface ThesisDialogProps {
   readonly portfolioId: string;
@@ -24,13 +27,18 @@ export default function ThesisDialog({ portfolioId, accessToken, onClose, onSave
   const [confidence, setConfidence] = useState('50');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // Set once the thesis row is persisted. A monitor rule needs a real thesisId to link to
+  // (server/monitors/rules.ts rejects nothing here, but the association would otherwise never
+  // be created), so the rule editor for `thesis_invalidation` only appears after this save
+  // succeeds -- it can never produce an orphaned rule pointing at a thesis that doesn't exist.
+  const [savedThesis, setSavedThesis] = useState<InvestmentThesis | null>(null);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setBusy(true);
     setError('');
     try {
-      await apiFetch<ResearchMutationResponse>('/api/research', {
+      const response = await apiFetch<ResearchMutationResponse>('/api/research', {
         method: 'POST',
         body: JSON.stringify({
           portfolioId,
@@ -47,13 +55,37 @@ export default function ThesisDialog({ portfolioId, accessToken, onClose, onSave
         }),
       }, accessToken);
       await onSaved();
-      onClose();
+      setSavedThesis(response.thesis);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '투자 논지를 저장하지 못했습니다.');
     } finally {
       setBusy(false);
     }
   };
+
+  if (savedThesis) {
+    return (
+      <Modal onClose={onClose} labelledBy={titleId} className="pf-dialog pf-thesis-dialog">
+        <div className="pf-dialog-head">
+          <div><span>RESEARCH LEDGER</span><h2 id={titleId}>{savedThesis.symbol} 논지 저장 완료</h2></div>
+          <button type="button" className="pf-close" onClick={onClose} aria-label="논지 창 닫기">×</button>
+        </div>
+        <p className="pf-dialog-copy">
+          위 무효화 조건은 사람이 읽는 기록입니다. 아래 규칙을 등록해야 실제로 조건을 감시하고 위반 시 한 번만 알림을 보냅니다.
+        </p>
+        <MonitorRuleEditor
+          portfolioId={portfolioId}
+          thesisId={savedThesis.id}
+          symbol={savedThesis.symbol}
+          allowedKinds={MONITOR_KINDS_THESIS}
+          accessToken={accessToken}
+        />
+        <div className="pf-dialog-actions">
+          <button type="button" className="ui-btn primary" onClick={onClose}>완료</button>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal onClose={onClose} labelledBy={titleId} className="pf-dialog pf-thesis-dialog" initialFocusRef={firstRef}>
@@ -72,6 +104,9 @@ export default function ThesisDialog({ portfolioId, accessToken, onClose, onSave
           <label><span>하방 근거</span><textarea maxLength={4000} rows={4} value={bearCase} onChange={(event) => setBearCase(event.target.value)} /></label>
           <label className="pf-form-wide"><span>촉매 · 쉼표로 구분</span><input value={catalysts} onChange={(event) => setCatalysts(event.target.value)} /></label>
           <label className="pf-form-wide"><span>무효화 조건</span><textarea maxLength={3000} rows={3} value={invalidation} onChange={(event) => setInvalidation(event.target.value)} /></label>
+          <p className="pf-monitor-precondition pf-form-wide">
+            감시 규칙은 논지를 저장한 뒤에 추가할 수 있습니다. 저장하면 바로 이어서 이 무효화 조건을 실제로 감시할 규칙을 만들 수 있습니다.
+          </p>
           <label><span>목표가 · 선택</span><input type="number" min="0" step="any" value={targetPrice} onChange={(event) => setTargetPrice(event.target.value)} /></label>
         </div>
         {error && <p className="pf-form-error" role="alert">{error}</p>}

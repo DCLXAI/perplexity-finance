@@ -133,7 +133,7 @@ export default function SearchPalette({ onClose }: { onClose: () => void }) {
                       onClick={() => go(quote.symbol)}
                       onMouseMove={() => setSelected(index)}
                     >
-                      <LogoChip bg={quote.logoBg} text={quote.logoText} size={26} />
+                      <LogoChip symbol={quote.symbol} bg={quote.logoBg} text={quote.logoText} size={26} />
                       <div className="sp-item-main">
                         <div className="sp-item-name">{quote.name}</div>
                         <div className="sp-item-sub">

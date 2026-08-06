@@ -24,9 +24,14 @@ function validateCandles(label: string, candles: readonly CandlePoint[]): void {
 }
 
 async function main(): Promise<void> {
-  assert.equal(SNAPSHOT.asOfISO, '2026-07-10T16:00:00-04:00');
-  assert.equal(new Date(SNAPSHOT.asOfISO).getUTCDay(), 5, 'equity snapshot must be Friday');
-  assert.ok(!SNAPSHOT.closeLabel.includes('Jul 11'));
+  assert.equal(SNAPSHOT.asOfISO, '2026-08-04T16:00:00-04:00');
+  // The anchor must be a weekday session close. It was pinned to Friday while the seed
+  // happened to be captured on one; that was never a requirement of the calendar
+  // generator, only a property of the old capture. Any Mon-Fri close is valid.
+  const anchorDay = new Date(SNAPSHOT.asOfISO).getUTCDay();
+  assert.ok(anchorDay >= 1 && anchorDay <= 5, 'equity snapshot must be a weekday close');
+  assert.ok(new Date(SNAPSHOT.asOfISO) < new Date(`${SNAPSHOT.todayISO}T23:59:59Z`),
+    'equity snapshot cannot be after todayISO');
 
   assert.equal(
     new Set(SEED_ASSETS.map((asset) => asset.symbol)).size,

@@ -15,7 +15,7 @@ import type {
 } from '../src/shared/api.js';
 
 resetConfigForTests();
-assert.equal(loadConfig().version, '1.10.0');
+assert.equal(loadConfig().version, '1.11.0');
 
 function transaction(id: string, kind: PortfolioTransaction['kind'], values: Partial<PortfolioTransaction>): PortfolioTransaction {
   const tradeAt = `2026-01-${id.slice(-2)}T15:00:00.000Z`;
@@ -149,7 +149,7 @@ for (const entry of apiFunctionEntries) {
 assert.deepEqual(Object.keys(vercel.functions), ['api/**/*.ts'], 'Vercel function settings must target all API entries safely');
 const routeRegistry = readFileSync(new URL('../routes/registry.ts', import.meta.url), 'utf8');
 const registeredPaths = [...routeRegistry.matchAll(/\['(\/api\/[^']+)',/g)].map((match) => match[1]);
-assert.equal(new Set(registeredPaths).size, 30, 'all 30 existing API contracts must remain registered');
+assert.equal(new Set(registeredPaths).size, 32, 'all 32 existing API contracts must remain registered');
 assert.equal(vercel.crons.length, 2, 'Hobby deployments allow at most two cron jobs');
 assert.ok(vercel.crons.some((entry) => entry.path === '/api/cron/evaluate-alerts' && entry.schedule === '5 0 * * *'));
 assert.ok(vercel.crons.some((entry) => entry.path === '/api/cron/daily-maintenance' && entry.schedule === '20 0 * * *'));
@@ -176,7 +176,7 @@ for (const relative of [
 ]) assert.ok(readFileSync(new URL(relative, import.meta.url), 'utf8').length > 100, `missing P4 surface: ${relative}`);
 
 console.log(JSON.stringify({
-  version: '1.10.0',
+  version: '1.11.0',
   fifoLedger: 'PASS',
   immutableReversalContract: 'PASS',
   verifiedValuation: 'PASS',

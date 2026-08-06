@@ -5,7 +5,7 @@ import { loadConfig, resetConfigForTests } from '../server/config.js';
 import type { PortfolioHolding } from '../src/shared/api.js';
 
 resetConfigForTests();
-assert.equal(loadConfig().version, '1.10.0');
+assert.equal(loadConfig().version, '1.11.0');
 
 function holding(symbol: string, marketValue: number, price: number): PortfolioHolding {
   return Object.freeze({
@@ -53,7 +53,7 @@ for (const relative of [
 ]) assert.ok(readFileSync(new URL(relative, import.meta.url), 'utf8').length > 300, `missing P6 surface: ${relative}`);
 
 console.log(JSON.stringify({
-  version: '1.10.0',
+  version: '1.11.0',
   targetValidation: 'PASS',
   driftDetection: 'PASS',
   tradeSuggestions: 'PASS',

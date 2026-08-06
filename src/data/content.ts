@@ -17,27 +17,27 @@ import type {
 
 export const MARKET_SUMMARY: MarketSummaryItem[] = [
   {
-    id: 'ms-hynix',
-    title: 'SK Hynix Makes Historic Nasdaq Debut, Surging 12.8%',
-    body: "SK Hynix, the world's leading high-bandwidth memory manufacturer, raised $26.5 billion in the largest U.S. listing ever by a foreign company, marking the second-largest share sale in U.S. history behind SpaceX's $86 billion IPO. Shares soared 12.8% on their first day of trading, buoyed by surging AI-driven demand for memory chips.",
+    id: 'ms-pltr',
+    title: 'Palantir Surges Nearly 30% on "Otherworldly" US Commercial Growth',
+    body: 'Palantir reported second-quarter revenue up 93% year over year, with US commercial revenue rising 149% to $764 million, and raised both its FY2026 revenue outlook and adjusted free-cash-flow guidance. Shares closed up 29.45%, the largest single-day move in the S&P 500 that session, and management attributed the result to accelerating enterprise AI adoption.',
     sources: 48,
   },
   {
     id: 'ms-btc',
-    title: 'Bitcoin Holds Above $64,000 Amid U.S. Crypto Policy Shifts',
-    body: 'Bitcoin steadied above the $64,000 level this week as markets digested a new U.S. digital-asset framework that clarifies custody rules for banks. Spot ETF inflows resumed after three weeks of outflows, while altcoins broadly lagged, keeping bitcoin dominance near a two-year high.',
+    title: 'Bitcoin Holds Near $64,200 as Ether Lags',
+    body: 'Bitcoin traded near $64,196 (+0.6%) while ether lagged at about $1,868 (+0.3%), keeping bitcoin dominance elevated. Crypto rows in this seed are a separate 2026-08-05 capture and therefore carry a different as-of time than the equity close.',
     sources: 36,
   },
   {
     id: 'ms-gold',
-    title: 'Gold Slides Over 1.4% on the Week as Fed Inflation Concerns Persist',
-    body: 'Gold retreated more than 1.4% for the week to settle near $3,890 an ounce as sticky services inflation pushed back expectations for Federal Reserve rate cuts. Real yields firmed and the dollar stabilized, prompting profit-taking after gold’s record-setting first half of 2026.',
+    title: 'Gold Climbs 1.0% to $4,075 as Rate-Cut Odds Firm',
+    body: 'Gold advanced 1.01% to $4,075.26 an ounce as a sharp fall in crude eased the near-term inflation outlook and traders leaned toward a softer path for policy. The move extended a strong 2026 for the metal.',
     sources: 29,
   },
   {
     id: 'ms-oil',
-    title: 'Oil Flat as Iran Talks and Geopolitical Tensions Balance the Market',
-    body: 'WTI crude closed nearly unchanged at $67.85 as progress in Iran nuclear talks offset fresh tanker incidents in the Red Sea. Traders weighed the prospect of additional Iranian barrels against OPEC+ discipline and record U.S. refinery runs heading into peak driving season.',
+    title: 'Oil Falls Sharply on Hopes of Resumed Strait of Hormuz Traffic',
+    body: 'Crude fell sharply as progress toward reopening the Strait of Hormuz raised the prospect of resumed tanker traffic. Reported declines ranged from roughly 3% to 6% depending on the outlet and contract, so no single settlement figure is carried in this seed. Energy was among the weakest sectors on the session.',
     sources: 31,
   },
   {
@@ -452,12 +452,14 @@ export const POLITICIAN_TRADES: PoliticianTrade[] = [
 /* ---------- 뉴스 (stock-detail page) ---------- */
 
 export const GENERAL_NEWS: NewsItem[] = [
-  { id: 'n1', title: 'NVIDIA Rubin capacity fully booked through mid-2027, say supply chain sources', summary: 'TSMC CoWoS allocation for Rubin-generation GPUs is reportedly sold out, with hyperscalers pre-paying to lock capacity.', source: 'SemiAnalysis', timeAgo: '2시간 전', symbols: ['NVDA', 'TSM'] },
-  { id: 'n2', title: 'Meta raises 2026 capex guidance to $92B on AI infrastructure push', summary: 'The company cited "unprecedented demand" for Llama-powered enterprise agents as it broke ground on two new data-center campuses.', source: 'Bloomberg', timeAgo: '4시간 전', symbols: ['META'] },
-  { id: 'n3', title: 'SK Hynix ADR debut adds $350B memory giant to Nasdaq', summary: 'The listing pressures Micron valuations while giving US investors direct HBM exposure for the first time.', source: 'Reuters', timeAgo: '6시간 전', symbols: ['HYNX', 'MU'] },
-  { id: 'n4', title: 'Fed officials split on inflation path as services prices stay sticky', summary: 'June minutes show a growing camp arguing the neutral rate has risen, reducing scope for 2026 cuts.', source: 'WSJ', timeAgo: '8시간 전', symbols: [] },
-  { id: 'n5', title: 'Refining crack spreads top $60 for first time since 2022', summary: 'Valero and Marathon Petroleum hit record highs as diesel inventories sit at 20-year seasonal lows.', source: 'FT', timeAgo: '10시간 전', symbols: ['VLO', 'MPC', 'PSX'] },
-  { id: 'n6', title: 'Bitcoin ETF inflows resume after custody rule clarity', summary: 'Spot funds absorbed $1.8B this week, the strongest tape since March, as bank custody rules were finalized.', source: 'CoinDesk', timeAgo: '12시간 전', symbols: ['BTCUSD'] },
+  { id: 'n1', title: 'Palantir surges ~30% as Q2 revenue jumps 93% and guidance is raised', summary: 'US commercial revenue rose 149% year over year to $764M; management raised FY2026 revenue and adjusted free-cash-flow guidance on AI demand.', source: 'CNBC', timeAgo: '2시간 전', symbols: ['PLTR'] },
+  { id: 'n2', title: 'S&P 500 and Dow close at records as Hormuz reopening hopes lift sentiment', summary: 'The S&P 500 closed at 7,737 (+1.79%) and the Dow at 54,086 (+1.71%); technology led sectors while energy and utilities lagged.', source: 'The Motley Fool', timeAgo: '3시간 전', symbols: [] },
+  { id: 'n3', title: 'AMD beats with record $11.5B revenue but shares slide on capex concerns', summary: 'EPS of $1.66 and Q3 guidance of $13B both topped estimates, yet the stock fell about 7% after hours.', source: 'Yahoo Finance', timeAgo: '5시간 전', symbols: ['AMD'] },
+  { id: 'n4', title: 'SpaceX slips after hours despite a Starlink-driven revenue beat', summary: 'Rising spend on AI data centres, Starship and next-generation satellites pushed investors to reassess cash burn.', source: 'Yahoo Finance', timeAgo: '6시간 전', symbols: [] },
+  { id: 'n5', title: 'Crude falls sharply on hopes of resumed Strait of Hormuz traffic', summary: 'Reported declines ranged from 3% to 6% across outlets; lower oil could ease inflation pressure and reduce the odds of further tightening this year.', source: 'Reuters', timeAgo: '8시간 전', symbols: ['XOM', 'CVX', 'SLB'] },
+  { id: 'n6', title: 'Caterpillar climbs 5.6% on record quarterly revenue', summary: 'Industrials rose 3.42% as a group, second only to technology at 4.20%.', source: 'Bloomberg', timeAgo: '9시간 전', symbols: ['CAT'] },
+  { id: 'n7', title: 'Memory and semi-cap names rally as AI capacity demand persists', summary: 'Micron +7.6%, Intel +10.8%, Lam Research +7.9% and Marvell +12.8% on the session.', source: 'SemiAnalysis', timeAgo: '11시간 전', symbols: ['MU', 'INTC', 'LRCX', 'MRVL'] },
+  { id: 'n8', title: 'Bitcoin holds near $64K while ether lags', summary: 'BTC traded around $64,196 (+0.6%) with ETH near $1,868 (+0.3%), leaving bitcoin dominance elevated.', source: 'CoinDesk', timeAgo: '1시간 전', symbols: ['BTCUSD', 'ETHUSD'] },
 ];
 
 /* ---------- 앱 갤러리 ---------- */

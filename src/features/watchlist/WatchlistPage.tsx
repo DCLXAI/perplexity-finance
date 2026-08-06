@@ -26,7 +26,7 @@ const WlRow = memo(function WlRow({
           to={`/stock/${encodeURIComponent(quote.symbol)}`}
           aria-label={`${quote.nameKo ?? quote.name} 상세 보기`}
         >
-          <LogoChip bg={quote.logoBg} text={quote.logoText} size={24} />
+          <LogoChip symbol={quote.symbol} bg={quote.logoBg} text={quote.logoText} size={24} />
           <span className="wl-name-txt">
             <span className="wl-name">{quote.name}</span>
             <span className="wl-name-sub">
@@ -134,7 +134,7 @@ function AddSymbol({
                 pick(quote.symbol);
               }}
             >
-              <LogoChip bg={quote.logoBg} text={quote.logoText} size={22} />
+              <LogoChip symbol={quote.symbol} bg={quote.logoBg} text={quote.logoText} size={22} />
               <span className="wl-add-name truncate">{quote.name}</span>
               <span className="wl-add-sym num">{quote.symbol}</span>
               {has(quote.symbol) && <span className="wl-add-has">추가됨</span>}

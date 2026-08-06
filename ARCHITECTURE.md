@@ -1,6 +1,6 @@
-# Architecture — P9 Cost-Aware Investment Planning
+# Architecture — P10 Rule-Based Portfolio Monitoring
 
-**Version 1.10.0 · 2026-07-14**
+**Version 1.11.0 · 2026-08-05**
 
 ## 1. System shape
 
@@ -347,3 +347,24 @@ For a sale, the optimizer consumes open lots in the same chronological FIFO orde
 The database is a second calculation boundary, not a passive JSON store. The P9 migration validates the cost-policy snapshot and each proposed/actual breakdown, preserves legacy zero-cost runs through `cost_model_version`, and wraps the existing P7/P8 RPC signatures so plan/fill evidence and ledger changes remain atomic. The browser never supplies trusted tax or slippage totals.
 
 Actual execution evidence deliberately separates economics from accounting. The user supplies the actual fill price, quantity, fee and time; the server derives signed slippage and estimated sell taxes from frozen reference evidence and current FIFO lots. The ledger cash effect includes actual notional and the actual user-entered fee only. Estimated tax is neither appended as a fee nor labelled paid. Automatic broker orders, tax remittance and jurisdiction-specific tax advice remain outside the architecture.
+
+## P10 rule-based portfolio monitoring
+
+```text
+armed/latched monitor rules (thesis, risk, stress)
+  → daily-maintenance Cron, run last, deadline-bounded
+      → claim due rules with a lease, grouped by portfolio
+      → one shared MonitorObservation per portfolio (buildPortfolioSummary)
+      → pure per-scope evaluation: breached / clear / deferred
+      → latch transition; notify only on armed → latched
+  → breach rows + per-user digest (open → append → enqueue)
+  → shared email/Web Push delivery queue (from P7's extraction)
+```
+
+`server/monitors/` holds five files with one responsibility each. `rules.ts` defines the three rule-spec shapes as discriminated, `.strict()` Zod schemas — an unknown key or an unknown enum value is rejected before it ever reaches storage or evaluation, and the same shapes are mirrored by `validate_monitor_rule_spec` in the migration as a second, database-side backstop. `evaluate.ts` is a pure function, `evaluateRule(rule, observation) -> EvaluationOutcome`, with no I/O; `nextState` and `shouldNotify` implement the armed/latched latch as two more pure functions next to it, so the whole decision surface is unit-testable without a database. `observations.ts` builds the one `MonitorObservation` a portfolio's rules share, by calling the same `buildPortfolioSummary` the interactive summary and the strict-snapshot Cron already call — so a monitor never sees looser input than a snapshot would accept. `monitor-service.ts` orchestrates: it claims due rules through the leased `claim_due_monitor_rules` RPC, groups them by portfolio with `groupRulesByPortfolio` (the RPC's `RETURNING` order is not the same as its claim order, so grouping cannot rely on row adjacency), evaluates each rule against its portfolio's shared observation, and computes each rule's next `next_evaluation_at` with `nextEvaluationAt` — a `breached`/`clear` verdict consumes the rule's configured interval, but `deferred` and `error` do not, so a transient provider wobble does not blind a weekly stress rule for a week. `digest.ts` turns a run's accumulated breaches into one Korean-language email/push payload per user.
+
+The quality gate is deliberately per-scope, not portfolio-wide, inside `evaluate.ts`: a thesis rule defers only when its own watched holding is unverified, a risk rule defers only when the risk history itself is unverified, and a stress rule defers when portfolio-level valuation is unverified (the one case where the whole-portfolio aggregate is the right scope, since a stress scenario values the whole portfolio). A portfolio-wide gate would have two failure modes instead: one unrelated stale position would blind every thesis rule in the portfolio, and the `no_verified_price_days` condition — whose entire purpose is to fire when something has gone unverified — could never fire at all.
+
+Monitors reuse the P7 delivery-queue extraction (`server/notifications/`) rather than a fourth bespoke delivery path: `monitor_digest_deliveries` is claimed, retried, and marked sent/failed/disabled through the same shared helpers as rebalance and contribution notifications. Monitors run last in daily maintenance, after market capture, strict snapshots, the contribution scan, the rebalance scan, and rebalance delivery — contributions and rebalances can lead to ledger writes, monitors only notify, so if the 60-second function budget runs out, losing a day of monitoring is the cheaper thing to lose. The monitor step's own deadline is bounded by whichever is tighter: its configured `MONITOR_BUDGET_MS`, or what is actually left of the function's total wall-clock budget after everything that already ran in the same invocation — a fresh full-length window computed without accounting for that prior work could let the platform kill the whole function before it returns a response. A skipped rule simply keeps its existing `next_evaluation_at` and is retried on the next run; nothing is lost, only delayed.
+
+A breach never mutates other application state: it does not transition `investment_theses.status`, does not write `portfolio_transactions`, and does not create a plan. It only notifies. Configured thresholds are user-authored planning assumptions, not investment advice.

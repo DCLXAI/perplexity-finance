@@ -20,7 +20,7 @@ const EntryRow = memo(function EntryRow({ entry }: { entry: LiveEarningsEntry })
   return (
     <div className="er-entry">
       <div className="er-entry-head">
-        <LogoChip bg={quote?.logoBg} text={quote?.logoText ?? entry.symbol.slice(0, 1)} size={36} />
+        <LogoChip symbol={quote?.symbol} bg={quote?.logoBg} text={quote?.logoText ?? entry.symbol.slice(0, 1)} size={36} />
         {quote ? <Link className="er-entry-names" to={`/stock/${encodeURIComponent(entry.symbol)}`}>{name}</Link> : <div className="er-entry-names">{name}</div>}
         <div className="er-entry-when num">
           <span className="er-entry-fiscal">{entry.fiscalDateEnding ? `회계기간 ${entry.fiscalDateEnding}` : '회계기간 미제공'}</span>

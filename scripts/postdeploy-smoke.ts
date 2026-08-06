@@ -6,7 +6,7 @@ if (!base) {
   process.exit(0);
 }
 
-const expectedVersion = process.env.SMOKE_EXPECT_VERSION ?? '1.10.0';
+const expectedVersion = process.env.SMOKE_EXPECT_VERSION ?? '1.11.0';
 const requireReady = process.env.SMOKE_REQUIRE_READY === '1';
 const requireProvider = process.env.SMOKE_REQUIRE_PROVIDER === '1';
 const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
@@ -78,7 +78,7 @@ await call('/api/ops/summary', [401, 503]);
 if (process.env.SMOKE_SKIP_WEB !== '1') {
   const response = await fetch(base, { redirect: 'manual', headers: commonHeaders });
   assert.equal(response.status, 200);
-  assert.match(await response.text(), /Perplexity 금융/);
+  assert.match(await response.text(), /Synapsu/);
 }
 
 console.log(JSON.stringify({

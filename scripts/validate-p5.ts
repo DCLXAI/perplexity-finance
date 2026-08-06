@@ -5,7 +5,7 @@ import { loadConfig, resetConfigForTests } from '../server/config.js';
 import type { PortfolioSnapshot, PortfolioTransaction, RemoteCandle } from '../src/shared/api.js';
 
 resetConfigForTests();
-assert.equal(loadConfig().version, '1.10.0');
+assert.equal(loadConfig().version, '1.11.0');
 
 function snapshot(
   id: string,
@@ -65,7 +65,7 @@ assert.ok(page.includes('/api/market/history'), 'P5 must load benchmark history 
 assert.ok(page.includes('buildDemoBenchmarkHistory'), 'P5 demo mode must identify synthetic benchmark data');
 
 console.log(JSON.stringify({
-  version: '1.10.0',
+  version: '1.11.0',
   cashFlowAdjustedTwr: 'PASS',
   xirr: 'PASS',
   benchmarkComparison: 'PASS',

@@ -396,7 +396,7 @@ export default function Heatmap({ height = 420 }: { height?: number }) {
           <span className="hm-scale-label num">+3%</span>
         </div>
         <span className="hm-wordmark" aria-hidden="true">
-          perplexity
+          synapsu
         </span>
       </div>
 
@@ -443,7 +443,7 @@ export default function Heatmap({ height = 420 }: { height?: number }) {
           style={{ left: tipInit.x, top: tipInit.y }}
         >
           <div className="hm-tip-head">
-            <LogoChip bg={hoverQuote.logoBg} text={hoverQuote.logoText} size={24} />
+            <LogoChip symbol={hoverQuote.symbol} bg={hoverQuote.logoBg} text={hoverQuote.logoText} size={24} />
             <div className="hm-tip-names">
               <div className="hm-tip-name">{hoverQuote.nameKo ?? hoverQuote.name}</div>
               <div className="hm-tip-sym">

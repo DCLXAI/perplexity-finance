@@ -1,6 +1,6 @@
-# P9 Deployment Runbook
+# P10 Deployment Runbook
 
-**Version 1.10.0 · 2026-07-14**
+**Version 1.11.0 · 2026-08-05**
 
 ## 1. Prerequisites
 
@@ -35,6 +35,7 @@ supabase/migrations/202607130001_p6_target_allocations.sql
 supabase/migrations/202607130002_p7_rebalance_workflow.sql
 supabase/migrations/202607140001_p8_goal_contributions.sql
 supabase/migrations/202607140002_p9_order_cost_optimization.sql
+supabase/migrations/202608050001_p10_monitor_rules.sql
 ```
 
 Then run:
@@ -42,6 +43,8 @@ Then run:
 ```bash
 npm run validate:migrations
 ```
+
+The P10 migration applies after P9 and is required by version 1.11.0. It is additive: it creates `monitor_rules`, `monitor_digests`, `monitor_breaches`, and `monitor_digest_deliveries`, plus security-definer RPCs to validate a rule spec, upsert/delete a rule, claim due rules under a lease, record an evaluation, and open/append/enqueue a digest. Every security-definer function it creates has its `PUBLIC`/`anon`/`authenticated` execute privileges explicitly revoked and `service_role` execute explicitly granted — `npm run validate:p10` asserts the revoke count matches the security-definer function count so this cannot silently regress. It does not create another Cron job or a broker/order-placement path.
 
 The P9 migration is required by version 1.10.0. It adds the allocation cost-policy columns, immutable plan/item/fill cost evidence, FIFO lot snapshots, and cost-aware wrappers for P7/P8 plan creation and completion. It does not create another Cron job or an automatic broker/tax-payment path.
 
@@ -118,6 +121,15 @@ VAPID_SUBJECT=mailto:ops@finance.example.com
 Verify the Resend sending domain before enabling email alerts.
 Rebalance email and Web Push are opt-in per allocation policy. Enabling a channel without its server credentials leaves the durable delivery disabled or retryable; it never bypasses approval or submits an order.
 
+### Portfolio monitoring
+
+```dotenv
+MONITOR_RULE_LIMIT=200
+MONITOR_BUDGET_MS=25000
+```
+
+`MONITOR_RULE_LIMIT` caps how many due monitor rules `claim_due_monitor_rules` claims in one daily-maintenance run (default 200, allowed range 1-600). `MONITOR_BUDGET_MS` caps how long the monitor step itself may run (default 25,000ms, allowed range 1,000-55,000ms); the step actually uses whichever is tighter — this budget or what remains of the 60-second function after market capture, snapshots, contributions, rebalances, and rebalance delivery have already run in the same invocation — so raising it does not by itself guarantee more monitor time. Monitor digests reuse the existing Resend/VAPID delivery credentials above; there is no separate monitoring transport to configure.
+
 ### Machine secrets
 
 Use independent, high-entropy values:
@@ -171,7 +183,7 @@ Run:
 
 ```bash
 SMOKE_BASE_URL=https://preview.example.vercel.app \
-SMOKE_EXPECT_VERSION=1.10.0 \
+SMOKE_EXPECT_VERSION=1.11.0 \
 npm run smoke:deployment
 ```
 
@@ -190,7 +202,7 @@ After all credentials and migrations are configured:
 
 ```bash
 SMOKE_BASE_URL=https://finance.example.com \
-SMOKE_EXPECT_VERSION=1.10.0 \
+SMOKE_EXPECT_VERSION=1.11.0 \
 SMOKE_REQUIRE_READY=1 \
 SMOKE_REQUIRE_PROVIDER=1 \
 npm run smoke:deployment
@@ -218,7 +230,7 @@ Vercel invokes the configured routes from `vercel.json`:
 /api/cron/daily-maintenance daily at 00:20 UTC
 ```
 
-This is the Vercel Hobby profile: two Cron jobs with daily schedules. `daily-maintenance` runs market capture and portfolio snapshots, then scans allocation drift and delivers newly queued rebalance notifications. Minute-level alerts, rebalance monitoring, and intraday snapshots require Vercel Pro or an authenticated external scheduler.
+This is the Vercel Hobby profile: two Cron jobs with daily schedules, both already in use — P10 adds no third schedule. `daily-maintenance` runs market capture and portfolio snapshots, scans allocation drift and delivers newly queued rebalance notifications, then runs due monitor rules last and drains the monitor digest queue. Minute-level alerts, rebalance monitoring, and intraday/sub-daily monitor evaluation require Vercel Pro or an authenticated external scheduler.
 
 Confirm in production logs that:
 
@@ -228,6 +240,7 @@ Confirm in production logs that:
 - provider failures create bounded incidents, not retry storms
 - accepted/rejected capture counts are plausible
 - heartbeats remain current
+- the monitor step's claimed/evaluated/breached/deferred/errored/digest counts are plausible, and `budgetExhausted` is not persistently `true` (a persistent `true` means `MONITOR_RULE_LIMIT` or `MONITOR_BUDGET_MS` needs attention, since rules stay due but silently unevaluated)
 
 ## 11. Operations action examples
 
@@ -286,6 +299,22 @@ After rotating a secret:
 
 A leaked service-role, provider, OpenAI, Resend, VAPID private, Cron, metrics, or operations secret is a production incident.
 
+
+## P10 portfolio-monitoring acceptance
+
+1. Apply `202608050001_p10_monitor_rules.sql` after P9 and verify `monitor_rules`, `monitor_digests`, `monitor_breaches`, `monitor_digest_deliveries`, their RLS select-own policies, and that every security-definer RPC it creates has `PUBLIC`/`anon`/`authenticated` execute revoked and `service_role` execute granted.
+2. Create one rule of each kind (thesis invalidation, risk threshold, stress scenario) against a portfolio with verified valuation. Confirm `POST /api/portfolio/monitor-rules` rejects an unknown risk metric, an unknown thesis condition, and an empty `shocks` array with `400 MONITOR_RULE_SPEC_INVALID`.
+3. Make one holding's valuation `estimated` (e.g. by disabling its provider). Confirm a thesis rule watching that symbol returns `deferred`, while a thesis rule watching a different, still-verified holding in the same portfolio still judges normally — a portfolio-wide quality gate would incorrectly defer both.
+4. Force a rule's condition true and run daily maintenance twice. Confirm the rule transitions `armed → latched` and a digest is sent on the first run, and that the second run sends no second notification for the same unresolved breach.
+5. Let the condition go false and run daily maintenance again. Confirm the rule re-arms (`latched → armed`) with no notification for the re-arm itself.
+6. Edit a latched rule's threshold through `PATCH`. Confirm it returns to `armed`, `ruleVersion` increments, and `next_evaluation_at` resets to now.
+7. Retry the same `POST /api/portfolio/monitor-rules` request after a simulated timeout and confirm it is accepted again as a new rule — this is the accepted non-idempotency gap; there is no dedupe. Delete the duplicate.
+8. Confirm `GET /api/portfolio/monitor-status` shows `lastError` populated when `lastOutcome` is `error`, and the deferred `reason` when `lastOutcome` is `deferred`.
+9. Confirm another authenticated user cannot read or mutate another user's monitor rules, breaches, or digests.
+10. Confirm the Vercel project still has exactly two Hobby Cron entries after this change (`git diff --exit-code vercel.json`).
+11. Run `npm run validate:p10`, `npm run validate:migrations`, and the full `npm run check` before deployment.
+
+Monitors place no orders, never transition `investment_theses.status`, and never write the ledger. Thresholds are the user's own planning assumptions, not investment advice.
 
 ## P7 rebalance-workflow acceptance
 
@@ -376,6 +405,8 @@ GET/POST              /api/portfolio/rebalances
 GET/PUT/PATCH         /api/portfolio/goal
 GET/POST              /api/portfolio/contributions
 POST                  /api/portfolio/scenario
+GET/POST/PATCH/DELETE /api/portfolio/monitor-rules
+GET                   /api/portfolio/monitor-status
 GET/POST/PATCH/DELETE /api/research
 ```
 
@@ -388,8 +419,9 @@ npm run validate:p6
 npm run validate:p7
 npm run validate:p8
 npm run validate:p9
+npm run validate:p10
 npm run validate:migrations
-SMOKE_BASE_URL=https://your-deployment.example SMOKE_EXPECT_VERSION=1.10.0 npm run smoke:deployment
+SMOKE_BASE_URL=https://your-deployment.example SMOKE_EXPECT_VERSION=1.11.0 npm run smoke:deployment
 ```
 
 ### P4 snapshot batch sizing

@@ -48,6 +48,8 @@ export interface AppConfig {
   readonly providerFailureThreshold: number;
   readonly providerCircuitOpenMs: number;
   readonly alertBatchSize: number;
+  readonly monitorRuleLimit: number;
+  readonly monitorBudgetMs: number;
   readonly alertEvaluationIntervalSeconds: number;
   readonly alertEvaluationLeaseSeconds: number;
   readonly alertMaxPerUser: number;
@@ -129,7 +131,7 @@ export function loadConfig(): AppConfig {
   const publicOrigin = parseOrigin(optional('PUBLIC_ORIGIN'));
 
   cachedConfig = Object.freeze({
-    version: '1.10.0',
+    version: '1.11.0',
     deploymentStage,
     releaseChannel: optional('RELEASE_CHANNEL') ?? deploymentStage,
     gitSha: optional('VERCEL_GIT_COMMIT_SHA') ?? optional('GIT_SHA'),
@@ -172,6 +174,8 @@ export function loadConfig(): AppConfig {
     providerFailureThreshold: numberValue('PROVIDER_FAILURE_THRESHOLD', 3, 1, 20),
     providerCircuitOpenMs: numberValue('PROVIDER_CIRCUIT_OPEN_MS', 30_000, 1_000, 900_000),
     alertBatchSize: numberValue('ALERT_BATCH_SIZE', 250, 1, 500),
+    monitorRuleLimit: numberValue('MONITOR_RULE_LIMIT', 200, 1, 600),
+    monitorBudgetMs: numberValue('MONITOR_BUDGET_MS', 25_000, 1_000, 55_000),
     alertEvaluationIntervalSeconds: numberValue('ALERT_EVALUATION_INTERVAL_SECONDS', 60, 15, 3_600),
     alertEvaluationLeaseSeconds: numberValue('ALERT_EVALUATION_LEASE_SECONDS', 90, 30, 900),
     alertMaxPerUser: numberValue('ALERT_MAX_PER_USER', 100, 1, 500),

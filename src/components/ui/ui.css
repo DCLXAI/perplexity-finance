@@ -81,6 +81,23 @@
   user-select: none;
 }
 
+/* Bundled brand mark. `contain` stops non-square sources being cropped, and the
+   white backing keeps dark artwork on transparent legible in both themes. */
+.ui-logo-img {
+  object-fit: contain;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--border);
+  padding: 1px;
+}
+
+/* Roughly a fifth of the set is near-white artwork on transparent — Apple,
+   Amazon, Berkshire and friends ship marks drawn for dark surfaces. On the white
+   backing above they render as an empty box, so those get a dark one instead. */
+.ui-logo-img.on-dark {
+  background: #1b1c1e;
+  box-shadow: none;
+}
+
 /* ---------- Buttons ---------- */
 .ui-btn {
   display: inline-flex;

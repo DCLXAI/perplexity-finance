@@ -5,18 +5,20 @@ import { apiRoutes } from '../../routes/registry.js';
 
 describe('consolidated API router', () => {
   it('registers every existing route behind Hobby-compatible grouped functions', () => {
-    expect(apiRoutes.size).toBe(30);
+    expect(apiRoutes.size).toBe(32);
     expect(apiRoutes.has('/api/cron/evaluate-alerts')).toBe(true);
     expect(apiRoutes.has('/api/cron/daily-maintenance')).toBe(true);
     expect(apiRoutes.has('/api/portfolio/rebalances')).toBe(true);
     expect(apiRoutes.has('/api/portfolio/goal')).toBe(true);
     expect(apiRoutes.has('/api/portfolio/contributions')).toBe(true);
+    expect(apiRoutes.has('/api/portfolio/monitor-rules')).toBe(true);
+    expect(apiRoutes.has('/api/portfolio/monitor-status')).toBe(true);
   });
 
   it('dispatches an existing route with its public URL unchanged', async () => {
     const response = await apiRouter.fetch(new Request('http://localhost/api/config'));
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ version: '1.10.0' });
+    await expect(response.json()).resolves.toMatchObject({ version: '1.11.0' });
   });
 
   it('normalizes Vercel relative request URLs before dispatch', async () => {
@@ -31,7 +33,7 @@ describe('consolidated API router', () => {
     } as Request;
     const response = await apiRouter.fetch(request);
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ version: '1.10.0' });
+    await expect(response.json()).resolves.toMatchObject({ version: '1.11.0' });
   });
 
   it('keeps nested cron URLs on their grouped Vercel entry', async () => {

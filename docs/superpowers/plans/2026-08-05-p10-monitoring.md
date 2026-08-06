@@ -19,6 +19,15 @@
 - A breach notifies only. It never writes to the transaction ledger, never changes `investment_theses.status`, and never creates a plan.
 - Every user-visible notification states that it is not an order suggestion and that nothing was written to the ledger.
 - All new DB mutations go through security-definer RPCs. Authenticated clients get `select` on their own rows via RLS and no direct write.
+- **Every function a migration creates must be followed by a revoke/grant pair.** PostgreSQL defaults new functions to `EXECUTE` for `PUBLIC`, and `security definer` bypasses RLS, so a function taking `p_user_id` as a caller-supplied parameter is a cross-user read/write hole until its execute privilege is withdrawn. House pattern, verbatim from `202607130002_p7_rebalance_workflow.sql:868-869`:
+  ```sql
+  revoke all on function public.<name>(<exact arg types>) from public, anon, authenticated;
+  grant execute on function public.<name>(<exact arg types>) to service_role;
+  ```
+  The argument type list must match exactly or the revoke silently targets nothing. Verify against `pg_proc.proacl` after applying.
+- **A SQL migration must be applied to a live local PostgreSQL before it is reported complete.** `npm run check` never touches a database and `npm run validate:migrations` is only a string check, so neither catches a syntax error or a NULL-logic bug. Use `docker run -d --name <name> -e POSTGRES_PASSWORD=pw -p 55434:5432 postgres:16`, create stand-ins for `auth.users`, `auth.uid()`, `public.portfolios`, `public.investment_theses`, `public.portfolio_snapshots`, `public.set_updated_at()`, `pgcrypto`, and roles `authenticated`/`anon`/`service_role`, then apply the file and probe it. Never against a remote database.
+- **In PL/pgSQL, never inline a `CASE` expression into an `IF` condition.** `IF <expr> THEN` reads the condition up to the first `THEN` token and does not track `CASE`/`END` nesting, so the statement truncates and the file fails to parse. Assign the `CASE` to a variable first, or use a boolean expression.
+- **`NULL not in (...)` is `NULL`, not `TRUE`,** so a missing JSON key passes an `if ... not in (...) then raise` guard silently. Guard key presence explicitly with `?`, or wrap with `coalesce(...)` / `is not true`.
 - User-facing copy is Korean, matching existing surfaces.
 - Run `npm run check` before every commit. It must exit 0.
 
@@ -128,6 +137,28 @@ describe('parseMonitorRuleSpec', () => {
       value: 180,
     })).toThrow();
   });
+
+  // Unknown keys must be rejected, not silently stripped, for every kind. A stored spec
+  // that quietly loses a field would evaluate as something other than what the user saved.
+  it('rejects unknown keys on a thesis spec', () => {
+    expect(() => parseMonitorRuleSpec('thesis_invalidation', {
+      condition: 'price_below', symbol: 'AAPL', value: 180, extra: 'x',
+    })).toThrow();
+  });
+
+  it('rejects unknown keys on a risk spec', () => {
+    expect(() => parseMonitorRuleSpec('risk_threshold', {
+      metric: 'annualizedVolatilityPct', comparison: 'above', value: 35, extra: 'x',
+    })).toThrow();
+  });
+
+  it('rejects unknown keys on a stress spec', () => {
+    expect(() => parseMonitorRuleSpec('stress_scenario', {
+      shocks: [{ targetType: 'all', target: '*', changePct: -20 }],
+      maxProjectedLossPct: 25,
+      extra: 'x',
+    })).toThrow();
+  });
 });
 
 describe('defaultIntervalHours', () => {
@@ -181,23 +212,26 @@ const symbolSchema = z
 
 const percentSchema = z.number().finite().min(0).max(1_000);
 
+// Zod 4's discriminatedUnion has no `.strict()` — only ZodObject does — so strictness must
+// be applied to each member at definition time. Doing it here rather than at parse time also
+// keeps all three kinds uniformly strict and avoids cloning a schema on every call.
 const thesisInvalidationSchema = z.discriminatedUnion('condition', [
-  z.object({ condition: z.literal('price_below'), symbol: symbolSchema, value: z.number().finite().positive() }),
-  z.object({ condition: z.literal('price_above'), symbol: symbolSchema, value: z.number().finite().positive() }),
-  z.object({ condition: z.literal('drawdown_from_entry_pct'), symbol: symbolSchema, value: percentSchema }),
-  z.object({ condition: z.literal('weight_above_pct'), symbol: symbolSchema, value: percentSchema }),
+  z.object({ condition: z.literal('price_below'), symbol: symbolSchema, value: z.number().finite().positive() }).strict(),
+  z.object({ condition: z.literal('price_above'), symbol: symbolSchema, value: z.number().finite().positive() }).strict(),
+  z.object({ condition: z.literal('drawdown_from_entry_pct'), symbol: symbolSchema, value: percentSchema }).strict(),
+  z.object({ condition: z.literal('weight_above_pct'), symbol: symbolSchema, value: percentSchema }).strict(),
   z.object({
     condition: z.literal('no_verified_price_days'),
     symbol: symbolSchema,
     value: z.number().int().min(1).max(365),
-  }),
+  }).strict(),
 ]);
 
 const riskThresholdSchema = z.object({
   metric: z.enum(RISK_METRIC_KEYS),
   comparison: z.enum(['above', 'below']),
   value: z.number().finite().min(-1_000).max(1_000),
-});
+}).strict();
 
 const stressScenarioSchema = z.object({
   shocks: z
@@ -209,7 +243,7 @@ const stressScenarioSchema = z.object({
     .min(1)
     .max(20),
   maxProjectedLossPct: percentSchema,
-});
+}).strict();
 
 export type ThesisInvalidationSpec = z.infer<typeof thesisInvalidationSchema>;
 export type RiskThresholdSpec = z.infer<typeof riskThresholdSchema>;
@@ -227,7 +261,7 @@ export const monitorRuleSpecSchema = {
  * malformed row can never reach the evaluator and be silently treated as "not breached".
  */
 export function parseMonitorRuleSpec(kind: MonitorRuleKind, value: unknown): MonitorRuleSpec {
-  return monitorRuleSpecSchema[kind].strict().parse(value);
+  return monitorRuleSpecSchema[kind].parse(value);
 }
 
 export function defaultIntervalHours(kind: MonitorRuleKind): number {
@@ -238,7 +272,7 @@ export function defaultIntervalHours(kind: MonitorRuleKind): number {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run server/monitors/rules.test.ts`
-Expected: PASS, 9 tests.
+Expected: PASS, 13 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -303,7 +337,8 @@ function observation(overrides: Partial<MonitorObservation> = {}): MonitorObserv
     valuationQuality: 'verified',
     holdings,
     risk: risk(),
-    summary: { holdings, totalValue: 3_800, marketValue: 3_800 } as unknown as PortfolioSummary,
+    // cashBalance is required: runPortfolioScenario reads it, and omitting it yields NaN.
+    summary: { holdings, totalValue: 3_800, marketValue: 3_800, cashBalance: 0 } as unknown as PortfolioSummary,
     ...overrides,
   };
 }
@@ -318,8 +353,24 @@ function rule(overrides: Partial<MonitorRuleInput> = {}): MonitorRuleInput {
 }
 
 describe('evaluateRule — quality gate', () => {
-  it('defers when portfolio valuation is not verified', () => {
-    const result = evaluateRule(rule(), observation({ valuationQuality: 'estimated' }));
+  it('judges a verified holding even when an unrelated holding is stale', () => {
+    // One stale position makes portfolio quality 'mixed'. Gating thesis rules on the
+    // portfolio aggregate would blind every rule in the portfolio over an unrelated symbol.
+    const result = evaluateRule(rule(), observation({
+      valuationQuality: 'mixed',
+      holdings: [holding(), holding({ symbol: 'TSLA', valuationQuality: 'estimated' })],
+    }));
+    expect(result.outcome).toBe('breached');
+  });
+
+  it('defers a stress rule when portfolio valuation is not verified', () => {
+    const result = evaluateRule(
+      rule({
+        kind: 'stress_scenario',
+        spec: { shocks: [{ targetType: 'all', target: '*', changePct: -30 }], maxProjectedLossPct: 20 },
+      }),
+      observation({ valuationQuality: 'estimated' }),
+    );
     expect(result.outcome).toBe('deferred');
     expect(result.reason).toContain('verified');
   });
@@ -569,6 +620,12 @@ function deferred(reason: string): EvaluationOutcome {
 }
 
 function decide(breached: boolean, observedValue: number, threshold: number): EvaluationOutcome {
+  // A comparison against NaN is always false, so a broken computation would otherwise report
+  // `clear` — "nothing wrong" — which is the exact failure this feature exists to prevent.
+  // No verdict may rest on a value we cannot justify.
+  if (!Number.isFinite(observedValue)) {
+    return deferred('관측값을 계산할 수 없어 판정하지 않습니다.');
+  }
   return Object.freeze({
     outcome: breached ? ('breached' as const) : ('clear' as const),
     observedValue,
@@ -593,7 +650,11 @@ function evaluateThesis(
     if (!since) return deferred(`${spec.symbol}의 마지막 검증 시각을 알 수 없습니다.`);
     const days = (Date.parse(observation.asOfISO) - Date.parse(since)) / 86_400_000;
     if (!Number.isFinite(days)) return deferred('마지막 검증 시각을 읽을 수 없습니다.');
-    return decide(days > spec.value, Math.max(0, days), spec.value);
+    // A timestamp later than the observation means the clocks disagree or the row is
+    // corrupt. Judging either way would be guessing, and `clear` would silently un-latch
+    // an already-fired rule, since nextState('latched','clear') re-arms.
+    if (days < 0) return deferred('마지막 검증 시각이 관측 시각보다 미래입니다.');
+    return decide(days > spec.value, days, spec.value);
   }
 
   if (held.valuationQuality !== 'verified') {
@@ -628,7 +689,9 @@ function evaluateRisk(spec: RiskThresholdSpec, observation: MonitorObservation):
     return deferred(`리스크 지표 상태가 ${risk.status}입니다.`);
   }
   const observed = risk[spec.metric];
-  if (observed === undefined || !Number.isFinite(observed)) {
+  // `typeof` rather than `=== undefined`: TypeScript's Number.isFinite does not narrow
+  // `number | undefined`, so the typeof check is what makes this typecheck under strict.
+  if (typeof observed !== 'number' || !Number.isFinite(observed)) {
     return deferred(`${spec.metric} 지표가 계산되지 않았습니다.`);
   }
   const breached = spec.comparison === 'above' ? observed > spec.value : observed < spec.value;
@@ -660,15 +723,13 @@ export function evaluateRule(
     return deferred('규칙 정의가 현재 스키마와 맞지 않습니다.');
   }
 
-  if (observation.valuationQuality !== 'verified' && rule.kind !== 'thesis_invalidation') {
-    return deferred('포트폴리오 평가 품질이 verified가 아니라 판정하지 않습니다.');
-  }
-
+  // Each evaluator owns the gate that matches its own scope. There is deliberately no
+  // portfolio-wide gate here: `valuationQuality` is 'mixed' whenever holdings span more than
+  // one quality class, so a single unrelated stale position would otherwise blind every
+  // thesis rule in the portfolio — and would make no_verified_price_days, which exists to
+  // fire precisely when something is unverified, permanently unable to fire.
   switch (rule.kind) {
     case 'thesis_invalidation':
-      if (observation.valuationQuality !== 'verified') {
-        return deferred('포트폴리오 평가 품질이 verified가 아니라 판정하지 않습니다.');
-      }
       return evaluateThesis(spec as ThesisInvalidationSpec, observation);
     case 'risk_threshold':
       return evaluateRisk(spec as RiskThresholdSpec, observation);
@@ -691,7 +752,7 @@ export function shouldNotify(current: MonitorLatchState, outcome: MonitorOutcome
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run server/monitors/evaluate.test.ts`
-Expected: PASS, 20 tests.
+Expected: PASS, 26 tests.
 
 - [ ] **Step 5: Verify the full gate still passes**
 
@@ -1389,24 +1450,15 @@ git commit -m "feat(p10): add monitor digest assembly and delivery"
 - Modify: `routes/cron/daily-maintenance.ts`
 
 **Interfaces:**
-- Consumes: `monitorRules` from Task 6, `deliverPendingMonitorDigests` from Task 7.
-- Produces: `config.monitorRuleLimit`, `config.monitorBudgetMs`.
+- Consumes: `monitorRules` from Task 6, `deliverPendingMonitorDigests` from Task 7, and `config.monitorRuleLimit` / `config.monitorBudgetMs` which **Task 6 already added** — Task 6 consumes them, so they cannot wait until here. Verify they exist before doing anything else; do not add them twice.
+- Produces: the two new steps in `daily-maintenance`.
 
-- [ ] **Step 1: Add config fields**
+- [ ] **Step 1: Verify the config fields already exist**
 
-In `server/config.ts`, add to the config interface beside `alertBatchSize`:
-
-```ts
-  readonly monitorRuleLimit: number;
-  readonly monitorBudgetMs: number;
-```
-
-and to the loader beside `alertBatchSize: numberValue('ALERT_BATCH_SIZE', 250, 1, 500),`:
-
-```ts
-    monitorRuleLimit: numberValue('MONITOR_RULE_LIMIT', 200, 1, 600),
-    monitorBudgetMs: numberValue('MONITOR_BUDGET_MS', 25_000, 1_000, 55_000),
-```
+Task 6 added `monitorRuleLimit` (default 200, range 1..600) and `monitorBudgetMs` (default 25_000,
+range 1_000..55_000) to `server/config.ts`, because Task 6 consumes them and cannot wait until here.
+Confirm both are present and do not add them again. The 600 ceiling deliberately matches the
+`least(p_limit, 600)` clamp inside `claim_due_monitor_rules` so the two cannot disagree.
 
 - [ ] **Step 2: Append the two steps to daily maintenance**
 
@@ -1416,7 +1468,13 @@ In `routes/cron/daily-maintenance.ts`, after `const rebalanceDelivery = await de
   // Monitors run last on purpose. Contributions and rebalances create reviewable plans that
   // lead to ledger writes; monitors only notify. If the 60s budget runs short, dropping a
   // day of monitoring costs less than dropping a contribution.
-  const monitorDeadlineMs = Date.now() + loadConfig().monitorBudgetMs;
+  // The second term is what keeps the whole run inside the platform limit. A Vercel timeout
+  // kills the function rather than throwing, so it bypasses the try/catch below entirely and
+  // would lose the whole response body — including the earlier steps' real results.
+  const monitorDeadlineMs = Math.min(
+    Date.now() + loadConfig().monitorBudgetMs,
+    runStartMs + FUNCTION_BUDGET_MS - SAFETY_MARGIN_MS,
+  );
   const monitor = await monitorRules(`${requestId}:monitor`, monitorDeadlineMs);
   const monitorDelivery = await deliverPendingMonitorDigests();
 ```
@@ -1552,7 +1610,9 @@ git commit -m "feat(p10): add monitor rule editor and status panel"
 Follow `scripts/validate-p9.ts` exactly. Assert:
 - `loadConfig().version === '1.11.0'`
 - `parseMonitorRuleSpec` rejects an unknown risk metric and an empty shock list
-- `evaluateRule` returns `deferred` when `valuationQuality !== 'verified'`
+- `evaluateRule` returns `deferred` for a stress rule when `valuationQuality !== 'verified'`
+- `evaluateRule` returns `deferred` for a thesis rule when the watched holding is not verified
+- `evaluateRule` still judges a thesis rule on a verified holding when portfolio quality is `'mixed'` because an unrelated holding is stale
 - `evaluateRule` returns `deferred` when `risk.dataQuality !== 'verified'`
 - `shouldNotify('latched', 'breached') === false` and `shouldNotify('armed', 'breached') === true`
 - `nextState('armed', 'deferred') === 'armed'` and `nextState('latched', 'deferred') === 'latched'`
@@ -1612,5 +1672,6 @@ git commit -m "feat(p10): add validation script, bump to 1.11.0, and document mo
 
 1. The spec described the observation as "the latest verified `portfolio_snapshots` row plus quotes". The plan uses `buildPortfolioSummary` instead — the same call `snapshot-portfolios` makes. It already loads quotes internally and returns holdings with `averageCost`, `price`, `allocationPct`, and `valuationQuality`, plus the full `PortfolioRiskMetrics`, in one call. It also makes the quality semantics here byte-identical to the ones gating a strict snapshot, rather than a second implementation that could drift. `runPortfolioScenario(summary, shocks)` needs a `PortfolioSummary` anyway.
 2. `no_verified_price_days` deliberately bypasses the per-holding verified check, since the condition is *about* the absence of verification. It reads `unverifiedSinceISO` instead. Every other thesis condition still requires a verified holding.
+3. **The quality gate is per-scope, not portfolio-wide.** The spec says "when the input for a rule is not `verified`, the rule is recorded as `deferred`", which reads as one portfolio-level check. Implemented literally that is wrong twice over: `PortfolioValuationQuality` is `'mixed'` whenever holdings span more than one quality class, so a single unrelated stale position would blind every thesis rule in the portfolio, and `no_verified_price_days` — whose entire purpose is to fire when something is unverified — could never fire at all. Each evaluator therefore gates on its own scope: thesis rules on the watched holding, risk rules on `risk.dataQuality` and `risk.status`, stress rules on portfolio `valuationQuality` (correct there, since it values the whole portfolio). The spec's intent — never judge on unverified input — is preserved exactly; only the granularity changes.
 
 **One bug caught in review and fixed in the plan.** The first draft of `evaluateThesis` returned `clear` when a `no_verified_price_days` rule found no entry in `unverifiedSinceISO`. That is wrong in the case that matters: a holding can be unverified *and* carry no provider timestamp, and reporting `clear` would silence the exact rule meant to catch a price going stale. The evaluator now returns `clear` only when the holding is currently verified, and `deferred` when it is unverified with no known timestamp. Two tests in Task 2 pin both halves.

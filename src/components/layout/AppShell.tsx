@@ -93,17 +93,17 @@ export default function AppShell() {
       </a>
 
       <header className="app-header">
-        <Link className="hdr-brand" to="/" aria-label="Perplexity 금융 미국 시장 홈">
+        <Link className="hdr-brand" to="/" aria-label="Synapsu 미국 시장 홈">
+          {/* Synapse motif: a signal crossing a cleft between two nodes. */}
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M12 2 L12 22 M12 6 L5 2 L5 11 L12 15 M12 6 L19 2 L19 11 L12 15 M12 15 L5 19 M12 15 L19 19"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
+            <g stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
+              <path d="M3 12 h4 M17 12 h4 M10.5 6.5 L7 3 M10.5 17.5 L7 21" />
+              <circle cx="8.4" cy="12" r="2.4" />
+              <circle cx="15.6" cy="12" r="2.4" />
+              <path d="M10.9 10.4 L13.1 10.4 M10.9 13.6 L13.1 13.6" />
+            </g>
           </svg>
-          <span className="hdr-brand-name">Perplexity 금융</span>
+          <span className="hdr-brand-name">Synapsu</span>
           <span className={`hdr-data-badge ${marketStatus.phase}`}>{marketStatus.label}</span>
         </Link>
 

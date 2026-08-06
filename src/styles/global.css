@@ -23,19 +23,19 @@
   --border-strong: #d9d9d2;
 
   /* Brand */
-  --teal: #20808d;
+  --teal: #20708d;
   --teal-strong: #16606b;
   --teal-soft: #e4eeef;
   --teal-softer: #f0f5f6;
 
   /* Semantics */
-  --pos: #0d8259;
+  --pos: #0d7259;
   --pos-strong: #096b49;
   --pos-bg: #e2f2ea;
   --neg: #b8432f;
   --neg-strong: #9e3826;
   --neg-bg: #f8e8e3;
-  --warn: #95680f;
+  --warn: #8a680f;
   --warn-bg: #f7efdb;
 
   /* Heatmap ramp (−3% … +3%) */

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { contrastRatio, nearestStep, findLiteralViolations } from './validate-tokens.js';
+import { rewrite } from './codemod-tokens.mjs';
 
 describe('contrastRatio', () => {
   it('matches known WCAG values', () => {
@@ -83,5 +84,30 @@ describe('findLiteralViolations', () => {
 
   it('does not flag margin-trim, a real property that merely starts with a guarded word', () => {
     expect(findLiteralViolations('a.css', '.x { margin-trim: none; }')).toHaveLength(0);
+  });
+});
+
+describe('codemod rewrite', () => {
+  it('wraps a single negative value in calc(), not a bare -var()', () => {
+    const { out } = rewrite('.x { margin-left: -5px; }', 'a.css');
+    expect(out).toBe('.x { margin-left: calc(var(--space-1-5) * -1); }');
+    expect(out).not.toContain('-var(');
+  });
+
+  it('handles a shorthand with two negative values independently', () => {
+    const { out } = rewrite('.x { margin: -2px -6px; }', 'a.css');
+    expect(out).toBe('.x { margin: calc(var(--space-0-5) * -1) calc(var(--space-1-5) * -1); }');
+    expect(out).not.toContain('-var(');
+  });
+
+  it('handles a shorthand mixing negative, zero and positive values', () => {
+    const { out } = rewrite('.x { margin: -6px 0 14px; }', 'a.css');
+    expect(out).toBe('.x { margin: calc(var(--space-1-5) * -1) 0 var(--space-3-5); }');
+    expect(out).not.toContain('-var(');
+  });
+
+  it('leaves a positive value as a plain var(), no calc wrapper', () => {
+    const { out } = rewrite('.x { padding: 12px; }', 'a.css');
+    expect(out).toBe('.x { padding: var(--space-3); }');
   });
 });

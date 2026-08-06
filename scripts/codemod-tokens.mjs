@@ -16,7 +16,7 @@ const nearest = (value, table) =>
   table.reduce((best, row) =>
     Math.abs(row[0] - value) <= Math.abs(best[0] - value) ? row : best, table[0])[1];
 
-function rewrite(css, file) {
+export function rewrite(css, file) {
   let count = 0;
   let out = css.replace(/(font-size:\s*)([0-9.]+)px/g, (_, head, value) => {
     count += 1;
@@ -25,19 +25,27 @@ function rewrite(css, file) {
   out = out.replace(
     /((?:padding|margin|gap|row-gap|column-gap)(?:-[a-z]+)?:\s*)([^;}]+)/g,
     (whole, head, value) => {
-      if (!/\d+(?:\.\d+)?px/.test(value)) return whole;
-      // Track which source value first produced each token, so two distinct px
-      // values landing on the same step within one declaration doesn't pass silently.
+      if (!/-?\d+(?:\.\d+)?px/.test(value)) return whole;
+      // Track which source value first produced each rendered replacement, so two
+      // distinct px values landing on the same step within one declaration doesn't
+      // pass silently. Keyed on the rendered text (not just the token) because a
+      // negative and a positive value that share a magnitude render differently
+      // (`calc(var(--x) * -1)` vs `var(--x)`) and are not actually a collapse.
       const producedBy = new Map();
       let collapsed = false;
-      const next = value.replace(/([0-9.]+)px/g, (__, n) => {
+      // A leading `-` must stay outside the token, not prefix the var() call —
+      // `-var(--space-1-5)` is invalid CSS and the declaration gets dropped at
+      // parse time. `calc(var(--token) * -1)` is the valid form.
+      const next = value.replace(/(-?)([0-9.]+)px/g, (__, sign, n) => {
         count += 1;
         const num = Number(n);
         const token = nearest(num, SPACE);
-        const prior = producedBy.get(token);
-        if (prior !== undefined && prior !== num) collapsed = true;
-        else producedBy.set(token, num);
-        return `var(${token})`;
+        const signedValue = sign === '-' ? -num : num;
+        const replacement = sign === '-' ? `calc(var(${token}) * -1)` : `var(${token})`;
+        const prior = producedBy.get(replacement);
+        if (prior !== undefined && prior !== signedValue) collapsed = true;
+        else producedBy.set(replacement, signedValue);
+        return replacement;
       });
       if (collapsed) {
         console.error(

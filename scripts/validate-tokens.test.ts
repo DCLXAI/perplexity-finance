@@ -64,4 +64,24 @@ describe('findLiteralViolations', () => {
   it('allows 0 without a unit', () => {
     expect(findLiteralViolations('a.css', '.x { margin: 0; }')).toHaveLength(0);
   });
+
+  it('flags a raw padding-inline-start (multi-segment logical property)', () => {
+    expect(
+      findLiteralViolations('a.css', '.x { padding-inline-start: 12px; }'),
+    ).toHaveLength(1);
+  });
+
+  it('flags a raw margin-block-end (multi-segment logical property)', () => {
+    expect(
+      findLiteralViolations('a.css', '.x { margin-block-end: 12px; }'),
+    ).toHaveLength(1);
+  });
+
+  it('flags a raw inset', () => {
+    expect(findLiteralViolations('a.css', '.x { inset: 12px; }')).toHaveLength(1);
+  });
+
+  it('does not flag margin-trim, a real property that merely starts with a guarded word', () => {
+    expect(findLiteralViolations('a.css', '.x { margin-trim: none; }')).toHaveLength(0);
+  });
 });

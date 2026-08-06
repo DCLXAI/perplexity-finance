@@ -43,7 +43,7 @@ export interface LiteralViolation {
   readonly value: string;
 }
 
-const GUARDED = ['font-size', 'padding', 'margin', 'gap', 'row-gap', 'column-gap'];
+const GUARDED = ['font-size', 'padding', 'margin', 'gap', 'row-gap', 'column-gap', 'inset'];
 
 /**
  * Border widths, chart pixel heights and media-query breakpoints stay exempt: forcing them
@@ -53,7 +53,7 @@ export function findLiteralViolations(file: string, css: string): LiteralViolati
   const withoutMedia = css.replace(/@media[^{]+\{/g, '{');
   const out: LiteralViolation[] = [];
   for (const property of GUARDED) {
-    const pattern = new RegExp(`(?:^|[;{\\s])${property}(?:-[a-z]+)?\\s*:\\s*([^;}]+)`, 'g');
+    const pattern = new RegExp(`(?:^|[;{\\s])${property}(?:-[a-z]+)*\\s*:\\s*([^;}]+)`, 'g');
     for (const match of withoutMedia.matchAll(pattern)) {
       const value = match[1].trim();
       if (/\d+(?:\.\d+)?px/.test(value)) out.push({ file, property, value });

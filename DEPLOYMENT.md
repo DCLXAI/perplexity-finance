@@ -158,13 +158,33 @@ For preview deployments, leave requirement flags false until provider and callba
 
 ## 6. Configure Vercel protection and smoke access
 
-When preview deployment protection is enabled, create an automation bypass secret and expose it only to the CI smoke job:
+This project runs with SSO protection on every deployment except custom domains, so a preview
+URL answers `302` to an unauthenticated request and the smoke script cannot reach it. Preview
+acceptance therefore requires an automation bypass secret:
+
+```bash
+curl -X PATCH \
+  -H "Authorization: Bearer $VERCEL_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"generate":{"note":"CI post-deploy smoke"}}' \
+  "https://api.vercel.com/v1/projects/$PROJECT_ID/protection-bypass?teamId=$TEAM_ID"
+```
+
+The response is keyed by the generated secret. Put it in two places and nowhere else:
 
 ```dotenv
 VERCEL_AUTOMATION_BYPASS_SECRET=...
 ```
 
-The smoke script sends the supported protection-bypass headers without printing the secret.
+- `.env.local` for local runs — matched by `.env*.local` in `.gitignore`
+- the `VERCEL_AUTOMATION_BYPASS_SECRET` GitHub Actions secret, which
+  `.github/workflows/postdeploy-smoke.yml` reads
+
+The smoke script sends `x-vercel-protection-bypass` on every request and never prints the value.
+It deliberately does **not** send `x-vercel-set-bypass-cookie`: that asks Vercel to establish a
+bypass cookie, which it does by answering `307` + `Set-Cookie`, and every call uses
+`redirect: 'manual'` with an exact-status assertion — so the redirect failed the run before the
+first real assertion. A stateless script gains nothing from the cookie.
 
 ## 7. Deploy
 

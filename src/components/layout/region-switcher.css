@@ -8,3 +8,29 @@
 .region-switcher-item:hover { background: var(--bg-hover); color: var(--ink-strong); }
 .region-switcher-item.active { color: var(--ink-strong); background: var(--bg-inset); }
 .region-switcher-check { margin-left: auto; color: var(--teal); font-size: 11px; }
+
+/* Tab-bar variant: the market tab splits into a navigating label and a caret that opens the
+   same menu. The underline spans both halves so it still reads as one tab. */
+.region-tab { position: relative; display: inline-flex; align-items: stretch; }
+.region-tab-label { padding-right: 4px; }
+.region-tab-caret {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 10px 13px 2px;
+  /* Larger than the decorative `.tabbar-caret` it replaced: this one is a control, and 9px
+     rendered closer to a dot than to a disclosure arrow. */
+  font-size: 11px;
+  color: var(--ink-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.12s;
+}
+.region-tab-caret:hover { color: var(--ink); }
+.region-tab-caret[aria-expanded='true'] { color: var(--ink-strong); }
+.region-tab:has(.region-tab-label.active) .region-tab-caret {
+  border-bottom-color: var(--ink-strong);
+}
+.region-tab-menu { top: calc(100% - 1px); }
+/* Portalled out of the horizontally-scrolling tab bar, which would otherwise clip it. */
+.region-tab-menu-anchor { position: fixed; z-index: 300; }
+.region-tab-menu { position: static; }

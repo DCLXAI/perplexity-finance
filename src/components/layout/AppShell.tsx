@@ -2,7 +2,7 @@
    App shell — sticky header, route tabs, title/focus management.
    ============================================================ */
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useSearchParams } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { SNAPSHOT } from '@/data/universe';
 import AccountButton from '@/cloud/AccountButton';
 import { useAuth } from '@/cloud/AuthProvider';
@@ -13,6 +13,7 @@ import { useTheme } from '@/data/store';
 import AlertsButton from '@/features/alerts/AlertsButton';
 import ToastHost from '@/features/alerts/ToastHost';
 import DocumentTitle from './DocumentTitle.js';
+import { RegionTab } from './RegionSwitcher.js';
 import './layout.css';
 
 const SearchPalette = lazy(() => import('@/features/search/SearchPalette'));
@@ -70,6 +71,7 @@ export default function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false);
   const { theme, toggle } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const region = regionFromSearch(searchParams);
   // Same convention RailWidgets.tsx's MoversCard uses: only stamp `?region=` when it isn't the
@@ -168,26 +170,28 @@ export default function AppShell() {
       <nav className="app-tabbar" aria-label="주요 금융 화면">
         <div className="tabbar-tabs">
           {visibleTabs.map((tab) => {
-            // Tab 0 points at the region-scoped market home, so its label/flag follow the
-            // active region — otherwise a KR link would sit under a "미국 시장 🇺🇸" tab.
+            // Tab 0 is the market tab: its label/flag follow the active region, and its caret
+            // opens the region menu rather than merely hinting at one.
             const isHome = tab.to === '/';
-            const homeLabels = REGION_LABELS[region];
+            if (isHome) {
+              return (
+                <RegionTab
+                  key={tab.to}
+                  isActive={location.pathname === '/' || location.pathname.startsWith('/stock')}
+                  onNavigate={(next) =>
+                    navigate(withRegion('/', next === 'KR' ? 'kr' : null))
+                  }
+                />
+              );
+            }
             return (
               <NavLink
                 key={tab.to}
                 to={withRegion(tab.to, regionParam)}
-                end={isHome}
-                className={({ isActive }) =>
-                  `tabbar-tab${isActive || (isHome && location.pathname.startsWith('/stock')) ? ' active' : ''}`
-                }
+                className={({ isActive }) => `tabbar-tab${isActive ? ' active' : ''}`}
               >
-                {isHome ? (
-                  <span aria-hidden="true">{homeLabels.flag}</span>
-                ) : (
-                  tab.flag && <span aria-hidden="true">{tab.flag}</span>
-                )}
-                {isHome ? homeLabels.label : tab.label}
-                {isHome && <span className="tabbar-caret" aria-hidden="true">▾</span>}
+                {tab.flag && <span aria-hidden="true">{tab.flag}</span>}
+                {tab.label}
               </NavLink>
             );
           })}

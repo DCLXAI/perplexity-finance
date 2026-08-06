@@ -1,14 +1,33 @@
 /* The market tab in the tab bar: a label that navigates and a caret that opens the region
-   menu. The underline spans both halves so it still reads as one tab. */
-.region-tab { position: relative; display: inline-flex; align-items: stretch; }
-.region-tab-label { padding-right: 4px; }
-.region-tab-caret {
+   menu. Deliberately larger and heavier than its nine neighbours — it is the one control that
+   changes what every other tab lists, so reading as a peer of 앱 갤러리 understated it. The
+   underline spans both halves so the pair still reads as one tab. */
+.region-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  margin-right: 6px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.region-tab:hover { background: var(--bg-hover); }
+/* Two classes deep on purpose: `layout.css` loads after this file, so a bare
+   `.region-tab-label` ties with `.tabbar-tab` on specificity and loses the cascade. */
+.region-tab .region-tab-label {
+  gap: 8px;
+  padding: 12px 6px 14px 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.region-tab .region-tab-label.active { color: var(--ink-strong); }
+.region-tab .region-tab-flag { font-size: 17px; line-height: 1; }
+.region-tab .region-tab-caret {
   display: inline-flex;
   align-items: center;
-  padding: 12px 10px 13px 2px;
-  /* Larger than the decorative `.tabbar-caret` it replaced: this one is a control, and 9px
-     rendered closer to a dot than to a disclosure arrow. */
-  font-size: 11px;
+  padding: 12px 12px 14px 2px;
+  /* Sized to the enlarged label, and well clear of the decorative 9px `.tabbar-caret` it
+     replaced — that rendered closer to a dot than to a disclosure arrow. */
+  font-size: 13px;
   color: var(--ink-muted);
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;

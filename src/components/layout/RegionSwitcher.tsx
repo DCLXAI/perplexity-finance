@@ -149,7 +149,7 @@ export function RegionTab({
         className={`tabbar-tab region-tab-label${isActive ? ' active' : ''}`}
         onClick={() => onNavigate(region)}
       >
-        <span aria-hidden="true">{current.flag}</span>
+        <span className="region-tab-flag" aria-hidden="true">{current.flag}</span>
         {current.label}
       </button>
       <button

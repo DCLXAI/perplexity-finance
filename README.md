@@ -1,8 +1,10 @@
-# Synapsu — P10 Rule-Based Portfolio Monitoring
+# Synapsu — P11 Korean Market Parity
 
-**Version 1.11.0 · 2026-08-05**
+**Version 1.12.0 · 2026-08-06**
 
 Synapsu is a Vite/React financial terminal with explicit provider provenance, durable alerts, an operations control plane, and an append-only personal investment decision ledger.
+
+P11 adds the Korean market (KRX) as a first-class region — won pricing, the KRX trading calendar, a 159-stock KOSPI/KOSDAQ universe, and a real region switcher that re-scopes market home, screener, heatmap, earnings, stock detail, and the watchlist between `US` and `KR`.
 
 P10 adds structured monitor rules over investment theses, risk thresholds, and stress scenarios, evaluated against the same provider-quality data the rest of the product uses, with a transition-latched digest so a breach is reported once, not on every scan.
 
@@ -49,6 +51,14 @@ With Supabase and market providers configured, the application supports:
 Without cloud credentials, `/#/portfolio` shows a deterministic demo. It is labelled `DEMO · 합성 시세`; it is not an account, brokerage statement, verified return, or investment recommendation.
 
 Synthetic, stale, divergent, or degraded market data is never promoted to verified data. It may be displayed as an estimated value with warnings, but it cannot create a strict snapshot or trigger a durable alert.
+
+## P11 capabilities
+
+`?region=kr` (or `us`, the default) on the URL decides which market a page lists — market home, screener, heatmap, earnings, stock detail, and the watchlist all read it via `regionFromSearch`/`parseRegion`, which never throws: an unrecognised value falls back to `US` rather than breaking the page. The parameter is the single source of truth at render time; `localStorage` (`rememberRegion`/`landingRegion`) only picks the default when a visitor arrives with no region in the URL at all, so a stale bookmark and the current page can never disagree. Links generated inside the app stamp `?region=` only when the target region is not the default `US`, keeping ordinary US-market URLs unchanged.
+
+Under the hood, every seed asset carries its own `region: 'US' | 'KR'` (`AssetMeta.region`), so the data engine resolves any symbol — an alphabetic US ticker or a six-digit KRX code — without being told which market it belongs to; `region` scopes which assets a *listing* returns (`engine.listAssets(region)`), not symbol lookup. Korean quotes price in won: `fmtKrw` for whole-unit prices (`₩246,000`) and `fmtKrwCompact` for 조/억-compacted market caps (`₩1.27조`, `₩660억`) rather than a translated `US$1.57T` a Korean reader would not parse as quickly. A dedicated KRX trading calendar (`KR_EQUITY`) excludes weekends and a sourced table of 2021–2026 non-trading days (`KR_NON_TRADING_DAYS`) — 설날/추석/부처님오신날 are lunar and 대체공휴일/임시공휴일 are announced per year, so unlike US holidays they cannot be computed from a rule; a year outside that range degrades to weekdays-only rather than throwing. Korean equities also use a fixed KST (UTC+9) session close, since Korea does not observe daylight saving.
+
+The Korean universe seeds 159 KOSPI/KOSDAQ stocks across 11 sectors plus 5 indices (KOSPI, KOSDAQ, KOSPI 200, USD/KRW, VKOSPI); market caps are authored in trillion KRW and converted once to the engine's canonical USD field via one recorded `KRW_PER_USD` constant. 30 of the 159 stocks carry a real brand mark (Samsung, LG, Hyundai Motor Group, Kia, NAVER, Kakao group affiliates); the rest, including SK hynix, keep the existing initial-chip fallback rather than an invented logo. 정치인 (politician trading) and 예측 (prediction markets) are hidden under `KR` — Korea's 공직자윤리법 requires only annual asset disclosure, with no per-trade filing regime, and there is no domestic securities prediction market to source either from; both are deferred rather than filled with fabricated data. The portfolio ledger remains USD-only: P11 adds no KRW cash balance or FX conversion to the P4–P9 portfolio domain. See `P11_CHANGELOG.md` for the full list.
 
 ## P10 capabilities
 
@@ -319,6 +329,7 @@ npm run validate:p7
 npm run validate:p8
 npm run validate:p9
 npm run validate:p10
+npm run validate:p11
 npm run validate:migrations
 npm run build
 npm run security:scan
@@ -329,10 +340,10 @@ Post-deployment:
 
 ```bash
 SMOKE_BASE_URL=https://your-deployment.example \
-SMOKE_EXPECT_VERSION=1.11.0 \
+SMOKE_EXPECT_VERSION=1.12.0 \
 SMOKE_REQUIRE_READY=1 \
 SMOKE_REQUIRE_PROVIDER=1 \
 npm run smoke:deployment
 ```
 
-See `DEPLOYMENT.md`, `CONTRACT.md`, `ARCHITECTURE.md`, `P10_CHANGELOG.md`, and `P9_CHANGELOG.md` for operational details and remaining credential-dependent acceptance tests.
+See `DEPLOYMENT.md`, `CONTRACT.md`, `ARCHITECTURE.md`, `P11_CHANGELOG.md`, `P10_CHANGELOG.md`, and `P9_CHANGELOG.md` for operational details and remaining credential-dependent acceptance tests.

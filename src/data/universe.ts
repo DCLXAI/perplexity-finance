@@ -22,8 +22,11 @@
    ARCHITECTURE.md.
    ============================================================ */
 import type { AssetKind, AssetMeta, SectorId, SectorInfo } from './types.js';
+import type { MarketRegion } from './region.js';
+import { KR_SECTORS } from './universe.kr.js';
 
-export const SECTORS: SectorInfo[] = [
+/** US sector index levels (renamed from `SECTORS`; see `SECTORS_BY_REGION`). */
+export const US_SECTORS: SectorInfo[] = [
   { id: 'tech',        nameKo: '기술',              nameEn: 'Technology',             indexValue: 185.78, changePct: 0.23 },
   { id: 'energy',      nameKo: '에너지',            nameEn: 'Energy',                 indexValue: 55.08,  changePct: 0.47 },
   { id: 'cons-cyc',    nameKo: '경기소비재',        nameEn: 'Consumer Cyclical',      indexValue: 117.24, changePct: 0.33 },
@@ -37,9 +40,18 @@ export const SECTORS: SectorInfo[] = [
   { id: 'healthcare',  nameKo: '의료',              nameEn: 'Healthcare',             indexValue: 160.84, changePct: -0.82 },
 ];
 
+/** Kept as an alias of `US_SECTORS` so existing imports keep compiling; Task 7 onward migrates them. */
+export const SECTORS = US_SECTORS;
+
 export const SECTOR_BY_ID: Record<SectorId, SectorInfo> = Object.fromEntries(
-  SECTORS.map((s) => [s.id, s]),
+  US_SECTORS.map((s) => [s.id, s]),
 ) as Record<SectorId, SectorInfo>;
+
+export const SECTORS_BY_REGION: Readonly<Record<MarketRegion, readonly SectorInfo[]>> =
+  Object.freeze({
+    US: US_SECTORS,
+    KR: KR_SECTORS,
+  });
 
 /** [symbol, name, nameKo, sector, marketCap($B), price, dayChangePct] */
 type StockRow = [string, string, string, SectorId, number, number, number];
@@ -340,6 +352,7 @@ function stockAsset([symbol, name, nameKo, sectorId, capB, price, changePct]: St
     exchange: nasdaq.has(symbol) ? 'NASDAQ' : 'NYSE',
     kind: 'stock',
     unit: 'USD',
+    region: 'US',
     sectorId,
     marketCap: capB * 1e9,
     price, changePct,
@@ -365,6 +378,7 @@ function macroAsset([symbol, name, nameKo, price, changePct, exchange]: MacroRow
     exchange,
     kind,
     unit,
+    region: 'US',
     price,
     changePct,
     logoBg: '#20808d',
@@ -374,7 +388,7 @@ function macroAsset([symbol, name, nameKo, price, changePct, exchange]: MacroRow
 
 function cryptoAsset([symbol, name, nameKo, price, changePct, capB]: CryptoRow): SeedAsset {
   return {
-    symbol, name, nameKo, exchange: 'CRYPTO', kind: 'crypto', unit: 'USD',
+    symbol, name, nameKo, exchange: 'CRYPTO', kind: 'crypto', unit: 'USD', region: 'US',
     marketCap: capB * 1e9, price, changePct,
     logoBg: chipColor(symbol), logoText: name.slice(0, 1),
   };
@@ -401,5 +415,12 @@ export const SNAPSHOT = {
   asOfISO: '2026-08-04T16:00:00-04:00',
   cryptoAsOfISO: '2026-08-05T05:00:00Z',
   cryptoAsOfLabelKo: '2026년 8월 5일 14:00 KST',
+  // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks are all
+  // one 2026-08-05 KRX session close — a day after the US anchor above, and
+  // (per stockanalysis.com/investing.com corroboration) the same instant for
+  // both equities and indices, so one field covers both rather than implying
+  // a false precision of separate KR equity vs. KR index capture times.
+  krAsOfISO: '2026-08-05T15:30:00+09:00',
+  krAsOfLabelKo: '2026년 8월 5일 15:30 KST',
   todayISO: '2026-08-05',
 };

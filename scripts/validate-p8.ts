@@ -7,7 +7,7 @@ import {
 } from '../src/domain/portfolio/contribution-plan.js';
 
 resetConfigForTests();
-assert.equal(loadConfig().version, '1.11.0');
+assert.equal(loadConfig().version, '1.12.0');
 
 const projection = projectInvestmentGoal({
   currentValue: 10_000,
@@ -101,7 +101,7 @@ for (const relative of [
 ]) assert.ok(readFileSync(new URL(relative, import.meta.url), 'utf8').length > 500, `missing P8 surface: ${relative}`);
 
 console.log(JSON.stringify({
-  version: '1.11.0',
+  version: '1.12.0',
   deterministicGoalProjection: 'PASS',
   buyOnlyContributionAllocation: 'PASS',
   cashTargetAndCentConservation: 'PASS',

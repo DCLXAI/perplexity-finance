@@ -23,13 +23,30 @@ import type {
 } from '../../src/shared/api.js';
 import type { HistoryRange } from '../../src/data/types.js';
 import { AlpacaMarketDataProvider } from './alpaca.js';
-import { fallbackQuote, fallbackQuotes, sanitizeSymbols } from './catalog.js';
+import { catalogQuote, fallbackQuote, fallbackQuotes, sanitizeSymbols } from './catalog.js';
 import { getLastKnownGood, storeLastKnownGood } from './last-known-good.js';
 import { CoinbaseQuoteProvider } from './providers/coinbase.js';
 import { FinnhubQuoteProvider } from './providers/finnhub.js';
 import type { QuoteProvider } from './providers/types.js';
 import { runQuoteProvider } from './provider-runner.js';
 import { reconcileQuoteCandidates, validateQuoteCandidate } from './quality.js';
+
+/**
+ * No configured provider covers a non-US-region symbol (Korean listings) — `assetKind`
+ * (symbols.ts) already keeps them out of every provider's `supports()`, so they never generate
+ * a provider candidate. Left in the same per-symbol reconciliation loop as a genuinely
+ * unsupported-*kind* US symbol (e.g. `^VIX`, an index), each one would still cost a
+ * `getLastKnownGood` round trip, push a "no verified provider value" warning, and (via
+ * `responseMode`) flip the whole batch's `mode` to `mixed`/`fallback` — which
+ * `marketRuntime.poll` (client) treats as globally degraded, on US pages too, purely because
+ * ~41% of the full symbol set is Korean. Routing these straight to the same clean local fallback
+ * the whole app already uses when no provider is configured — no warning, no last-known-good
+ * lookup — keeps them "out of scope", not "degraded", exactly as the design states region
+ * selection must never change provenance rules or the quality gate.
+ */
+function isUsRegion(symbol: string): boolean {
+  return catalogQuote(symbol)?.region === 'US';
+}
 
 const MARKET_PROVIDERS: readonly ProviderName[] = Object.freeze(['alpaca', 'finnhub', 'coinbase']);
 
@@ -122,12 +139,19 @@ export async function getMarketQuotes(raw: readonly string[], requestId: string)
     });
   }
 
-  const providerQuotes = await collectProviderQuotes(symbols, providers);
-  const quotes: RemoteQuotePatch[] = [];
+  // Split before dispatch: `inRegion` is the only set any configured provider was ever asked
+  // about (assetKind's region guard already keeps KR symbols out of `supports()`, so this split
+  // doesn't change *what* gets fetched — it changes how the out-of-region ones are accounted
+  // for below). `outOfRegion` skips the provider/reconciliation loop entirely.
+  const inRegion = symbols.filter(isUsRegion);
+  const outOfRegion = symbols.filter((symbol) => !isUsRegion(symbol));
+
+  const providerQuotes = await collectProviderQuotes(inRegion, providers);
+  const scopedQuotes: RemoteQuotePatch[] = [];
   const warnings: string[] = [];
   const incidentIds: string[] = [];
 
-  for (const symbol of symbols) {
+  for (const symbol of inRegion) {
     const candidates = providerQuotes.filter((quote) => quote.symbol === symbol);
     const reconciled = reconcileQuoteCandidates(symbol, candidates, requestId, config);
     warnings.push(...reconciled.warnings);
@@ -135,7 +159,7 @@ export async function getMarketQuotes(raw: readonly string[], requestId: string)
 
     if (reconciled.quote && reconciled.quote.provenance.quality !== 'degraded') {
       const quote = bindRequest(reconciled.quote, requestId);
-      quotes.push(quote);
+      scopedQuotes.push(quote);
       await storeLastKnownGood(quote).catch((error: unknown) => {
         logger.warn('market.lkg_write_failed', {
           symbol,
@@ -147,7 +171,7 @@ export async function getMarketQuotes(raw: readonly string[], requestId: string)
 
     const lastKnownGood = await getLastKnownGood(symbol, requestId).catch(() => null);
     if (lastKnownGood) {
-      quotes.push(lastKnownGood);
+      scopedQuotes.push(lastKnownGood);
       warnings.push(`${symbol}은 공급자 이상으로 마지막 검증값을 유지합니다.`);
       const incident = recordIncident({
         kind: 'stale-data',
@@ -162,28 +186,41 @@ export async function getMarketQuotes(raw: readonly string[], requestId: string)
     }
 
     if (reconciled.quote) {
-      quotes.push(bindRequest(reconciled.quote, requestId));
+      scopedQuotes.push(bindRequest(reconciled.quote, requestId));
       continue;
     }
 
     if (config.allowMockFallback) {
       const fallback = fallbackQuote(symbol, requestId);
       if (fallback) {
-        quotes.push(fallback);
+        scopedQuotes.push(fallback);
         warnings.push(`${symbol}은 검증 공급자 값이 없어 명시적 로컬 폴백입니다.`);
       }
     }
   }
 
+  // Out-of-region (Korean) symbols behave exactly as they do today with no provider configured
+  // at all: a clean local fallback, no per-symbol warning, no last-known-good round trip. They
+  // are never counted toward `missingCount` or `responseMode` below — region selection must
+  // never make an otherwise-healthy US response read as degraded.
+  const regionFallbackQuotes: RemoteQuotePatch[] = [];
+  if (config.allowMockFallback) {
+    for (const symbol of outOfRegion) {
+      const fallback = fallbackQuote(symbol, requestId);
+      if (fallback) regionFallbackQuotes.push(fallback);
+    }
+  }
+
+  const quotes = [...scopedQuotes, ...regionFallbackQuotes];
   if (!quotes.length) {
     throw new ApiError(503, 'MARKET_DATA_UNAVAILABLE', '검증 가능한 시세나 허용된 폴백이 없습니다.');
   }
-  const missingCount = symbols.length - quotes.length;
+  const missingCount = inRegion.length - scopedQuotes.length;
   if (missingCount > 0) warnings.push(`${missingCount}개 심볼은 사용 가능한 값을 찾지 못했습니다.`);
   return Object.freeze({
     requestId,
     generatedAt: new Date().toISOString(),
-    mode: responseMode(quotes),
+    mode: responseMode(scopedQuotes),
     quotes: Object.freeze(quotes),
     providers: marketProviderStatuses(),
     warnings: Object.freeze([...new Set(warnings)]),

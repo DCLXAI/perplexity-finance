@@ -2,32 +2,55 @@
    App shell — sticky header, route tabs, title/focus management.
    ============================================================ */
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { SNAPSHOT } from '@/data/universe';
 import AccountButton from '@/cloud/AccountButton';
 import { useAuth } from '@/cloud/AuthProvider';
 import DataStatusButton from '@/live/DataStatusButton';
 import { useMarketRuntimeStatus } from '@/live/marketRuntime';
+import { REGION_LABELS, REGION_PARAM, regionFromSearch } from '@/data/region';
 import { useTheme } from '@/data/store';
 import AlertsButton from '@/features/alerts/AlertsButton';
 import ToastHost from '@/features/alerts/ToastHost';
 import DocumentTitle from './DocumentTitle.js';
+import { RegionTab } from './RegionSwitcher.js';
 import './layout.css';
 
 const SearchPalette = lazy(() => import('@/features/search/SearchPalette'));
 
-const TABS: { to: string; label: string; flag?: string }[] = [
+interface Tab {
+  readonly to: string;
+  readonly label: string;
+  readonly flag?: string;
+  /** Korea has no per-trade disclosure feed and no domestic prediction market: hide under KR. */
+  readonly usOnly?: boolean;
+}
+
+const TABS: readonly Tab[] = [
   { to: '/', label: '미국 시장', flag: '🇺🇸' },
   { to: '/crypto', label: '암호화폐' },
   { to: '/earnings', label: '수익' },
-  { to: '/predictions', label: '예측' },
+  { to: '/predictions', label: '예측', usOnly: true },
   { to: '/screener', label: '스크리너' },
-  { to: '/politicians', label: '정치인' },
+  { to: '/politicians', label: '정치인', usOnly: true },
   { to: '/watchlist', label: '관심목록' },
   { to: '/portfolio', label: '포트폴리오' },
   { to: '/apps', label: '앱 갤러리' },
   { to: '/status', label: '시스템 상태' },
 ];
+
+/**
+ * Keep the region parameter on nav links so moving between tabs doesn't silently fall back to
+ * US. Merges into any query string `to` already carries rather than concatenating blindly — a
+ * second bare `?` would make `URLSearchParams` swallow the region into the previous value's tail.
+ */
+export function withRegion(to: string, region: string | null): string {
+  if (!region) return to;
+  const [path, search = ''] = to.split('?');
+  const params = new URLSearchParams(search);
+  params.set(REGION_PARAM, region);
+  return `${path}?${params.toString()}`;
+}
 
 function SentimentBars({ score }: { score: number }) {
   const bars = 10;
@@ -48,10 +71,21 @@ export default function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false);
   const { theme, toggle } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const region = regionFromSearch(searchParams);
+  // Same convention RailWidgets.tsx's MoversCard uses: only stamp `?region=` when it isn't the
+  // default US, so plain US browsing (including a URL that explicitly carries `?region=us` after
+  // switching back from KR) stays free of `?region=us` cruft on every link — including the
+  // region-agnostic tabs (crypto, portfolio, apps, status) that have no region to switch and must
+  // not carry a parameter that would do nothing there. `region` itself (not the raw search param)
+  // already decided tab visibility above, so this stays the one value every nav link agrees with.
+  const regionParam = region === 'KR' ? 'kr' : null;
   const marketStatus = useMarketRuntimeStatus();
   const { isOps } = useAuth();
   const mainRef = useRef<HTMLElement>(null);
   const priorPathRef = useRef(location.pathname);
+  const visibleTabs = TABS.filter((tab) => !tab.usOnly || region === 'US');
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -93,7 +127,7 @@ export default function AppShell() {
       </a>
 
       <header className="app-header">
-        <Link className="hdr-brand" to="/" aria-label="Synapsu 미국 시장 홈">
+        <Link className="hdr-brand" to="/" aria-label={`Synapsu ${REGION_LABELS[region].label} 홈`}>
           {/* Synapse motif: a signal crossing a cleft between two nodes. */}
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <g stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
@@ -135,20 +169,32 @@ export default function AppShell() {
 
       <nav className="app-tabbar" aria-label="주요 금융 화면">
         <div className="tabbar-tabs">
-          {TABS.map((tab) => (
-            <NavLink
-              key={tab.to}
-              to={tab.to}
-              end={tab.to === '/'}
-              className={({ isActive }) =>
-                `tabbar-tab${isActive || (tab.to === '/' && location.pathname.startsWith('/stock')) ? ' active' : ''}`
-              }
-            >
-              {tab.flag && <span aria-hidden="true">{tab.flag}</span>}
-              {tab.label}
-              {tab.to === '/' && <span className="tabbar-caret" aria-hidden="true">▾</span>}
-            </NavLink>
-          ))}
+          {visibleTabs.map((tab) => {
+            // Tab 0 is the market tab: its label/flag follow the active region, and its caret
+            // opens the region menu rather than merely hinting at one.
+            const isHome = tab.to === '/';
+            if (isHome) {
+              return (
+                <RegionTab
+                  key={tab.to}
+                  isActive={location.pathname === '/' || location.pathname.startsWith('/stock')}
+                  onNavigate={(next) =>
+                    navigate(withRegion('/', next === 'KR' ? 'kr' : null))
+                  }
+                />
+              );
+            }
+            return (
+              <NavLink
+                key={tab.to}
+                to={withRegion(tab.to, regionParam)}
+                className={({ isActive }) => `tabbar-tab${isActive ? ' active' : ''}`}
+              >
+                {tab.flag && <span aria-hidden="true">{tab.flag}</span>}
+                {tab.label}
+              </NavLink>
+            );
+          })}
           {isOps && (
             <NavLink to="/ops" className={({ isActive }) => `tabbar-tab${isActive ? ' active' : ''}`}>
               운영
@@ -159,7 +205,7 @@ export default function AppShell() {
           <span className="tabbar-sentiment">
             <SentimentBars score={SNAPSHOT.sentimentScore} /> {SNAPSHOT.sentimentLabel}
           </span>
-          <span>{marketStatus.label} · {marketStatus.asOfISO ? `공급자 ${new Date(marketStatus.asOfISO).toLocaleString('ko-KR')}` : `로컬 기준 ${SNAPSHOT.closeLabelKo}`}</span>
+          <span>{marketStatus.label} · {marketStatus.asOfISO ? `공급자 ${new Date(marketStatus.asOfISO).toLocaleString('ko-KR')}` : `로컬 기준 ${region === 'KR' ? SNAPSHOT.krAsOfLabelKo : SNAPSHOT.closeLabelKo}`}</span>
         </div>
       </nav>
 

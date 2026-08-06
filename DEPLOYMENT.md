@@ -1,6 +1,6 @@
-# P10 Deployment Runbook
+# P11 Deployment Runbook
 
-**Version 1.11.0 · 2026-08-05**
+**Version 1.12.0 · 2026-08-06**
 
 ## 1. Prerequisites
 
@@ -183,7 +183,7 @@ Run:
 
 ```bash
 SMOKE_BASE_URL=https://preview.example.vercel.app \
-SMOKE_EXPECT_VERSION=1.11.0 \
+SMOKE_EXPECT_VERSION=1.12.0 \
 npm run smoke:deployment
 ```
 
@@ -202,7 +202,7 @@ After all credentials and migrations are configured:
 
 ```bash
 SMOKE_BASE_URL=https://finance.example.com \
-SMOKE_EXPECT_VERSION=1.11.0 \
+SMOKE_EXPECT_VERSION=1.12.0 \
 SMOKE_REQUIRE_READY=1 \
 SMOKE_REQUIRE_PROVIDER=1 \
 npm run smoke:deployment
@@ -299,6 +299,20 @@ After rotating a secret:
 
 A leaked service-role, provider, OpenAI, Resend, VAPID private, Cron, metrics, or operations secret is a production incident.
 
+
+## P11 Korean market acceptance
+
+P11 adds no database migration, no new Cron schedule, and no new environment variable — it is a data/UI-layer change only. `git diff --exit-code vercel.json` must still report no changes.
+
+1. Open `/#/?region=kr` and confirm prices render in won (`fmtKrw`/`fmtKrwCompact`, e.g. `₩246,000`, `₩1.27조`) and the trading calendar reflects KRX sessions, not NYSE ones.
+2. Confirm 정치인 and 예측 tabs are absent under `region=kr` and present under the default `region=us` (or no `region` parameter).
+3. Confirm a region-aware link (market home → screener/heatmap/stock detail) carries `?region=kr` when generated from a KR-scoped page, and carries no `region` parameter when generated from the default US market.
+4. Confirm `engine.listAssets('KR')` and `engine.listAssets('US')` are each non-empty and disjoint, and that a Korean symbol (e.g. `005930`) resolves correctly regardless of which region is currently selected on the page.
+5. **Known limitation to confirm, not fix:** `KR_NON_TRADING_DAYS` (`src/data/kr-holidays.ts`) covers 2021–2026 only. A Korean equity chart whose history reaches outside that range will show sessions on days KRX was actually closed, since `isKrEquityTradingDay` degrades to weekdays-only for a year outside the table. This is expected until the table is extended alongside any future extension of the seed's history range.
+6. Confirm the portfolio (`/#/portfolio`) is unaffected: it remains a USD-only ledger with no KRW balance, no FX conversion, and no Korean holding option.
+7. Run `npm run validate:p11` and the full `npm run check` before deployment.
+
+Korean market data in this phase is demo/seed data with the same synthetic-data disclosure as the rest of the product; it is not a live KRX feed and carries no investment recommendation.
 
 ## P10 portfolio-monitoring acceptance
 
@@ -421,7 +435,7 @@ npm run validate:p8
 npm run validate:p9
 npm run validate:p10
 npm run validate:migrations
-SMOKE_BASE_URL=https://your-deployment.example SMOKE_EXPECT_VERSION=1.11.0 npm run smoke:deployment
+SMOKE_BASE_URL=https://your-deployment.example SMOKE_EXPECT_VERSION=1.12.0 npm run smoke:deployment
 ```
 
 ### P4 snapshot batch sizing

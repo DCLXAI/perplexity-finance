@@ -1,7 +1,7 @@
 {
   "name": "synapsu",
   "private": true,
-  "version": "1.11.0",
+  "version": "1.12.0",
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -11,7 +11,7 @@
     "test:contracts": "tsx scripts/test-core.ts",
     "validate:data": "tsx scripts/validate-data.ts",
     "build": "tsc --noEmit && vite build",
-    "check": "npm run typecheck:strict && npm run test && npm run test:contracts && npm run validate:data && npm run validate:p2 && npm run validate:p3 && npm run validate:p4 && npm run validate:p5 && npm run validate:p6 && npm run validate:p7 && npm run validate:p8 && npm run validate:p9 && npm run validate:p10 && npm run validate:migrations && npm run validate:esm && npm run build && npm run security:scan",
+    "check": "npm run typecheck:strict && npm run test && npm run test:contracts && npm run validate:data && npm run validate:p2 && npm run validate:p3 && npm run validate:p4 && npm run validate:p5 && npm run validate:p6 && npm run validate:p7 && npm run validate:p8 && npm run validate:p9 && npm run validate:p10 && npm run validate:p11 && npm run validate:migrations && npm run validate:esm && npm run build && npm run security:scan",
     "preview": "vite preview --port 5602 --strictPort",
     "audit": "npm audit --audit-level=low",
     "dev:web": "vite --port 5602 --strictPort",
@@ -26,6 +26,7 @@
     "validate:p8": "tsx scripts/validate-p8.ts",
     "validate:p9": "tsx scripts/validate-p9.ts",
     "validate:p10": "tsx scripts/validate-p10.ts",
+    "validate:p11": "tsx scripts/validate-p11.ts",
     "validate:migrations": "tsx scripts/validate-migrations.ts",
     "validate:esm": "tsx scripts/validate-esm-imports.ts",
     "security:scan": "tsx scripts/security-scan.ts",

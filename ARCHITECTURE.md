@@ -1,6 +1,6 @@
-# Architecture — P10 Rule-Based Portfolio Monitoring
+# Architecture — P11 Korean Market Parity
 
-**Version 1.11.0 · 2026-08-05**
+**Version 1.12.0 · 2026-08-06**
 
 ## 1. System shape
 
@@ -368,3 +368,29 @@ The quality gate is deliberately per-scope, not portfolio-wide, inside `evaluate
 Monitors reuse the P7 delivery-queue extraction (`server/notifications/`) rather than a fourth bespoke delivery path: `monitor_digest_deliveries` is claimed, retried, and marked sent/failed/disabled through the same shared helpers as rebalance and contribution notifications. Monitors run last in daily maintenance, after market capture, strict snapshots, the contribution scan, the rebalance scan, and rebalance delivery — contributions and rebalances can lead to ledger writes, monitors only notify, so if the 60-second function budget runs out, losing a day of monitoring is the cheaper thing to lose. The monitor step's own deadline is bounded by whichever is tighter: its configured `MONITOR_BUDGET_MS`, or what is actually left of the function's total wall-clock budget after everything that already ran in the same invocation — a fresh full-length window computed without accounting for that prior work could let the platform kill the whole function before it returns a response. A skipped rule simply keeps its existing `next_evaluation_at` and is retried on the next run; nothing is lost, only delayed.
 
 A breach never mutates other application state: it does not transition `investment_theses.status`, does not write `portfolio_transactions`, and does not create a plan. It only notifies. Configured thresholds are user-authored planning assumptions, not investment advice.
+
+## P11 Korean market region
+
+```text
+?region=kr|us (URL, single source of truth at render time)
+  → parseRegion / regionFromSearch  (never throws — unrecognised → 'US')
+  → region-scoped page: market home, screener, heatmap, earnings, stock detail, watchlist
+      → engine.listAssets(region)  — filters AssetMeta.region, does not affect symbol lookup
+      → calendarForAsset(kind, region)  — 'KR_EQUITY' vs 'US_EQUITY' for stocks/indices
+      → fmtKrw / fmtKrwCompact vs fmtUsd / fmtCompact  — unit: 'KRW' vs 'USD'
+localStorage (rememberRegion/landingRegion) — landing default only, never read during render
+```
+
+`region` lives in `src/data/region.ts` as `MarketRegion = 'US' | 'KR'`, with `REGION_PARAM = 'region'` the query-string key every region-aware page reads through `regionFromSearch`. `parseRegion` is deliberately total — an unrecognised or missing value resolves to `DEFAULT_REGION` ('US') rather than throwing, because a stale or hand-edited link is a data problem, not one worth breaking a page over. `rememberRegion`/`landingRegion` wrap `localStorage` in a try/catch and are consulted only to pick the default region for a fresh visit with no `?region=` in the URL; they are never read during render, so a URL and a stale stored preference cannot produce two different answers for the same page load.
+
+`AssetMeta` (in `src/data/types.ts`) carries `region` on every seed asset (`src/data/universe.ts` for US, `src/data/universe.kr.ts` for KR), and the engine merges both into one asset map at startup (`ALL_SEED_ASSETS`). This is the same design as `calendarForAsset(kind, region)` being widened rather than forked in P11: `engine.quote`/`engine.getQuote` resolve a symbol from either universe without a region argument, because the asset itself already knows which market it belongs to. `region` only narrows *listings* — `engine.listAssets(region)`, `movers(..., region)`, the screener, and the heatmap all filter by it; a direct symbol lookup (`engine.quote('005930')`) works regardless of which region is currently selected on the page.
+
+The calendar branches in `src/data/calendar.ts`: `calendarForAsset` returns `'KR_EQUITY'` for a Korean stock or index and `'US_EQUITY'` for a US one (crypto and futures are region-independent). `isKrEquityTradingDay` excludes weekends unconditionally, then consults a sourced table (`KR_NON_TRADING_DAYS`, `src/data/kr-holidays.ts`) covering 2021–2026 — Korean holidays are lunar (설날, 추석, 부처님오신날) or announced per year by government notice (대체공휴일, 임시공휴일), unlike US holidays, which `usEquityHolidayKeys` derives from Gregorian rules and therefore never needs a lookup table for. A year outside the table's range degrades to weekdays-only rather than throwing — a missing year should cost that year's bar accuracy, not take down every chart on the page. `kstTimestamp` treats KST as a fixed UTC+9 offset, unlike `easternTimestamp`, which has to account for US daylight saving.
+
+Korean quotes carry their own as-of: `SNAPSHOT.krAsOfISO` (a 2026-08-05 KRX close), one session after the US equity anchor `SNAPSHOT.asOfISO` (2026-08-04). `buildQuote` in `engine.ts` stamps a KR asset's provenance and session data with `krAsOfISO`, not the US `asOfISO` — a provenance bug the Task 10 review caught and closed, guarded by `engine.region.test.ts`.
+
+The formatting boundary (`src/data/format.ts`) gained `fmtKrw`/`fmtKrwCompact` and a `'KRW'` branch on `fmtInstrumentValue`/`fmtInstrumentChange`/`fmtMarketCap`, following the same per-unit dispatch pattern the existing `'POINTS'`/`'PERCENT'`/`'USD_PER_OZ'`/`'USD_PER_BBL'` branches use, rather than a parallel Korean-only formatting module. `fmtMarketCap` is the one place a KR quote's USD-denominated `marketCap` is converted back to won for display, via the same `KRW_PER_USD` constant the seed used to convert the other way at build time.
+
+정치인 and 예측 are hidden by the region switcher/tab gating in the UI layer, not by any server-side authorization change — there is no API contract difference between regions. They are hidden because Korea has no equivalent disclosure regime (공직자윤리법 registers officials' assets annually, with no per-trade filing) or domestic prediction market to source real data from, not because of a technical limitation.
+
+The portfolio domain (`server/portfolio/*`, `src/features/portfolio/*`) is untouched by P11 and remains a USD-only ledger; region selection has no effect on it.

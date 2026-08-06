@@ -3,6 +3,7 @@
    Price units are explicit so indices and futures are not rendered
    as if every instrument were a US-dollar cash asset.
    ============================================================ */
+import { KRW_PER_USD } from './universe.kr.js';
 import type { InstrumentUnit, Quote } from './types.js';
 
 export function fmtPrice(value: number): string {
@@ -20,6 +21,28 @@ export function fmtUsd(value: number): string {
   return `US$${fmtPrice(value)}`;
 }
 
+/** Won prices are whole units — KRX quotes in won, so a decimal would be noise. */
+export function fmtKrw(value: number): string {
+  return `₩${Math.round(value).toLocaleString('ko-KR')}`;
+}
+
+/**
+ * 조 (10^12) and 억 (10^8) rather than T/B/M. A Korean reader parses
+ * "1,568.32조" instantly and "US$1.57T" not at all.
+ */
+export function fmtKrwCompact(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1e12) {
+    const formatted = (value / 1e12).toLocaleString('ko-KR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `₩${formatted}조`;
+  }
+  if (abs >= 1e8) return `₩${Math.round(value / 1e8).toLocaleString('ko-KR')}억`;
+  return fmtKrw(value);
+}
+
 export function fmtPct(value: number, opts: { sign?: boolean } = {}): string {
   const sign = opts.sign === false ? '' : value > 0 ? '+' : '';
   return `${sign}${value.toFixed(2)}%`;
@@ -35,6 +58,7 @@ export function fmtInstrumentValue(unit: InstrumentUnit, value: number): string 
   if (unit === 'PERCENT') return `${fmtPrice(value)}%`;
   if (unit === 'USD_PER_OZ') return `${fmtUsd(value)}/oz`;
   if (unit === 'USD_PER_BBL') return `${fmtUsd(value)}/bbl`;
+  if (unit === 'KRW') return fmtKrw(value);
   return fmtUsd(value);
 }
 
@@ -45,6 +69,7 @@ export function fmtInstrumentChange(unit: InstrumentUnit, value: number): string
   if (unit === 'PERCENT') return `${sign}${fmtPrice(magnitude)}%p`;
   if (unit === 'USD_PER_OZ') return `${sign}${fmtUsd(magnitude)}/oz`;
   if (unit === 'USD_PER_BBL') return `${sign}${fmtUsd(magnitude)}/bbl`;
+  if (unit === 'KRW') return `${sign}${fmtKrw(magnitude)}`;
   return `${sign}${fmtUsd(magnitude)}`;
 }
 
@@ -54,6 +79,19 @@ export function fmtQuoteValue(quote: Pick<Quote, 'unit'>, value: number): string
 
 export function fmtQuoteChange(quote: Pick<Quote, 'unit'>, value: number): string {
   return fmtInstrumentChange(quote.unit, value);
+}
+
+/**
+ * `AssetMeta.marketCap` is always stored in USD (see `universe.kr.ts`'s `KRW_PER_USD` doc
+ * comment) — a KR-priced quote's cap converts back to won for display; a US-priced one passes
+ * through unchanged. This was independently reimplemented at three call sites (StockPage,
+ * WatchlistPage, Heatmap) before being centralized here — a fourth call site
+ * (`src/features/ai/answers.ts`) skipped the conversion entirely because no shared helper
+ * existed to reach for, so route every marketCap display through this one instead.
+ */
+export function fmtMarketCap(quote: Pick<Quote, 'unit' | 'marketCap'>): string {
+  const cap = quote.marketCap ?? 0;
+  return quote.unit === 'KRW' ? fmtKrwCompact(cap * KRW_PER_USD) : fmtUsdCompact(cap);
 }
 
 /** 1_268_000_000_000 → '1.27조', 66_000_000_000 → '660.0억'. */

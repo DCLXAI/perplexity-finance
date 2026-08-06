@@ -7,9 +7,10 @@ import { Link, useParams } from 'react-router';
 import { Card, CardHeader, ChangeBadge, LogoChip, QuoteRow } from '@/components/ui';
 import { engine } from '@/data/engine';
 import { useQuote, useQuotes, useWatchlist } from '@/data/store';
-import { GENERAL_NEWS } from '@/data/content';
+import { CONTENT_BY_REGION } from '@/data/content';
 import { SECTOR_BY_ID } from '@/data/universe';
-import { clsx, fmtAssetVolume, fmtQuoteChange, fmtQuoteValue, fmtUsdCompact } from '@/data/format';
+import { clsx, fmtAssetVolume, fmtMarketCap, fmtQuoteChange, fmtQuoteValue } from '@/data/format';
+import type { MarketRegion } from '@/data/region';
 import type { AssetKind, NewsItem, Quote, QuoteSessionSnapshot } from '@/data/types';
 import AlertDialog from '@/features/alerts/AlertDialog';
 import PriceChart from './PriceChart.js';
@@ -36,7 +37,7 @@ function sessionName(session: QuoteSessionSnapshot): string {
 }
 
 function sessionAsOfLabel(quote: Quote, session: QuoteSessionSnapshot): string {
-  const timeZone = quote.kind === 'crypto' ? 'Asia/Seoul' : 'America/New_York';
+  const timeZone = quote.kind === 'crypto' || quote.region === 'KR' ? 'Asia/Seoul' : 'America/New_York';
   return new Intl.DateTimeFormat('ko-KR', {
     month: 'short',
     day: 'numeric',
@@ -109,7 +110,7 @@ function StatsCard({ symbol }: { symbol: string }) {
     { label: `${label} 저가`, value: fmtQuoteValue(quote, session.low) },
     { label: '전일 종가', value: fmtQuoteValue(quote, quote.prevClose) },
     { label: `${label} 거래량`, value: fmtAssetVolume(quote, session.volume) },
-    { label: '시가총액', value: quote.marketCap !== undefined ? fmtUsdCompact(quote.marketCap) : '-' },
+    { label: '시가총액', value: quote.marketCap !== undefined ? fmtMarketCap(quote) : '-' },
     { label: '52주 최고 · 최저', value: yearRange ? `${fmtQuoteValue(quote, yearRange.hi)} · ${fmtQuoteValue(quote, yearRange.lo)}` : '-' },
     { label: '섹터', value: sectorLabel, numeric: false },
     { label: '세션 상태', value: session.status === 'open' ? '열림' : '마감', numeric: false },
@@ -144,11 +145,15 @@ const NewsRow = memo(function NewsRow({ item }: { item: NewsItem }) {
   );
 });
 
-function NewsCard({ symbol }: { symbol: string }) {
+function NewsCard({ symbol, region }: { symbol: string; region: MarketRegion }) {
   const items = useMemo(() => {
-    const related = GENERAL_NEWS.filter((n) => n.symbols.includes(symbol));
-    return related.length > 0 ? related : GENERAL_NEWS.slice(0, 3);
-  }, [symbol]);
+    // A Korean stock's related news must come from the Korean pool — showing US headlines
+    // (Palantir, S&P 500, ...) under a Korean symbol's "관련 뉴스" would assert them as related,
+    // which is a wrong row, not a missing one.
+    const pool = CONTENT_BY_REGION[region].news;
+    const related = pool.filter((n) => n.symbols.includes(symbol));
+    return related.length > 0 ? related : pool.slice(0, 3);
+  }, [symbol, region]);
   return (
     <Card className="fade-in-up st-d3">
       <CardHeader title="관련 뉴스" />
@@ -176,10 +181,15 @@ function PeersCard({ symbol }: { symbol: string }) {
     if (q.kind === 'crypto') {
       pool = engine.getCrypto();
     } else if (q.kind === 'stock' || q.kind === 'etf') {
-      pool = engine.getStocks().filter((p) => !q.sectorId || p.sectorId === q.sectorId);
+      // Scope to the quote's own region (not a URL param — this page has no region param by
+      // design), so a Korean stock's peers don't pull in US names sharing the same sector.
+      pool = engine.getStocks(q.region).filter((p) => !q.sectorId || p.sectorId === q.sectorId);
     } else {
-      // index / future → show the other macro quotes
-      pool = engine.getAll().filter((p) => p.kind === 'index' || p.kind === 'future');
+      // index / future → show the other macro quotes from the same region, for the same
+      // reason as the stock/etf branch above: a KR benchmark's peers shouldn't be US futures.
+      pool = engine
+        .getAll(q.region)
+        .filter((p) => p.kind === 'index' || p.kind === 'future');
     }
     return pool
       .filter((p) => p.symbol !== q.symbol)
@@ -253,7 +263,7 @@ function StockDetail({ quote }: { quote: Quote }) {
       <StatsCard symbol={quote.symbol} />
 
       <div className="st-bottom">
-        <NewsCard symbol={quote.symbol} />
+        <NewsCard symbol={quote.symbol} region={quote.region} />
         <PeersCard symbol={quote.symbol} />
       </div>
 

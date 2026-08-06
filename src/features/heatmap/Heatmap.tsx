@@ -1,6 +1,7 @@
 /* ============================================================
-   미국 주식 표본 히트맵 — 단일 canvas 스쿼리파이드 트리맵
+   지역별 주식 표본 히트맵 — 단일 canvas 스쿼리파이드 트리맵
    섹터(시총 가중) → 종목 트리맵, 7단계 등락 램프, 툴팁 + 클릭 내비게이션
+   `region` prop으로 US/KR 유니버스만 필터링해 렌더링한다.
    ============================================================ */
 import {
   useCallback,
@@ -14,7 +15,8 @@ import {
 import { Link, useNavigate } from 'react-router';
 import { useAllQuotes } from '@/data/store';
 import { SECTOR_BY_ID } from '@/data/universe';
-import { fmtCompact, fmtPct, fmtQuoteValue } from '@/data/format';
+import { fmtMarketCap, fmtPct, fmtQuoteValue } from '@/data/format';
+import { regionAdj, type MarketRegion } from '@/data/region';
 import { ChangeBadge, LogoChip } from '@/components/ui';
 import type { Quote, SectorId } from '@/data/types';
 import './heatmap.css';
@@ -161,10 +163,18 @@ function clampTip(cx: number, cy: number): { x: number; y: number } {
   return { x: Math.max(4, x), y: Math.max(4, y) };
 }
 
-export default function Heatmap({ height = 420 }: { height?: number }) {
-  const quotes = useAllQuotes(1500);
+export default function Heatmap({
+  height = 420,
+  region,
+}: {
+  height?: number;
+  readonly region: MarketRegion;
+}) {
+  const allQuotes = useAllQuotes(1500);
+  const quotes = useMemo(() => allQuotes.filter((q) => q.region === region), [allQuotes, region]);
   const navigate = useNavigate();
   const descriptionId = useId();
+  const adj = regionAdj(region);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -379,7 +389,7 @@ export default function Heatmap({ height = 420 }: { height?: number }) {
           className="hm-canvas"
           style={{ width: '100%', height }}
           role="img"
-          aria-label="미국 주식 표본 섹터별 히트맵"
+          aria-label={`${adj} 주식 표본 섹터별 히트맵`}
           aria-describedby={descriptionId}
           onMouseMove={onMove}
           onMouseLeave={onLeave}
@@ -407,7 +417,7 @@ export default function Heatmap({ height = 420 }: { height?: number }) {
         <summary>히트맵 데이터를 표로 보기</summary>
         <div className="hm-data-scroll" role="region" aria-label="히트맵 대체 데이터 표" tabIndex={0}>
           <table className="ui-table">
-            <caption className="sr-only">미국 주식 표본 히트맵의 텍스트 대체 데이터</caption>
+            <caption className="sr-only">{adj} 주식 표본 히트맵의 텍스트 대체 데이터</caption>
             <thead>
               <tr>
                 <th scope="col">종목</th>
@@ -428,7 +438,7 @@ export default function Heatmap({ height = 420 }: { height?: number }) {
                   <td>{sector}</td>
                   <td className="num">{fmtQuoteValue(quote, quote.price)}</td>
                   <td className={quote.changePct >= 0 ? 'num pos' : 'num neg'}>{fmtPct(quote.changePct)}</td>
-                  <td className="num">US${fmtCompact(quote.marketCap ?? 0)}</td>
+                  <td className="num">{fmtMarketCap(quote)}</td>
                 </tr>
               ))}
             </tbody>
@@ -457,7 +467,7 @@ export default function Heatmap({ height = 420 }: { height?: number }) {
           </div>
           <div className="hm-tip-cap">
             <span>시가총액</span>
-            <span className="num">{fmtCompact(hoverQuote.marketCap ?? 0)}</span>
+            <span className="num">{fmtMarketCap(hoverQuote)}</span>
           </div>
         </div>
       )}

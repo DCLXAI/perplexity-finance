@@ -4,7 +4,10 @@
    P1 guarantees:
    - Quote objects and historical bars are immutable snapshots.
    - Each mock-tick interval emits one batched notification.
-   - US stocks/indices/futures stay fixed at the Jul 10, 2026 close.
+   - US stocks/indices/futures stay fixed at the Aug 4, 2026 close
+     (`SNAPSHOT.asOfISO`); KR equities and benchmarks stay fixed at their own,
+     one-session-later Aug 5, 2026 KRX close (`SNAPSHOT.krAsOfISO`) — see
+     `equityAsOfISO`/`equityAsOfTs` below for the region routing.
    - Crypto is the only 24/7 asset class receiving local mock ticks.
    - Session-specific snapshots prevent regular/continuous values
      from being silently merged.
@@ -19,14 +22,36 @@ import {
 } from './calendar.js';
 import { bridgePath, gaussian, historyAtTimes, rngFor } from './seed.js';
 import { SEED_ASSETS, SNAPSHOT } from './universe.js';
+import { KR_SEED_ASSETS, KRW_PER_USD } from './universe.kr.js';
 import type { DataProvenance, RemoteCandle, RemoteQuotePatch } from '../shared/api.js';
+import type { MarketRegion } from './region.js';
 import type {
   CandlePoint,
   HistoryRange,
+  InstrumentUnit,
   MarketBatch,
   Quote,
   QuoteSessionSnapshot,
 } from './types.js';
+
+/** Both universes merged: symbol lookup spans US tickers and KR codes alike. */
+const ALL_SEED_ASSETS = Object.freeze([...SEED_ASSETS, ...KR_SEED_ASSETS]);
+
+/**
+ * `marketCap` is always USD (see AssetMeta's doc comment), but `price` is in
+ * the asset's native unit. Shares-outstanding math (`marketCap / price`)
+ * below needs both sides in the same currency, or it silently produces a
+ * count too small by ~`KRW_PER_USD`x for KR-priced assets. USD and KRW are
+ * the only units that carry a marketCap today.
+ *
+ * Exported: any price×volume-style "dollar value" computation over a possibly-KR quote needs
+ * this same normalization — `src/features/ai/answers.ts`'s trading-size sentence is the other
+ * call site (it independently reimplemented the hazard this comment warns about before being
+ * fixed to import this).
+ */
+export function priceInUsd(price: number, unit: InstrumentUnit): number {
+  return unit === 'KRW' ? price / KRW_PER_USD : price;
+}
 
 type QuoteListener = (quote: Quote) => void;
 type BatchListener = (batch: MarketBatch) => void;
@@ -35,7 +60,17 @@ const SPARK_POINTS = 80;
 const EMPTY_QUOTES: readonly Quote[] = Object.freeze([]);
 const EMPTY_CANDLES: readonly CandlePoint[] = Object.freeze([]);
 const EQUITY_AS_OF_TS = Math.floor(new Date(SNAPSHOT.asOfISO).getTime() / 1000);
+const KR_EQUITY_AS_OF_TS = Math.floor(new Date(SNAPSHOT.krAsOfISO).getTime() / 1000);
 const CRYPTO_AS_OF_TS = Math.floor(new Date(SNAPSHOT.cryptoAsOfISO).getTime() / 1000);
+
+/** Korean equities were captured a session after the US anchor (see universe.kr.ts) — route non-crypto quotes through the right as-of by region rather than always assuming the US close. */
+function equityAsOfISO(region: MarketRegion): string {
+  return region === 'KR' ? SNAPSHOT.krAsOfISO : SNAPSHOT.asOfISO;
+}
+
+function equityAsOfTs(region: MarketRegion): number {
+  return region === 'KR' ? KR_EQUITY_AS_OF_TS : EQUITY_AS_OF_TS;
+}
 
 function localProvenance(asOfISO: string): DataProvenance {
   return Object.freeze({
@@ -102,7 +137,10 @@ function buildQuote(seed: (typeof SEED_ASSETS)[number]): Quote {
   const volumeRng = rngFor(`vol:${seed.symbol}`);
   const volume =
     seed.kind === 'stock' || seed.kind === 'etf'
-      ? Math.round(((seed.marketCap ?? 1e10) / seed.price) * (0.004 + volumeRng() * 0.012))
+      ? Math.round(
+          ((seed.marketCap ?? 1e10) / priceInUsd(seed.price, seed.unit)) *
+            (0.004 + volumeRng() * 0.012),
+        )
       : seed.kind === 'index'
         ? 0
         : Math.round(1e5 + volumeRng() * 9e5);
@@ -110,7 +148,7 @@ function buildQuote(seed: (typeof SEED_ASSETS)[number]): Quote {
   const activeSession: QuoteSessionSnapshot = {
     kind: seed.kind === 'crypto' ? 'continuous' : 'regular',
     status: seed.kind === 'crypto' ? 'open' : 'closed',
-    asOfISO: seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : SNAPSHOT.asOfISO,
+    asOfISO: seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : equityAsOfISO(seed.region),
     price: seed.price,
     volume,
     high,
@@ -129,7 +167,7 @@ function buildQuote(seed: (typeof SEED_ASSETS)[number]): Quote {
     open,
     spark,
     seq: 0,
-    provenance: localProvenance(seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : SNAPSHOT.asOfISO),
+    provenance: localProvenance(seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : equityAsOfISO(seed.region)),
     sessions:
       seed.kind === 'crypto'
         ? { continuous: activeSession }
@@ -186,13 +224,13 @@ export class MarketEngine {
   private externallyManagedUntil = new Map<string, number>();
 
   constructor() {
-    for (const seed of SEED_ASSETS) {
+    for (const seed of ALL_SEED_ASSETS) {
       const quote = buildQuote(seed);
       this.quotes.set(seed.symbol, quote);
       this.order.push(seed.symbol);
       if (seed.kind === 'crypto') this.liveOrder.push(seed.symbol);
       if (seed.marketCap !== undefined && seed.price > 0) {
-        this.unitsOutstanding.set(seed.symbol, seed.marketCap / seed.price);
+        this.unitsOutstanding.set(seed.symbol, seed.marketCap / priceInUsd(seed.price, seed.unit));
       }
     }
     this.refreshAllSnapshot();
@@ -204,8 +242,29 @@ export class MarketEngine {
 
   /* ---------- queries ---------- */
 
+  /**
+   * Symbol lookup across both universes — no region parameter. `AssetMeta`
+   * carries its own region, so a six-digit KR code and an alphabetic US
+   * ticker each resolve here without the caller knowing which market it's in.
+   *
+   * `getQuote` and `quote` are the same lookup under two names: `getQuote`
+   * predates the region model and has ~15 existing call sites across the
+   * codebase; `quote` is the name the region-resolution test (and the
+   * design brief) uses. Both are kept rather than a mass rename that would
+   * touch files outside this task's scope.
+   */
   getQuote(symbol: string): Quote | undefined {
     return this.quotes.get(symbol);
+  }
+
+  /** Alias of `getQuote` — see the doc comment above for why both names exist. */
+  quote(symbol: string): Quote | undefined {
+    return this.getQuote(symbol);
+  }
+
+  /** All assets listed by one region, frozen. Region scopes listings, not lookups. */
+  listAssets(region: MarketRegion): readonly Quote[] {
+    return freezeQuoteList(this.allSnapshot.filter((quote) => quote.region === region));
   }
 
   getQuotes(symbols: readonly string[]): readonly Quote[] {
@@ -217,12 +276,17 @@ export class MarketEngine {
     return Object.freeze(out);
   }
 
-  getAll(): readonly Quote[] {
-    return this.allSnapshot;
+  /** Every quote, or one region's, matching `listAssets`'s parameter shape. */
+  getAll(region?: MarketRegion): readonly Quote[] {
+    return region === undefined ? this.allSnapshot : this.listAssets(region);
   }
 
-  getStocks(): readonly Quote[] {
-    return freezeQuoteList(this.allSnapshot.filter((quote) => quote.kind === 'stock'));
+  getStocks(region?: MarketRegion): readonly Quote[] {
+    return freezeQuoteList(
+      this.allSnapshot.filter(
+        (quote) => quote.kind === 'stock' && (region === undefined || quote.region === region),
+      ),
+    );
   }
 
   getCrypto(): readonly Quote[] {
@@ -247,13 +311,23 @@ export class MarketEngine {
     else if (typeof document === 'undefined' || !document.hidden) this.start();
   }
 
-  /** Top movers among stocks with market cap >= minCap. */
-  movers(direction: 'up' | 'down' | 'active', limit = 8, minCap = 0): readonly Quote[] {
-    const stocks = this.getStocks().filter((quote) => (quote.marketCap ?? 0) >= minCap);
+  /** Top movers among stocks with market cap >= minCap, optionally scoped to one region. */
+  movers(
+    direction: 'up' | 'down' | 'active',
+    limit = 8,
+    minCap = 0,
+    region?: MarketRegion,
+  ): readonly Quote[] {
+    const stocks = this.getStocks(region).filter((quote) => (quote.marketCap ?? 0) >= minCap);
     if (direction === 'active') {
+      // Dollar value traded (volume * price) must be compared in one currency —
+      // `price` is native-unit (KRW for KR rows), so normalize before ranking.
       return freezeQuoteList(
         [...stocks]
-          .sort((a, b) => b.volume * b.price - a.volume * a.price)
+          .sort(
+            (a, b) =>
+              b.volume * priceInUsd(b.price, b.unit) - a.volume * priceInUsd(a.price, a.unit),
+          )
           .slice(0, limit),
       );
     }
@@ -266,11 +340,12 @@ export class MarketEngine {
     );
   }
 
-  search(term: string, limit = 12): readonly Quote[] {
+  search(term: string, limit = 12, region?: MarketRegion): readonly Quote[] {
     const normalized = term.trim().toLowerCase();
     if (!normalized) return EMPTY_QUOTES;
     const scored: { quote: Quote; score: number }[] = [];
     for (const quote of this.quotes.values()) {
+      if (region !== undefined && quote.region !== region) continue;
       const symbol = quote.symbol.toLowerCase();
       const name = quote.name.toLowerCase();
       const koreanName = (quote.nameKo ?? '').toLowerCase();
@@ -300,10 +375,10 @@ export class MarketEngine {
     const quote = this.quotes.get(symbol);
     if (!quote) return EMPTY_CANDLES;
 
-    const calendar = calendarForAsset(quote.kind);
-    const asOfISO = quote.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : SNAPSHOT.asOfISO;
+    const calendar = calendarForAsset(quote.kind, quote.region);
+    const asOfISO = quote.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : equityAsOfISO(quote.region);
     const endDateISO = asOfISO.slice(0, 10);
-    const endTimestamp = quote.kind === 'crypto' ? CRYPTO_AS_OF_TS : EQUITY_AS_OF_TS;
+    const endTimestamp = quote.kind === 'crypto' ? CRYPTO_AS_OF_TS : equityAsOfTs(quote.region);
     let candles: CandlePoint[];
 
     if (range === '1D' || range === '5D' || range === '7D') {

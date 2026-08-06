@@ -1,6 +1,6 @@
-# P10 Runtime Contract
+# P11 Runtime Contract
 
-**Version 1.11.0 · 2026-08-05**
+**Version 1.12.0 · 2026-08-06**
 
 This document defines the invariants that every provider, API route, alert evaluator, operations action, and UI surface must preserve.
 
@@ -423,3 +423,15 @@ Takes `?portfolioId=<uuid>`. Response (`200`):
 ```
 
 `lastError` is populated only when `lastOutcome === 'error'` and is the mapped failure reason from the run that produced it — it exists so the status panel can answer "why didn't this fire?" instead of only reporting that an error occurred.
+
+## 26. Region model contract
+
+1. The `region` query parameter (`?region=kr` or `?region=us`, case-insensitive) is the single source of truth for which market a region-aware page lists at render time. `parseRegion` never throws: a missing or unrecognised value resolves to `US`, the default region, rather than breaking the page.
+2. `localStorage` is consulted only to choose the landing region for a visit with no `?region=` in the URL. It is never read during render, so it cannot disagree with a URL that is actually present — a stale stored preference cannot override an explicit link.
+3. A generated link stamps `?region=` only when the target region is not the default `US`; a US-market link's shape is unchanged from before P11.
+4. `region` scopes which assets a *listing* API/view returns (`engine.listAssets`, movers, screener, heatmap). It has no effect on direct symbol lookup: `AssetMeta.region` is a property of the asset itself, so a Korean listing code and a US ticker each resolve without the caller supplying a region.
+5. A Korean-priced quote (`unit: 'KRW'`) must render through `fmtKrw`/`fmtKrwCompact`/`fmtMarketCap`, never through the USD formatters; a US-priced quote's formatting is unchanged by the presence of the KRW branch.
+6. The KRX trading calendar (`KR_EQUITY`) excludes weekends unconditionally. For years inside `KR_HOLIDAY_YEARS` (2021–2026) it additionally excludes the sourced non-trading-day table; for a year outside that range it must degrade to weekdays-only rather than throw.
+7. `region` is a client-side/data-layer concept only. No API route, RPC, or authorization check branches on it — the region switcher and 정치인/예측 tab gating are UI-layer scoping, not a server permission boundary.
+8. The portfolio ledger, its transactions, risk analytics, rebalancing, goal contributions, and cost optimization (P4–P9) remain nominal-USD only. `region` has no effect on the portfolio domain; there is no KRW cash balance or FX conversion inside it.
+9. `KRW_PER_USD` (`src/data/universe.kr.ts`) is the one conversion constant between the Korean seed's authored trillion-KRW market caps and the engine's canonical USD `marketCap` field. A KR quote's market cap must convert through this same constant in both directions (seed build time and `fmtMarketCap` display time) rather than a second, independently maintained rate.

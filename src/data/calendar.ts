@@ -9,11 +9,13 @@
    changing the generated series.
    ============================================================ */
 import type { AssetKind, HistoryRange } from './types.js';
+import { KR_NON_TRADING_DAYS } from './kr-holidays.js';
+import type { MarketRegion } from './region.js';
 
 const DAY_MS = 86_400_000;
 const FIFTEEN_MINUTES = 15 * 60;
 
-export type MarketCalendar = 'US_EQUITY' | 'WEEKDAY' | 'CRYPTO_24_7';
+export type MarketCalendar = 'US_EQUITY' | 'KR_EQUITY' | 'WEEKDAY' | 'CRYPTO_24_7';
 
 function utcDate(year: number, month: number, day: number): Date {
   return new Date(Date.UTC(year, month, day));
@@ -97,20 +99,43 @@ export function isUsEquityTradingDay(date: Date): boolean {
   return !usEquityHolidayKeys(date.getUTCFullYear()).has(dateKey(date));
 }
 
+const krHolidayCache = new Map<number, Set<string>>();
+
+function krNonTradingKeys(year: number): Set<string> {
+  const cached = krHolidayCache.get(year);
+  if (cached) return cached;
+
+  const set = new Set(KR_NON_TRADING_DAYS[year] ?? []);
+  krHolidayCache.set(year, set);
+  return set;
+}
+
+/**
+ * Weekends, then the table. A year absent from the table degrades to
+ * weekdays-only rather than throwing: a missing year should cost accuracy
+ * on that year's bars, not take down every chart on the page.
+ */
+export function isKrEquityTradingDay(date: Date): boolean {
+  const weekday = date.getUTCDay();
+  if (weekday === 0 || weekday === 6) return false;
+  return !krNonTradingKeys(date.getUTCFullYear()).has(dateKey(date));
+}
+
 export function isWeekday(date: Date): boolean {
   const weekday = date.getUTCDay();
   return weekday !== 0 && weekday !== 6;
 }
 
-export function calendarForAsset(kind: AssetKind): MarketCalendar {
+export function calendarForAsset(kind: AssetKind, region: MarketRegion = 'US'): MarketCalendar {
   if (kind === 'crypto') return 'CRYPTO_24_7';
   if (kind === 'future') return 'WEEKDAY';
-  return 'US_EQUITY';
+  return region === 'KR' ? 'KR_EQUITY' : 'US_EQUITY';
 }
 
 function isSessionDay(calendar: MarketCalendar, date: Date): boolean {
   if (calendar === 'CRYPTO_24_7') return true;
   if (calendar === 'WEEKDAY') return isWeekday(date);
+  if (calendar === 'KR_EQUITY') return isKrEquityTradingDay(date);
   return isUsEquityTradingDay(date);
 }
 
@@ -174,8 +199,16 @@ function easternTimestamp(date: Date, hour: number, minute: number): number {
   );
 }
 
+/** KST is UTC+9 year-round — no daylight saving, so no offset lookup is needed. */
+function kstTimestamp(date: Date, hour: number, minute: number): number {
+  return Math.floor(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), hour - 9, minute) / 1000,
+  );
+}
+
 export function dailyBarTimestamp(calendar: MarketCalendar, date: Date): number {
   if (calendar === 'US_EQUITY') return easternTimestamp(date, 16, 0);
+  if (calendar === 'KR_EQUITY') return kstTimestamp(date, 15, 30);
   if (calendar === 'WEEKDAY') return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 20, 0) / 1000;
   return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0) / 1000;
 }
@@ -186,12 +219,14 @@ export function intradayBarTimestamps(
   endTimestamp: number,
   range: '1D' | '5D' | '7D',
 ): number[] {
-  if (calendar === 'US_EQUITY') {
+  if (calendar === 'US_EQUITY' || calendar === 'KR_EQUITY') {
     const sessions = range === '1D' ? 1 : range === '5D' ? 5 : 7;
     const dates = previousSessionDates(calendar, endDateISO, sessions);
     const out: number[] = [];
     for (const date of dates) {
-      const open = easternTimestamp(date, 9, 30);
+      // US: 9:30-16:00 ET. KR: 09:00-15:30 KST. Both are 6.5h — 26 bars of 15m.
+      const open =
+        calendar === 'US_EQUITY' ? easternTimestamp(date, 9, 30) : kstTimestamp(date, 9, 0);
       for (let i = 0; i < 26; i++) out.push(open + i * FIFTEEN_MINUTES);
     }
     return out;

@@ -61,8 +61,24 @@ reference's small-label / large-numeral contrast.
 `prefers-reduced-motion` block that collapses every duration to zero. One place to honour the
 preference, rather than eleven files that each might.
 
-**Colour correction** — `--ink-faint` is raised until it clears AA in both themes;
-`--ink-muted` is corrected in light. This is not a taste change; the table above requires it.
+**Colour correction** — held to the threshold each token's *role* requires, not one blanket
+number. `--ink`, `--ink-strong`, `--ink-secondary`, `--ink-muted` and `--warn` carry text and
+answer to WCAG AA at 4.5:1. `--ink-faint` carries carets, chevrons and separator dots — non-text
+UI, governed by WCAG 1.4.11 at 3:1.
+
+The distinction is load-bearing rather than pedantic. Forcing `--ink-faint` to 4.5:1 on a
+near-white surface lands it on `#6f7272` while `--ink-muted` lands on `#6e7274`: the two become
+the same colour and the five-level ink hierarchy collapses. Correct values:
+
+```text
+light  --ink-muted   #84898c → #6e7274    3.29 → 4.52   text, AA
+light  --ink-faint   #aab0b0 → #8b9090    2.05 → 3.02   non-text, 1.4.11
+light  --warn        #b47d12 → #95680f    3.32 → 4.58   text, AA
+dark   --ink-faint   #566262 → #606b6b    2.63 → 3.01   non-text, 1.4.11
+```
+
+Adjacent ink levels stay at least 1.38 apart in light and 1.14 in dark, so the ladder still
+reads. Every other pair already clears its threshold and is left alone.
 
 Dark is already a parallel palette, so it needs scale adoption and the same contrast correction,
 not a redesign.
@@ -81,6 +97,18 @@ inherits — and this is the check that catches it.
 **Literal discipline.** Outside `global.css`, no raw hex and no raw px for `font-size`,
 `padding`, `margin`, or `gap`. Border widths of 1–2px, chart pixel heights, and media-query
 breakpoints stay exempt: forcing them onto a spacing scale would be a lie about what they are.
+
+Counting them first changes where the work goes. There is exactly **one** raw hex outside
+`global.css` — `#1b1c1e`, once — so colour discipline is already sound and the hex rule costs
+nothing to keep. Size and spacing are the problem: **1,481 occurrences across 23 files**, with 30
+distinct font sizes including 7.5, 8.8, 9.5, 10.5, 11.5 and 13.5px, and every integer from 1 to
+20 used as spacing. Portfolio alone holds 574 of them.
+
+A number that large is not a hand-editing job. A one-shot codemod maps each literal to its
+nearest scale step, breaking ties upward so nothing silently shrinks, and each screen-group task
+reviews what the codemod produced rather than accepting the diff. The codemod is deleted once
+the migration is done — a file-mutating script left beside a gate invites someone to "fix" a red
+gate by running it.
 
 **Reduced motion.** Every transition duration resolves to zero under the preference.
 

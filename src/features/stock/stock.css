@@ -12,13 +12,13 @@
 
 /* ---------- Header ---------- */
 .st-header {
-  margin-bottom: 18px;
+  margin-bottom: var(--space-5);
 }
 
 .st-header-top {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .st-idblock {
@@ -27,7 +27,7 @@
 }
 
 .st-name {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--ink-strong);
   line-height: 1.25;
@@ -35,14 +35,14 @@
 }
 
 .st-meta {
-  font-size: 12px;
-  margin-top: 2px;
+  font-size: var(--text-sm);
+  margin-top: var(--space-0-5);
 }
 
 .st-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex: none;
 }
 
@@ -53,42 +53,42 @@
 .st-pricerow {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  margin-top: 14px;
+  margin-top: var(--space-3-5);
 }
 
 .st-price {
-  font-size: 28px;
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: var(--ink-strong);
   line-height: 1.1;
-  padding: 2px 6px;
-  margin: -2px -6px;
+  padding: var(--space-0-5) var(--space-1-5);
+  margin: calc(var(--space-0-5) * -1) calc(var(--space-1-5) * -1);
   border-radius: var(--radius-sm);
 }
 
 .st-chg {
-  font-size: 14px;
+  font-size: var(--text-md);
   font-weight: 600;
 }
 
 .st-close {
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 /* ---------- Chart card ---------- */
 .st-chart-card {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
 }
 
 .st-toolbar {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  padding: 6px 16px 0;
+  padding: var(--space-1-5) var(--space-4) 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -97,11 +97,11 @@
 }
 
 .st-toolbar .ui-chips {
-  padding-bottom: 7px;
+  padding-bottom: var(--space-2);
 }
 
 .st-chart-wrap {
-  padding: 10px 12px 12px;
+  padding: var(--space-2-5) var(--space-3) var(--space-3);
 }
 
 .st-chart {
@@ -113,7 +113,7 @@
 .st-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
+  gap: var(--space-0-5);
   background: var(--border);
   border-top: 1px solid var(--border);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
@@ -122,19 +122,19 @@
 
 .st-stat {
   background: var(--bg-raised);
-  padding: 10px 16px 12px;
+  padding: var(--space-2-5) var(--space-4) var(--space-3);
   min-width: 0;
 }
 
 .st-stat-label {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--ink-muted);
-  margin-bottom: 3px;
+  margin-bottom: var(--space-1);
   white-space: nowrap;
 }
 
 .st-stat-value {
-  font-size: 13.5px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--ink-strong);
   overflow: hidden;
@@ -152,9 +152,9 @@
 .st-bottom {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--space-4);
   align-items: start;
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 
 @media (max-width: 980px) {
@@ -165,11 +165,11 @@
 
 /* news */
 .st-news-list {
-  padding: 0 16px 10px;
+  padding: 0 var(--space-4) var(--space-2-5);
 }
 
 .st-news-row {
-  padding: 10px 0;
+  padding: var(--space-2-5) 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -178,17 +178,17 @@
 }
 
 .st-news-title {
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--ink-strong);
   line-height: 1.4;
 }
 
 .st-news-summary {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--ink-muted);
   line-height: 1.45;
-  margin-top: 3px;
+  margin-top: var(--space-1);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -196,43 +196,46 @@
 }
 
 .st-news-foot {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--ink-faint);
-  margin-top: 5px;
+  margin-top: var(--space-1-5);
 }
 
 /* peers */
 .st-peers {
-  padding: 0 0 8px;
+  padding: 0 0 var(--space-2);
 }
 
 /* ---------- Not found ---------- */
 .st-notfound {
   text-align: center;
-  padding-top: 96px;
+  /* 96px: the scale tops out at --space-8 (32px), and the codemod's nearest-step snap
+     silently landed there, cutting this page's top padding by two-thirds. Composed instead
+     of left as a raw literal, to keep the value exact and stay inside token discipline. */
+  padding-top: calc(var(--space-8) * 3);
 }
 
 .st-notfound-icon {
-  font-size: 40px;
-  margin-bottom: 12px;
+  font-size: var(--text-3xl);
+  margin-bottom: var(--space-3);
 }
 
 .st-notfound-title {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--ink-strong);
-  margin: 0 0 6px;
+  margin: 0 0 var(--space-1-5);
 }
 
 .st-notfound-sub {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
 }
 
 .st-notfound-link {
   text-decoration: none;
 }
 
-.st-history-status { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; padding: 7px 16px; border-bottom: 1px solid var(--border); color: var(--ink-muted); font-size: 10.5px; }
+.st-history-status { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--border); color: var(--ink-muted); font-size: var(--text-xs); }
 .st-history-status strong { color: var(--ink-secondary); }
 .st-history-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); }
 .st-history-status.ready .st-history-dot { background: var(--pos); }

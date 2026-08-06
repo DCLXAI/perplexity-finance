@@ -21,6 +21,11 @@
 }
 
 .app-header {
+  /* #root is now the flex column that sizes .app-main (see .app-main below);
+     flex: none keeps header/tabbar at their intrinsic height instead of
+     stretching, and removes the --header-h/--tabbar-h drift that let .app-main's
+     old calc() run ~1px short of the tab bar's true rendered height. */
+  flex: none;
   height: var(--header-h);
   display: grid;
   grid-template-columns: minmax(200px, 1fr) minmax(280px, 520px) auto;
@@ -150,6 +155,7 @@
 /* ---------- Tab bar ---------- */
 
 .app-tabbar {
+  flex: none;
   position: sticky;
   top: var(--header-h);
   z-index: 99;
@@ -244,16 +250,38 @@
 .sentiment-bars i.on.high { background: var(--pos); }
 
 .app-main {
+  /* Flex child of #root (flex column, height: 100svh — global.css), not an
+     arithmetic height: `100vh` on mobile Safari/Chrome freezes at the largest
+     viewport (browser chrome hidden), so a `calc(100vh - ...)` box still
+     underlaps the toolbar-visible viewport and reopens the exact defect this
+     rule exists to close. `100svh` on #root sizes to the *smallest* viewport,
+     so header + tabbar + main always fit inside what's actually visible.
+     flex: 1 1 auto + min-height: 0 let it absorb the remaining column space
+     and become its own scroll container instead of stretching past it. */
+  flex: 1 1 auto;
+  min-height: 0;
   min-width: 0;
-  /* `height` (not `min-height`) + its own scroll: a trailing padding-bottom only
-     protects the *last* pixels of a page, and does nothing for content that sits
-     above the fold, like the market summary card — the tab already tried exactly
-     that in .mkt-main and the AskBar still covers it. Shortening the scrollable
-     viewport itself is the only reservation that holds regardless of where the
-     text falls or how much of it there is. See .ai-askbar. */
-  height: calc(100vh - var(--header-h) - var(--tabbar-h) - var(--askbar-h) - var(--space-4));
+  /* Establishes this box as the containing block for `.sr-only` (position:
+     absolute) and similar descendants, so overflow below actually clips them
+     instead of them escaping to the initial containing block and inflating
+     the document's own scroll area. */
+  position: relative;
   overflow-y: auto;
   overflow-x: clip;
+  /* A wheel/touch scroll that reaches either end of this box must not chain
+     into the (now non-scrolling, but still technically scrollable) document —
+     that would present as a blank viewport with the header pushed off-screen. */
+  overscroll-behavior-y: contain;
+}
+
+/* Reserve the AskBar's full footprint (bar height + its own bottom offset) only
+   on the three routes that actually mount it — `.ai-askbar` is a descendant of
+   `.app-main`, so `:has()` on body sees it the instant AskBar mounts. Already
+   the codebase's own pattern for this (see .ai-askbar's rail-clearance rule in
+   ai.css). `margin-bottom`, not `padding-bottom`, so it genuinely shortens the
+   scrollable range rather than padding a box that still extends underneath. */
+body:has(.ai-askbar) .app-main {
+  margin-bottom: calc(var(--askbar-h) + var(--space-4));
 }
 
 .app-main:focus {

@@ -98,7 +98,9 @@
   --rail-w: 320px;
   --header-h: 52px;
   --tabbar-h: 46px;
-  --askbar-h: 92px;
+  /* AskBar's *total* footprint: measured bar height (86.2px, single line, holds
+     across 375/768/1280) + its own `bottom: 20px` offset (.ai-askbar), + buffer. */
+  --askbar-h: 108px;
 
   color-scheme: light;
 }
@@ -171,8 +173,12 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* flex column, not min-height: 100vh — .app-main below needs a definite cross
+   size to flex against so it can become its own scroll container (see layout.css). */
 #root {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
 }
 
 h1, h2, h3, h4, h5, p {

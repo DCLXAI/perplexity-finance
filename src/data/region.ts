@@ -22,6 +22,16 @@ export const REGION_LABELS: Readonly<Record<MarketRegion, { label: string; flag:
     KR: Object.freeze({ label: '한국 시장', flag: '🇰🇷' }),
   });
 
+/**
+ * Adjective form ("미국"/"한국") derived from the canonical label, for copy like
+ * "○○ 주식 표본 히트맵". Lives here rather than beside any one consumer: the document title in
+ * the always-loaded shell needs it too, and importing it from a lazily-loaded feature module
+ * would pull that chunk into the shell bundle.
+ */
+export function regionAdj(region: MarketRegion): string {
+  return REGION_LABELS[region].label.replace(' 시장', '');
+}
+
 /** Never throws: an unrecognised value is a stale link, not an error worth breaking a page over. */
 export function parseRegion(value: string | null | undefined): MarketRegion {
   const upper = (value ?? '').toUpperCase();

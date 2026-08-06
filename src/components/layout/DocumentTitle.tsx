@@ -2,19 +2,33 @@
    Route-aware document metadata and a polite route announcer.
    ============================================================ */
 import { useEffect } from 'react';
-import { useLocation } from 'react-router';
+import { useLocation, useSearchParams } from 'react-router';
 import { engine } from '@/data/engine';
+import { REGION_LABELS, regionAdj, regionFromSearch, type MarketRegion } from '@/data/region';
 
 interface RouteMetadata {
   readonly title: string;
   readonly description: string;
 }
 
+/**
+ * Routes whose copy names a market. Keyed off the region rather than the path alone, because
+ * `/` and `/screener` list whichever universe `?region=` selects — a fixed "미국 시장" title
+ * would mislabel the Korean page in the tab, in the meta description, and (worst of the three)
+ * in the aria-live route announcement a screen reader reads aloud.
+ */
+const REGION_SCOPED_METADATA: Readonly<Record<string, (region: MarketRegion) => RouteMetadata>> = {
+  '/': (region) => ({
+    title: REGION_LABELS[region].label,
+    description: `출처·시각·검증 상태를 함께 제공하는 ${regionAdj(region)} 주식 시장 대시보드입니다.`,
+  }),
+  '/screener': (region) => ({
+    title: '주식 스크리너',
+    description: `${regionAdj(region)} 주식 표본을 필터링하고 정렬하는 로컬 스크리너입니다.`,
+  }),
+};
+
 const METADATA: Readonly<Record<string, RouteMetadata>> = {
-  '/': {
-    title: '미국 시장',
-    description: '출처·시각·검증 상태를 함께 제공하는 미국 주식 시장 대시보드입니다.',
-  },
   '/crypto': {
     title: '암호화폐',
     description: '공급자 provenance와 명시적 폴백을 구분하는 암호화폐 시장 대시보드입니다.',
@@ -26,10 +40,6 @@ const METADATA: Readonly<Record<string, RouteMetadata>> = {
   '/predictions': {
     title: '예측시장 시뮬레이션',
     description: '실제 거래가 아닌 예측시장 형식의 로컬 시뮬레이션입니다.',
-  },
-  '/screener': {
-    title: '주식 스크리너',
-    description: '미국 주식 표본을 필터링하고 정렬하는 로컬 스크리너입니다.',
   },
   '/politicians': {
     title: '정치인 거래 예시',
@@ -57,7 +67,10 @@ const METADATA: Readonly<Record<string, RouteMetadata>> = {
   },
 };
 
-function metadataForPath(pathname: string): RouteMetadata {
+function metadataForPath(pathname: string, region: MarketRegion): RouteMetadata {
+  const scoped = REGION_SCOPED_METADATA[pathname];
+  if (scoped) return scoped(region);
+
   const exact = METADATA[pathname];
   if (exact) return exact;
 
@@ -101,7 +114,8 @@ function upsertMetaDescription(content: string): void {
 
 export default function DocumentTitle() {
   const { pathname } = useLocation();
-  const metadata = metadataForPath(pathname);
+  const [searchParams] = useSearchParams();
+  const metadata = metadataForPath(pathname, regionFromSearch(searchParams));
 
   useEffect(() => {
     document.title = `${metadata.title} | Synapsu`;

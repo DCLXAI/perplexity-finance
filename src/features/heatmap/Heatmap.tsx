@@ -16,19 +16,10 @@ import { Link, useNavigate } from 'react-router';
 import { useAllQuotes } from '@/data/store';
 import { SECTOR_BY_ID } from '@/data/universe';
 import { fmtMarketCap, fmtPct, fmtQuoteValue } from '@/data/format';
-import { REGION_LABELS, type MarketRegion } from '@/data/region';
+import { regionAdj, type MarketRegion } from '@/data/region';
 import { ChangeBadge, LogoChip } from '@/components/ui';
 import type { Quote, SectorId } from '@/data/types';
 import './heatmap.css';
-
-/**
- * Adjective form ("미국"/"한국") derived from the canonical region label, for headings like
- * "○○ 주식 표본 히트맵". Exported so `MarketPage` (the only other consumer of region-flavored
- * copy on this page) shares this instead of re-deriving its own copy.
- */
-export function regionAdj(region: MarketRegion): string {
-  return REGION_LABELS[region].label.replace(' 시장', '');
-}
 
 /* ---------------- treemap geometry ---------------- */
 

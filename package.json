@@ -28,6 +28,7 @@
     "validate:p10": "tsx scripts/validate-p10.ts",
     "validate:p11": "tsx scripts/validate-p11.ts",
     "validate:migrations": "tsx scripts/validate-migrations.ts",
+    "validate:tokens": "tsx scripts/validate-tokens.ts",
     "validate:esm": "tsx scripts/validate-esm-imports.ts",
     "security:scan": "tsx scripts/security-scan.ts",
     "smoke:deployment": "tsx scripts/postdeploy-smoke.ts"

@@ -72,6 +72,9 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
 
   /* Type scale. 9px is why the market tab's caret read as a dot; nothing sits below 10px. */
   --text-2xs: 10px;

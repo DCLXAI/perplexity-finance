@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { contrastRatio, nearestStep, findLiteralViolations } from './validate-tokens.js';
 import { rewrite } from './codemod-tokens.mjs';
 
@@ -109,5 +109,40 @@ describe('codemod rewrite', () => {
   it('leaves a positive value as a plain var(), no calc wrapper', () => {
     const { out } = rewrite('.x { padding: 12px; }', 'a.css');
     expect(out).toBe('.x { padding: var(--space-3); }');
+  });
+});
+
+describe('codemod rewrite — above-ceiling snapping', () => {
+  it('lands an above-old-ceiling value on the nearest extended scale step', () => {
+    const { out } = rewrite('.x { padding-top: 58px; }', 'a.css');
+    expect(out).toBe('.x { padding-top: var(--space-16); }');
+  });
+
+  it('still rounds an in-range value the same way after the scale extension', () => {
+    const { out } = rewrite('.x { padding: 30px; }', 'a.css');
+    expect(out).toBe('.x { padding: var(--space-8); }');
+  });
+
+  it('warns on stderr when a snap moves a spacing value by more than 20%', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    rewrite('.x { padding-top: 96px; }', 'a.css');
+    expect(spy).toHaveBeenCalled();
+    expect(spy.mock.calls.some((args) => String(args[0]).includes('snap:'))).toBe(true);
+    spy.mockRestore();
+  });
+
+  it('does not warn on ordinary in-range rounding (18px -> 20px is 11%)', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    rewrite('.x { margin: 18px; }', 'a.css');
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('also warns on a font-size snap beyond 20% — the TEXT table has no ceiling escape either', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    rewrite('.x { font-size: 42px; }', 'a.css');
+    expect(spy).toHaveBeenCalled();
+    expect(spy.mock.calls.some((args) => String(args[0]).includes('snap:'))).toBe(true);
+    spy.mockRestore();
   });
 });

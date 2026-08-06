@@ -100,7 +100,7 @@ breakpoints stay exempt: forcing them onto a spacing scale would be a lie about 
 
 Counting them first changes where the work goes. There is exactly **one** raw hex outside
 `global.css` — `#1b1c1e`, once — so colour discipline is already sound and the hex rule costs
-nothing to keep. Size and spacing are the problem: **1,481 occurrences across 23 files**, with 30
+nothing to keep. Size and spacing are the problem: **1,193 declarations across 23 files**, holding 1,463 individual px values, with 30
 distinct font sizes including 7.5, 8.8, 9.5, 10.5, 11.5 and 13.5px, and every integer from 1 to
 20 used as spacing. Portfolio alone holds 574 of them.
 

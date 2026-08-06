@@ -4,7 +4,7 @@
 
 **Goal:** Give Synapsu a spacing, type and motion scale, correct the token contrast failures, and apply both across all fifteen routes so the last screen looks like the first.
 
-**Architecture:** Three new token axes land in `src/styles/global.css`. A validator computes contrast, theme parity, literal discipline and reduced-motion compliance as part of `npm run check`. A codemod maps the 1,481 existing literals onto the scales file-by-file, and screen-group tasks review and correct what the codemod produced.
+**Architecture:** Three new token axes land in `src/styles/global.css`. A validator computes contrast, theme parity, literal discipline and reduced-motion compliance as part of `npm run check`. A codemod maps the 1,193 existing literal declarations onto the scales file-by-file, and screen-group tasks review and correct what the codemod produced.
 
 **Tech Stack:** Plain CSS custom properties, React 19, `react-router` 8, TypeScript 5.9.3, Vitest 4, `tsx` for scripts.
 
@@ -434,7 +434,7 @@ Create `scripts/codemod-tokens.mjs`. It is deliberately a separate, throwaway sc
 
 ```js
 /* One-shot literal → token rewriter. Run per file, then review the diff by eye.
-   Deleted in Task 12; it exists only for the 1,481-site migration. */
+   Deleted in Task 12; it exists only for the 1,193-declaration migration. */
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const SPACE = [
@@ -489,7 +489,7 @@ In `package.json`, add the script and insert it into the `check` chain immediate
 - [ ] **Step 7: Run the gate and record the starting violation count**
 
 Run: `npm run validate:tokens`
-Expected: FAIL, with `literals` reporting roughly 1,481 and `contrast`/`themeParity`/`reducedMotion` all `PASS` (Task 1 fixed those). Record the exact number in the task report — Tasks 3–10 drive it to zero and Task 12 asserts it is zero.
+Expected: FAIL, with `literals` reporting roughly 1,193 and `contrast`/`themeParity`/`reducedMotion` all `PASS` (Task 1 fixed those). Record the exact number in the task report — Tasks 3–10 drive it to zero and Task 12 asserts it is zero.
 
 - [ ] **Step 8: Commit**
 
@@ -812,7 +812,7 @@ git commit -m "refactor(p12): move secondary screens onto the token scales"
 **Files:**
 - Modify: `src/features/portfolio/portfolio.css`, `src/features/portfolio/goal-contribution.css`
 
-**Why this is its own task:** these two files hold 574 of the 1,481 literals — 39% of the phase — and P4 through P9 accumulated in them. A reviewer can meaningfully reject this while approving everything else.
+**Why this is its own task:** these two files hold 574 of the 1,193 literal declarations — 39% of the phase — and P4 through P9 accumulated in them. A reviewer can meaningfully reject this while approving everything else.
 
 **Constraint reminder:** the plan forbids touching `src/features/portfolio/*.tsx`, `server/portfolio/*` and the portfolio migrations. This task changes CSS only.
 
@@ -1070,7 +1070,7 @@ git commit -m "chore(p12): validate-p12, version 1.13.0, documentation"
 | Version 1.13.0 and docs | 12 |
 | Provenance stays prominent | Global Constraints; reviewed per task |
 
-**Correction against the spec:** the spec says the validator bans "raw hex and raw px". Measurement showed only **one** raw hex outside `global.css` (`#1b1c1e`, a single occurrence), so colour discipline was already good — the real problem is size and spacing, at 1,481 sites. The hex rule stays in the gate because it is nearly free to keep, but the plan does not spend a task on it. The spec should be read with that correction.
+**Correction against the spec:** the spec says the validator bans "raw hex and raw px". Measurement showed only **one** raw hex outside `global.css` (`#1b1c1e`, a single occurrence), so colour discipline was already good — the real problem is size and spacing, at 1,193 declarations. The hex rule stays in the gate because it is nearly free to keep, but the plan does not spend a task on it. The spec should be read with that correction.
 
 **Correction against the spec, second:** the spec says every ink × surface pair must clear WCAG AA. Computing it showed that holding `--ink-faint` to 4.5:1 collapses it into `--ink-muted` (both land on ~`#6e7274`) and destroys the five-level ink hierarchy. `--ink-faint` carries carets, chevrons and separator dots — non-text UI, governed by WCAG 1.4.11 at 3:1. Task 1 and Task 2 both encode the role-based split.
 

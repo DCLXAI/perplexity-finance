@@ -18,6 +18,7 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts';
 import { Card, ChipTabs, SegTabs } from '@/components/ui';
+import { calendarForAsset, marketTimeZone } from '@/data/calendar';
 import { engine } from '@/data/engine';
 import { fmtQuoteValue } from '@/data/format';
 import type { CandlePoint, HistoryRange } from '@/data/types';
@@ -76,10 +77,48 @@ function withAlpha(color: string, alpha: number): string {
   );
 }
 
-function themedChartOptions(p: ChartPalette, width: number, intraday: boolean): DeepPartial<ChartOptions> {
+/**
+ * lightweight-charts labels its time scale in UTC, so a KRX 09:00–15:30 session rendered as
+ * 00:00–06:30 contradicted the KST as-of stamp printed directly above the chart — and a US
+ * session read 13:30–20:00 against its own EDT stamp. Format every tick and crosshair label in
+ * the market's own clock instead. `timeZone` comes from `marketTimeZone`, so crypto stays UTC.
+ */
+function axisFormatters(timeZone: string, intraday: boolean) {
+  const time = new Intl.DateTimeFormat('ko-KR', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const day = new Intl.DateTimeFormat('ko-KR', { timeZone, month: 'numeric', day: 'numeric' });
+  const full = new Intl.DateTimeFormat('ko-KR', {
+    timeZone,
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const at = (value: UTCTimestamp | number) => new Date(Number(value) * 1000);
+  return {
+    tickMarkFormatter: (value: UTCTimestamp | number) =>
+      intraday ? time.format(at(value)) : day.format(at(value)),
+    timeFormatter: (value: UTCTimestamp | number) =>
+      intraday ? full.format(at(value)) : day.format(at(value)),
+  };
+}
+
+function themedChartOptions(
+  p: ChartPalette,
+  width: number,
+  intraday: boolean,
+  timeZone: string,
+): DeepPartial<ChartOptions> {
+  const { tickMarkFormatter, timeFormatter } = axisFormatters(timeZone, intraday);
   return {
     width,
     height: 380,
+    localization: { timeFormatter },
     layout: {
       background: { type: ColorType.Solid, color: 'transparent' },
       textColor: p.ink,
@@ -90,7 +129,12 @@ function themedChartOptions(p: ChartPalette, width: number, intraday: boolean): 
       horzLines: { color: withAlpha(p.border, 0.45) },
     },
     rightPriceScale: { borderColor: p.border },
-    timeScale: { borderColor: p.border, timeVisible: intraday, secondsVisible: false },
+    timeScale: {
+      borderColor: p.border,
+      timeVisible: intraday,
+      secondsVisible: false,
+      tickMarkFormatter,
+    },
     crosshair: { mode: CrosshairMode.Normal },
   };
 }
@@ -200,7 +244,12 @@ function PriceChartInner({ symbol }: { symbol: string }) {
 
     let palette = readPalette();
     const intraday = range === '1D' || range === '5D' || range === '7D';
-    const chart = createChart(el, themedChartOptions(palette, el.clientWidth, intraday));
+    // The asset's own market decides the axis clock, not the viewer's locale.
+    const chartQuote = engine.getQuote(symbol);
+    const timeZone = marketTimeZone(
+      calendarForAsset(chartQuote?.kind ?? 'stock', chartQuote?.region ?? 'US'),
+    );
+    const chart = createChart(el, themedChartOptions(palette, el.clientWidth, intraday, timeZone));
 
     const area = chartType === 'line' ? chart.addSeries(AreaSeries, areaOptions(palette)) : null;
     const candles =
@@ -274,7 +323,7 @@ function PriceChartInner({ symbol }: { symbol: string }) {
     // Light/dark switch → re-apply themed options + series colors in place.
     const themeObserver = new MutationObserver(() => {
       palette = readPalette();
-      chart.applyOptions(themedChartOptions(palette, el.clientWidth, intraday));
+      chart.applyOptions(themedChartOptions(palette, el.clientWidth, intraday, timeZone));
       if (area) area.applyOptions(areaOptions(palette));
       if (candles) candles.applyOptions(candleOptions(palette));
       volume.setData([

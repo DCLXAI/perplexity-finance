@@ -132,6 +132,18 @@ export function calendarForAsset(kind: AssetKind, region: MarketRegion = 'US'): 
   return region === 'KR' ? 'KR_EQUITY' : 'US_EQUITY';
 }
 
+/**
+ * The clock a chart axis should be labelled in: the market's own, not the viewer's and not UTC.
+ * A 09:00–15:30 KRX session rendered against UTC reads as 00:00–06:30, contradicting the KST
+ * as-of stamp printed directly above the chart. Crypto trades continuously with no home
+ * exchange, so UTC is the honest choice there rather than an arbitrary city.
+ */
+export function marketTimeZone(calendar: MarketCalendar): string {
+  if (calendar === 'KR_EQUITY') return 'Asia/Seoul';
+  if (calendar === 'CRYPTO_24_7') return 'UTC';
+  return 'America/New_York';
+}
+
 function isSessionDay(calendar: MarketCalendar, date: Date): boolean {
   if (calendar === 'CRYPTO_24_7') return true;
   if (calendar === 'WEEKDAY') return isWeekday(date);

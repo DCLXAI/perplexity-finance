@@ -160,7 +160,7 @@
 }
 
 .ai-model-item.active {
-  color: var(--teal);
+  color: var(--teal-text);
   font-weight: 600;
 }
 
@@ -501,14 +501,14 @@
 .ai-response-meta { margin-top: var(--space-3); padding-top: var(--space-2-5); border-top: 1px solid var(--border); color: var(--ink-muted); font-size: var(--text-xs); }
 .ai-meta-line { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 .ai-mode-chip { padding: var(--space-0-5) var(--space-1-5); border-radius: var(--radius-full); font-size: var(--text-2xs); font-weight: 800; }
-.ai-mode-chip.openai { background: color-mix(in srgb, var(--teal) 12%, transparent); color: var(--teal); }
+.ai-mode-chip.openai { background: color-mix(in srgb, var(--teal) 12%, transparent); color: var(--teal-text); }
 .ai-mode-chip.local-fallback { background: color-mix(in srgb, var(--warn) 12%, transparent); color: var(--warn); }
 .ai-tools-used { margin-top: var(--space-1-5); color: var(--ink-secondary); }
 .ai-sources { margin-top: var(--space-2); }
 .ai-sources summary { cursor: pointer; color: var(--ink-secondary); font-weight: 700; }
 .ai-sources ul { display: grid; gap: var(--space-2); margin-top: var(--space-2); padding-left: var(--space-4); }
 .ai-sources li { display: grid; gap: var(--space-0-5); line-height: 1.4; }
-.ai-sources a, .ai-sources strong { color: var(--teal); }
+.ai-sources a, .ai-sources strong { color: var(--teal-text); }
 .ai-sources time { color: var(--ink-muted); }
 .ai-token-usage, .ai-fallback-note, .ai-disclaimer { margin-top: var(--space-1-5); line-height: 1.45; overflow-wrap: anywhere; }
 .ai-fallback-note { color: var(--warn); }

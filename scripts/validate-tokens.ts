@@ -62,6 +62,68 @@ export function findLiteralViolations(file: string, css: string): LiteralViolati
   return out;
 }
 
+/** '#fff' → '#ffffff'; a 6-digit value passes through untouched. */
+function expandHex(value: string): string {
+  const short = value.trim().match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
+  return short ? `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}` : value.trim();
+}
+
+/**
+ * The shape a token-to-token gate structurally cannot see: a feature file pairing a literal
+ * colour with a `background: var(--token)` in the same rule — `.al-badge`'s `color: #fff` next
+ * to `background: var(--neg)` was live in production at 3.16:1 and neither SEMANTIC_PAIRS above
+ * (token-to-token, resolved from global.css) nor the literal-px sweep below (guards spacing
+ * properties, not colour) had any way to notice.
+ *
+ * What this catches: a rule block, anywhere outside global.css, that declares both
+ * `background`/`background-color: var(--single-token)` and a literal hex `color` — 3 or 6 digit
+ * — in the same selector. Cascade within the block is respected (last declaration of each
+ * property wins); the pair is checked against both themes at the AA text threshold (4.5:1).
+ *
+ * What this does NOT catch, by design — this is a textual per-block scan, not a cascade
+ * resolver: a background applied via `color-mix()`, a gradient, or a second literal (only a
+ * single `var(--x)` background is resolved); a background or colour set from JS — an inline
+ * `style` prop, a `bg ?? 'var(--x)'` default — since that never appears in the CSS text at all;
+ * or a pairing split across two rules, e.g. a `:hover` selector that sets only `color` while the
+ * fill comes from the base rule. Those need a human, not this gate.
+ */
+function findCallsiteContrastViolations(
+  file: string,
+  css: string,
+  light: Map<string, string>,
+  dark: Map<string, string>,
+): string[] {
+  const failures: string[] = [];
+  const withoutMedia = css.replace(/@media[^{]+\{/g, '');
+  for (const match of withoutMedia.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selector = match[1].trim().replace(/\s+/g, ' ');
+    const body = match[2];
+    const bgDecls = [...body.matchAll(/background(?:-color)?\s*:\s*([^;]+);/g)];
+    const colorDecls = [...body.matchAll(/(?:^|[;\s])color\s*:\s*([^;]+);/g)];
+    if (bgDecls.length === 0 || colorDecls.length === 0) continue;
+    // Last declaration of each property wins — the same rule the cascade would apply.
+    const bgRaw = bgDecls[bgDecls.length - 1][1].trim();
+    const colorRaw = colorDecls[colorDecls.length - 1][1].trim();
+    const bgTokenMatch = bgRaw.match(/^var\((--[a-z0-9-]+)\)$/i);
+    if (!bgTokenMatch) continue;
+    if (!/^#[0-9a-f]{3}$|^#[0-9a-f]{6}$/i.test(colorRaw)) continue;
+    const literal = expandHex(colorRaw).toLowerCase();
+    for (const [themeName, tokens] of [['light', light], ['dark', dark]] as const) {
+      const resolve = (n: string) => (tokens.get(n) ?? light.get(n) ?? '').trim();
+      const bgValue = resolve(bgTokenMatch[1]);
+      if (!/^#[0-9a-f]{6}$/i.test(bgValue)) continue;
+      const ratio = contrastRatio(literal, bgValue);
+      if (ratio < 4.5) {
+        failures.push(
+          `callsite-contrast: ${file} ${selector} — ${colorRaw} on ${bgTokenMatch[1]} is ` +
+            `${ratio.toFixed(2)} in ${themeName}, needs 4.5`,
+        );
+      }
+    }
+  }
+  return failures;
+}
+
 function cssFiles(dir: string): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir)) {
@@ -82,21 +144,31 @@ function tokensIn(block: string): Map<string, string> {
 
 /** Text tokens are held to AA. `--ink-faint` carries carets and separator dots, not text. */
 const TEXT_INKS = ['--ink', '--ink-strong', '--ink-secondary', '--ink-muted', '--warn'];
-const NON_TEXT_INKS = ['--ink-faint'];
+/**
+ * `--ink-faint` carries carets and separator dots, not text. `--teal` is the literal brand
+ * hex — logo mark, focus rings, chart strokes — never text (see `--teal-text` for that role),
+ * so it's held to the same 3:1 non-text floor against the neutral surfaces below.
+ */
+const NON_TEXT_INKS = ['--ink-faint', '--teal'];
 const SURFACES = ['--bg', '--bg-raised', '--bg-inset', '--bg-subtle', '--bg-hover'];
 
 /**
  * Semantic ink-on-its-own-chip pairs: --warn/--pos/--neg text rendered on their tinted
- * badge backgrounds, and brand teal on its soft chip. These are a distinct class from
- * TEXT_INKS × SURFACES above — a semantic ink is never actually painted on a neutral
- * --bg/--bg-raised/--bg-inset surface, only on its matching *-bg/-soft chip — so the
- * general surface sweep above cannot see this pairing at all.
+ * badge backgrounds, and brand teal's text role on its soft chips. These are a distinct
+ * class from TEXT_INKS × SURFACES above — a semantic ink is never actually painted on a
+ * neutral --bg/--bg-raised/--bg-inset surface, only on its matching *-bg/-soft chip — so
+ * the general surface sweep above cannot see this pairing at all.
+ *
+ * `--teal` itself is excluded here on purpose: it's the literal brand hex, held to 3:1 as
+ * a non-text indicator above, and is never the token painted on --teal-soft/--teal-softer
+ * — `--teal-text` is the split-off role that carries that AA-text obligation instead.
  */
 const SEMANTIC_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ['--warn', '--warn-bg'],
   ['--pos', '--pos-bg'],
   ['--neg', '--neg-bg'],
-  ['--teal', '--teal-soft'],
+  ['--teal-text', '--teal-soft'],
+  ['--teal-text', '--teal-softer'],
 ];
 
 function main(): void {
@@ -149,15 +221,20 @@ function main(): void {
     }
   }
 
-  // 3. Literal discipline.
+  // 3. Literal discipline + call-site contrast — one pass over the same files. Literal
+  // discipline guards spacing properties; call-site contrast guards a literal colour
+  // declared beside a `background: var(--token)` in the same rule (see the doc comment
+  // on findCallsiteContrastViolations for exactly what shape that does and doesn't catch).
   let violations = 0;
   for (const file of cssFiles('src')) {
     if (file.replace(/\\/g, '/') === GLOBAL_CSS) continue;
-    const found = findLiteralViolations(file, readFileSync(file, 'utf8'));
+    const css = readFileSync(file, 'utf8');
+    const found = findLiteralViolations(file, css);
     violations += found.length;
     for (const v of found.slice(0, 3)) {
       failures.push(`literal: ${v.file} has raw px in ${v.property}: ${v.value}`);
     }
+    failures.push(...findCallsiteContrastViolations(file, css, light, dark));
   }
 
   // 4. The reduced-motion escape hatch exists and zeroes every duration token — the
@@ -179,6 +256,13 @@ function main(): void {
     themeParity: failures.some((f) => f.startsWith('theme parity')) ? 'FAIL' : 'PASS',
     contrast: failures.some((f) => f.startsWith('contrast')) ? 'FAIL' : 'PASS',
     literals: violations,
+    callsiteContrast: failures.some((f) => f.startsWith('callsite-contrast')) ? 'FAIL' : 'PASS',
+    // PASS means only this: no literal `color` beside a same-rule `background: var(--token)`
+    // fell below 4.5:1. It cannot see a JS-set background (e.g. a `bg ?? 'var(--x)'` prop), a
+    // color-mix()/gradient background, or a pairing split across a base rule and its :hover.
+    callsiteContrastScope:
+      'static CSS var()-background + literal-color pairs only — misses JS-set backgrounds, ' +
+      'color-mix()/gradient backgrounds, and base/:hover-split pairs',
     reducedMotion: failures.some((f) => f.startsWith('motion')) ? 'FAIL' : 'PASS',
     result: failures.length === 0 ? 'PASS' : 'FAIL',
   };

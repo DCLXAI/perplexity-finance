@@ -131,7 +131,7 @@
 .hm-data-table summary {
   width: fit-content;
   padding: var(--space-2-5) var(--space-1) var(--space-0-5);
-  color: var(--teal);
+  color: var(--teal-text);
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
@@ -158,7 +158,7 @@
 }
 
 .hm-data-link:hover {
-  color: var(--teal);
+  color: var(--teal-text);
   text-decoration: underline;
   text-underline-offset: 2px;
 }

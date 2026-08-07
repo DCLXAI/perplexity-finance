@@ -37,7 +37,7 @@
 .gc-dialog-head > div > span {
   display: block;
   margin-bottom: var(--space-1-5);
-  color: var(--teal);
+  color: var(--teal-text);
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   font-weight: 800;
@@ -71,7 +71,7 @@
 .gc-goal-status.paused,
 .gc-run-status.pending { color: var(--warn); background: var(--warn-bg); }
 .gc-goal-status.completed,
-.gc-run-status.approved { color: var(--teal); background: var(--teal-soft); }
+.gc-run-status.approved { color: var(--teal-text); background: var(--teal-soft); }
 .gc-goal-status.archived,
 .gc-run-status.rejected,
 .gc-run-status.expired { color: var(--ink-muted); background: var(--bg-subtle); }
@@ -93,12 +93,12 @@
 
 .gc-goal-card { padding: var(--space-5) var(--space-5); border-bottom: 1px solid var(--border); }
 .gc-goal-title h3 { margin-top: var(--space-1); font-size: var(--text-lg); }
-.gc-goal-title small { color: var(--teal); font-size: var(--text-2xs); font-weight: 700; }
+.gc-goal-title small { color: var(--teal-text); font-size: var(--text-2xs); font-weight: 700; }
 .gc-projection { margin-top: var(--space-5); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-inset); }
 .gc-progress-copy { display: grid; grid-template-columns: 1fr auto; gap: var(--space-1) var(--space-4); align-items: end; }
 .gc-progress-copy strong { color: var(--ink-strong); font-size: var(--text-sm); }
 .gc-progress-copy span { color: var(--ink-muted); font-size: var(--text-2xs); }
-.gc-progress-copy b { grid-column: 2; grid-row: 1 / span 2; color: var(--teal); font-family: var(--font-mono); font-size: var(--text-lg); }
+.gc-progress-copy b { grid-column: 2; grid-row: 1 / span 2; color: var(--teal-text); font-family: var(--font-mono); font-size: var(--text-lg); }
 .gc-projection progress { width: 100%; height: 8px; margin: var(--space-2-5) 0 var(--space-3-5); overflow: hidden; border: 0; border-radius: var(--radius-full); background: var(--bg-subtle); accent-color: var(--teal); }
 .gc-projection progress::-webkit-progress-bar { background: var(--bg-subtle); }
 .gc-projection progress::-webkit-progress-value { border-radius: var(--radius-full); background: var(--teal); }
@@ -135,7 +135,7 @@
 .gc-run-head small { grid-column: 2; color: var(--ink-muted); font-family: var(--font-mono); font-size: var(--text-2xs); }
 .gc-run-reason { margin: var(--space-3) var(--space-3-5) 0; padding: var(--space-2-5) var(--space-2-5); border-radius: var(--radius-sm); color: var(--ink-secondary); background: var(--bg-subtle); font-size: var(--text-2xs); }
 .gc-run details { padding: var(--space-3) var(--space-3-5) var(--space-3-5); }
-.gc-run summary { width: max-content; color: var(--teal); cursor: pointer; font-size: var(--text-2xs); font-weight: 700; }
+.gc-run summary { width: max-content; color: var(--teal-text); cursor: pointer; font-size: var(--text-2xs); font-weight: 700; }
 .gc-run details[open] summary { margin-bottom: var(--space-2-5); }
 .gc-table-wrap { overflow: auto; }
 .gc-table { width: 100%; min-width: 680px; border-collapse: collapse; border: 1px solid var(--border); }

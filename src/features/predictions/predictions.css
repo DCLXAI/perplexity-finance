@@ -107,7 +107,7 @@
 
 .pd-src.poly {
   background: var(--teal-soft);
-  color: var(--teal);
+  color: var(--teal-text);
 }
 
 .pd-src.kalshi {
@@ -227,7 +227,7 @@
   padding: var(--space-2) 0 var(--space-6);
 }
 .pd-live-link { display: block; color: inherit; }
-.pd-live-link:hover { color: var(--teal); text-decoration: underline; }
+.pd-live-link:hover { color: var(--teal-text); text-decoration: underline; }
 .pd-provider-strip { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
 .pd-provider { padding: var(--space-1-5) var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-full); color: var(--ink-muted); background: var(--bg-raised); font-size: var(--text-2xs); }
 .pd-provider.up { border-color: color-mix(in srgb, var(--pos) 35%, var(--border)); color: var(--pos); }

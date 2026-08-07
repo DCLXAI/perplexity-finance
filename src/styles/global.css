@@ -22,23 +22,43 @@
   --border: #e8e8e3;
   --border-strong: #d9d9d2;
 
-  /* Brand */
-  --teal: #20708d;
+  /* Brand — literal brand hex. Governs non-text uses only (logo mark, focus
+     rings, chart strokes, decorative fills/borders): WCAG 1.4.11 at 3:1. Do
+     not use for text — see --teal-text below. */
+  --teal: #20808d;
   --teal-strong: #16606b;
   --teal-soft: #e4eeef;
   --teal-softer: #f0f5f6;
-  /* Identical to --teal in light; dark gets its own darker value below —
+  /* Identical to --teal-text in light; dark gets its own darker value below —
      #fff on dark --teal is only 2.96:1 (fails AA text), and the primary CTA
      is the one place that pairs #fff directly against the brand fill. */
   --teal-btn: #20708d;
+  /* Text-on-tinted-surface role, split off from the brand hex above — brand
+     teal itself (#20808d) is only 3.92:1 on --teal-soft and 4.21:1 on
+     --teal-softer, both short of the 4.5:1 AA text threshold, and darkening
+     the shared token to fix that would have dragged the literal brand hex
+     along with it, so this is its own token instead (same idiom as
+     --teal-btn). Use for any actual text/label colour that renders on
+     --teal-soft, --teal-softer, or a comparable teal tint — not for
+     borders, icons or the brand mark. */
+  --teal-text: #20708d;
 
   /* Semantics */
   --pos: #0d7259;
   --pos-strong: #096b49;
   --pos-bg: #e2f2ea;
+  /* Solid-fill role for --pos above — identical in light, darkened in dark;
+     see --neg-fill below for the reason (#fff on dark --pos is 2.33:1). */
+  --pos-fill: #0d7259;
   --neg: #b8432f;
   --neg-strong: #9e3826;
   --neg-bg: #f8e8e3;
+  /* Solid-fill role for --neg above — identical in light (already 5.41:1 on
+     #fff), darkened in dark. #fff on dark --neg is only 3.16:1 — the same
+     shape as --teal-btn/--teal, a separate token for the one place a
+     semantic colour is a solid fill behind white text rather than text on a
+     neutral or tinted surface. */
+  --neg-fill: #b8432f;
   --warn: #88670f;
   --warn-bg: #f7efdb;
 
@@ -133,13 +153,19 @@
   --teal-soft: #143336;
   --teal-softer: #10282b;
   --teal-btn: #2a818c;
+  /* Unchanged from --teal in dark: #35a4b2 already clears 4.5:1 on both
+     --teal-soft (4.56:1) and --teal-softer (5.22:1), so dark never needed
+     the split — only light did. */
+  --teal-text: #35a4b2;
 
   --pos: #3bbf8b;
   --pos-strong: #5fd3a5;
   --pos-bg: #12312a;
+  --pos-fill: #298460;
   --neg: #e0705c;
   --neg-strong: #ef8d7b;
   --neg-bg: #3a1f19;
+  --neg-fill: #d24228;
   --warn: #d9a83c;
   --warn-bg: #33290f;
 

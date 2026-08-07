@@ -150,7 +150,7 @@
 }
 
 .po-stock:hover .po-sym {
-  color: var(--teal);
+  color: var(--teal-text);
 }
 
 .po-sym {

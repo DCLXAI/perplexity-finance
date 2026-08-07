@@ -259,7 +259,7 @@
 }
 
 .sc-row-link:hover {
-  color: var(--teal);
+  color: var(--teal-text);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -285,7 +285,7 @@
 }
 
 .sc-row-link:hover {
-  color: var(--teal);
+  color: var(--teal-text);
   text-decoration: underline;
   text-underline-offset: 2px;
 }

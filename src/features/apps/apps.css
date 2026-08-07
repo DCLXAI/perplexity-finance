@@ -80,7 +80,7 @@
 .ap-cat {
   font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--teal);
+  color: var(--teal-text);
   background: var(--teal-softer);
   border-radius: var(--radius-full);
   padding: var(--space-1) var(--space-2-5);

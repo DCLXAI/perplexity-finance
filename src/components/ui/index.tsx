@@ -127,7 +127,7 @@ export function LogoChip({
       style={{
         width: size,
         height: size,
-        background: bg ?? 'var(--teal)',
+        background: bg ?? 'var(--teal-btn)',
         fontSize: size * 0.45,
         borderRadius: size * 0.28,
       }}

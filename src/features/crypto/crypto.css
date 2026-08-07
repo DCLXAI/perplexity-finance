@@ -299,7 +299,7 @@
 }
 
 .cr-row-link:hover .cr-name {
-  color: var(--teal);
+  color: var(--teal-text);
   text-decoration: underline;
   text-underline-offset: 2px;
 }

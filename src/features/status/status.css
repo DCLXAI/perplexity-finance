@@ -1,6 +1,6 @@
 .status-page { max-width: 1280px; }
 .status-hero { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-6); padding:var(--space-6); border:1px solid var(--border); border-radius:var(--radius-xl); background:linear-gradient(135deg,var(--bg-raised),var(--teal-softer)); }
-.status-kicker { display:block; margin-bottom:var(--space-2); color:var(--teal); font-family:var(--font-mono); font-size:var(--text-2xs); font-weight:800; letter-spacing:.13em; }
+.status-kicker { display:block; margin-bottom:var(--space-2); color:var(--teal-text); font-family:var(--font-mono); font-size:var(--text-2xs); font-weight:800; letter-spacing:.13em; }
 .status-hero h1 { color:var(--ink-strong); font-size:var(--text-3xl); letter-spacing:-.04em; }
 .status-hero p { margin-top:var(--space-2); max-width:680px; color:var(--ink-secondary); }
 .status-hero-actions { display:flex; align-items:center; gap:var(--space-2-5); }

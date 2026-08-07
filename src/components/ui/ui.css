@@ -48,7 +48,7 @@ button.ui-card:hover {
 }
 
 .ui-card-title:is(a):hover {
-  color: var(--teal);
+  color: var(--teal-text);
 }
 
 /* ---------- Change badge (pill) ---------- */

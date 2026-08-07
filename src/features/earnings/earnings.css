@@ -215,7 +215,7 @@
 }
 
 a.er-entry-names:hover .er-entry-company {
-  color: var(--teal);
+  color: var(--teal-text);
 }
 
 .er-entry-symbol {

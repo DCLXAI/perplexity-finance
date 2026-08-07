@@ -15,119 +15,107 @@ import type {
 import type { MarketRegion } from './region.js';
 import { KR_EXPLORE_CARDS, KR_GENERAL_NEWS, KR_MARKET_SUMMARY } from './content.kr.js';
 
-/* ---------- 시장 요약 (market summary accordion) ---------- */
+/* ---------- 시장 요약 (market summary accordion) ----------
+   2026-08-07 refresh: replaced with Thursday 2026-08-06 close-session stories, the last
+   settled US close at research time (see `.superpowers/refresh-2026-08-07-us.md` — Friday
+   08-07's session had not closed yet). Six items, matching the pre-refresh count; every figure
+   below is a settled Thu 08-06 close or an explicitly-labeled estimate/consensus figure from
+   that file, not a carried-forward Aug 4/5 number. */
 
 export const MARKET_SUMMARY: MarketSummaryItem[] = [
   {
-    id: 'ms-pltr',
-    title: 'Palantir Surges Nearly 30% on "Otherworldly" US Commercial Growth',
-    body: 'Palantir reported second-quarter revenue up 93% year over year, with US commercial revenue rising 149% to $764 million, and raised both its FY2026 revenue outlook and adjusted free-cash-flow guidance. Shares closed up 29.45%, the largest single-day move in the S&P 500 that session, and management attributed the result to accelerating enterprise AI adoption.',
-    sources: 48,
+    id: 'ms-dow-streak',
+    title: 'Dow Snaps Record Win Streak as Oil Rebound Revives Fed Concern',
+    body: 'The Dow fell 464.02 points (-0.85%) to 53,885.10 on Thursday, ending a run of fresh records set August 3-4. The S&P 500 slipped 0.18% to 7,709.96 and the Nasdaq Composite eased 0.06% to 26,348.35. WTI and Brent crude both advanced on the session, the cited driver behind the pullback as traders weighed renewed inflation pressure and a slower path for Fed rate cuts.',
+    sources: 34,
   },
   {
-    id: 'ms-btc',
-    title: 'Bitcoin Holds Near $64,200 as Ether Lags',
-    body: 'Bitcoin traded near $64,196 (+0.6%) while ether lagged at about $1,868 (+0.3%), keeping bitcoin dominance elevated. Crypto rows in this seed are a separate 2026-08-05 capture and therefore carry a different as-of time than the equity close.',
-    sources: 36,
+    id: 'ms-abnb',
+    title: 'Airbnb Surges Toward 9% After Hours on a Blowout Q2',
+    body: 'Airbnb posted EPS of $1.37 against a $1.25 estimate and revenue of $3.61B versus $3.58B expected. Shares rallied 7-9% in the regular session and extended gains by roughly another 9% after hours as investors welcomed the beat.',
+    sources: 22,
   },
   {
-    id: 'ms-gold',
-    title: 'Gold Climbs 1.0% to $4,075 as Rate-Cut Odds Firm',
-    body: 'Gold advanced 1.01% to $4,075.26 an ounce as a sharp fall in crude eased the near-term inflation outlook and traders leaned toward a softer path for policy. The move extended a strong 2026 for the metal.',
-    sources: 29,
+    id: 'ms-net-dkng',
+    title: 'Cloudflare Jumps ~16% on Strong Guidance; DraftKings Slides on a Revenue Miss',
+    body: 'Cloudflare shares surged roughly 16% after hours on a stronger-than-expected full-year and current-quarter outlook. DraftKings moved the other way, falling after Q2 revenue of $1.44B missed the $1.51B estimate and the company posted a $0.14 per-share loss versus an expected profit — though FY2026 adjusted EBITDA and revenue guidance were reaffirmed.',
+    sources: 19,
   },
   {
-    id: 'ms-oil',
-    title: 'Oil Falls Sharply on Hopes of Resumed Strait of Hormuz Traffic',
-    body: 'Crude fell sharply as progress toward reopening the Strait of Hormuz raised the prospect of resumed tanker traffic. Reported declines ranged from roughly 3% to 6% depending on the outlet and contract, so no single settlement figure is carried in this seed. Energy was among the weakest sectors on the session.',
-    sources: 31,
+    id: 'ms-nasdaq-earnings',
+    title: 'AppLovin, Western Digital Earnings Weigh on the Nasdaq',
+    body: 'AppLovin and Western Digital both fell after reporting quarterly results, joined by a similar move in SanDisk, dragging on the Nasdaq even as the broader AI-chip demand narrative stayed intact.',
+    sources: 16,
   },
   {
-    id: 'ms-chips',
-    title: 'AI Chip Boom Drives Big Tech Spending as NVIDIA and Intel Draw Attention',
-    body: 'Hyperscaler capital expenditure guidance keeps climbing, with 2026 AI infrastructure spending now tracking above $600 billion. NVIDIA rallied 4% on reports of fully booked Rubin capacity, while Intel slid on foundry delays. Memory names diverged ahead of Micron’s update.',
-    sources: 44,
+    id: 'ms-msft',
+    title: 'Microsoft Leads Mega-Caps With a 2.54% Gain',
+    body: 'Microsoft was the largest gainer among mega-cap tech on the session, closing at $499.86 with a $3.71T market cap — no single catalyst was identified beyond the move itself, notable against an otherwise lower tape.',
+    sources: 12,
   },
   {
-    id: 'ms-housing',
-    title: 'New U.S. Housing Law Aims to Boost Supply Amid Ongoing Crisis',
-    body: 'The bipartisan HOMES Act signed this week offers tax incentives for converting commercial property and streamlines permitting on federal land. Homebuilders rallied on the news, though economists caution the measures will take years to meaningfully lift housing supply.',
-    sources: 27,
+    id: 'ms-jobs-preview',
+    title: 'Markets Position Defensively Ahead of the July Jobs Report',
+    body: 'Consensus called for nonfarm payrolls of about +85K (range 83K-120K) and unemployment holding near 4.2%, after June was revised down to a four-month low of +57K. The report was due 8:30 AM ET the following morning, after this session had already closed.',
+    sources: 20,
   },
 ];
 
-/* ---------- 둘러보기 (explore carousel) ---------- */
+/* ---------- 둘러보기 (explore carousel) ----------
+   2026-08-07 refresh: replaced with the same Thursday 2026-08-06 story set above. Seven cards,
+   fewer than the pre-refresh ten — the research corroborated seven distinct Thu 08-06 stories,
+   and a shorter, honest carousel was judged better than padding it back to ten with old
+   08-04 narrative or invented topics. */
 
 export const EXPLORE_CARDS: ExploreCard[] = [
   {
-    id: 'ex-asml',
-    title: 'ASML, 사상 최대 수주 잔고 속 수요일 2분기 실적 발표 예정',
-    sources: 26,
-    gradient: 'linear-gradient(135deg,#33454e,#6d8a96)',
-    art: 'fab',
-  },
-  {
-    id: 'ex-refining',
-    title: '정제 마진 사상 최고치 기록, 크랙 스프레드 60달러 돌파',
-    sources: 42,
-    gradient: 'linear-gradient(135deg,#7a5a3a,#c9a06a)',
-    art: 'refinery',
-  },
-  {
-    id: 'ex-imf',
-    title: 'IMF, 달러 스테이블코인이 통화 위기를 심화시킬 수 있다고 경고',
-    sources: 43,
-    gradient: 'linear-gradient(135deg,#2d4a6b,#7291b5)',
-    art: 'imf',
-  },
-  {
-    id: 'ex-hbm',
-    title: 'HBM4 경쟁 본격화 — 마이크론·삼성·SK하이닉스 3파전 구도',
-    sources: 38,
-    gradient: 'linear-gradient(135deg,#1f3d33,#4f8a6d)',
-    art: 'chips',
-  },
-  {
-    id: 'ex-banks',
-    title: '대형 은행 2분기 실적 시즌 개막, 트레이딩 수익 사상 최대 전망',
-    sources: 31,
-    gradient: 'linear-gradient(135deg,#37343f,#726c85)',
-    art: 'bank',
-  },
-  {
-    id: 'ex-opec',
-    title: 'OPEC+, 8월 증산 유지 결정… 유가 60달러대 공방 지속',
+    id: 'ex-abnb',
+    title: '에어비앤비, 2분기 실적 서프라이즈에 시간외 9%대 급등',
     sources: 24,
-    gradient: 'linear-gradient(135deg,#4a3527,#96674a)',
-    art: 'oil',
-  },
-  {
-    id: 'ex-housing',
-    title: '미 주택법 통과에 건설주 급등 — 공급 부족 해소 기대감',
-    sources: 22,
     gradient: 'linear-gradient(135deg,#3d4a35,#7d9463)',
     art: 'housing',
   },
   {
-    id: 'ex-gold',
-    title: '금값 주간 1.4% 하락, 연준 인하 기대 후퇴에 조정 국면',
+    id: 'ex-net',
+    title: '클라우드플레어, 강력한 연간 가이던스에 시간외 16% 급등',
     sources: 19,
-    gradient: 'linear-gradient(135deg,#6b5a2d,#bfa04f)',
-    art: 'gold',
-  },
-  {
-    id: 'ex-space',
-    title: 'SpaceX 스타링크 매출 300억 달러 돌파… IPO 재점화',
-    sources: 35,
-    gradient: 'linear-gradient(135deg,#1d2438,#4a5a8a)',
-    art: 'satellite',
-  },
-  {
-    id: 'ex-grid',
-    title: 'AI 데이터센터 전력난 — 유틸리티주 사상 최고가 랠리',
-    sources: 28,
     gradient: 'linear-gradient(135deg,#2a3a44,#5d8296)',
     art: 'grid',
+  },
+  {
+    id: 'ex-dkng',
+    title: '드래프트킹스, 매출 부진에 실적 발표 후 하락',
+    sources: 13,
+    gradient: 'linear-gradient(135deg,#37343f,#726c85)',
+    art: 'bank',
+  },
+  {
+    id: 'ex-dow-oil',
+    title: '유가 반등에 3대 지수 동반 하락…다우 기록 행진 마감',
+    sources: 31,
+    gradient: 'linear-gradient(135deg,#4a3527,#96674a)',
+    art: 'oil',
+  },
+  {
+    id: 'ex-nasdaq-earnings',
+    title: '앱러빈·웨스턴디지털 실적 부진에 나스닥 상승폭 제한',
+    sources: 16,
+    gradient: 'linear-gradient(135deg,#1f3d33,#4f8a6d)',
+    art: 'chips',
+  },
+  {
+    id: 'ex-jobs',
+    title: '금요일 7월 고용보고서 발표 앞두고 시장 관망세 지속',
+    sources: 20,
+    gradient: 'linear-gradient(135deg,#2d4a6b,#7291b5)',
+    art: 'imf',
+  },
+  {
+    id: 'ex-msft',
+    title: '마이크로소프트, 메가캡 중 최대 상승폭인 2.54% 기록',
+    sources: 12,
+    gradient: 'linear-gradient(135deg,#33454e,#6d8a96)',
+    art: 'fab',
   },
 ];
 

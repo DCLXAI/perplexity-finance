@@ -93,7 +93,7 @@ describe('ScreenerPage market-cap column is region-aware', () => {
     const firstRow = container.querySelector('tbody tr');
     expect(firstRow?.querySelector('.sc-sym')?.textContent).toBe('NVDA');
     const capCell = firstRow?.querySelectorAll('td.num')[3];
-    expect(capCell?.textContent).toBe('US$5.13T');
+    expect(capCell?.textContent).toBe('US$5.30T');
   });
 });
 

@@ -32,8 +32,8 @@ describe('generateAnswer region-aware currency formatting', () => {
 
   it("still labels a US quote's market cap and trading size in dollars (no regression from the KR fix)", () => {
     const text = generateAnswer('AAPL');
-    expect(text).toContain('모의 시가총액: US$4.52T');
-    expect(text).toMatch(/거래 규모는 약 US\$19\.19B입니다\./);
+    expect(text).toContain('모의 시가총액: US$4.56T');
+    expect(text).toMatch(/거래 규모는 약 US\$19\.36B입니다\./);
     expect(text).not.toContain('₩');
   });
 });

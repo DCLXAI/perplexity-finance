@@ -43,7 +43,7 @@ describe('fmtMarketCap', () => {
   it('passes a US quote through as plain compact dollars (no conversion)', () => {
     const quote = engine.getQuote('AAPL');
     expect(quote?.unit).toBe('USD');
-    expect(fmtMarketCap(quote!)).toBe('US$4.52T');
+    expect(fmtMarketCap(quote!)).toBe('US$4.56T');
   });
 
   it('defaults to zero (not NaN) for a quote with no market cap field', () => {

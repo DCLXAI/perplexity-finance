@@ -4,10 +4,14 @@
    P1 guarantees:
    - Quote objects and historical bars are immutable snapshots.
    - Each mock-tick interval emits one batched notification.
-   - US stocks/indices/futures stay fixed at the Aug 4, 2026 close
-     (`SNAPSHOT.asOfISO`); KR equities and benchmarks stay fixed at their own,
-     one-session-later Aug 5, 2026 KRX close (`SNAPSHOT.krAsOfISO`) — see
-     `equityAsOfISO`/`equityAsOfTs` below for the region routing.
+   - Every non-crypto seed row resolves an as-of in one of two ways: a seed row refreshed
+     independently of its region's bulk capture carries its own `asOfISO` (`AssetMeta.asOfISO`,
+     set in universe.ts/universe.kr.ts) and that value wins; a row with no override falls back to
+     its region's *previous* verified anchor (`US_PREV_ASOF_ISO`/`KR_PREV_ASOF_ISO`) rather than
+     `SNAPSHOT.asOfISO`/`krAsOfISO` — those two fields are the newest verified close and move
+     forward independently of the fallback, so bumping them doesn't silently relabel every
+     not-yet-re-verified row with a close it doesn't have. See `equityAsOfISO`/`equityAsOfTs`
+     below for the full resolution order and the region routing.
    - Crypto is the only 24/7 asset class receiving local mock ticks.
    - Session-specific snapshots prevent regular/continuous values
      from being silently merged.
@@ -21,8 +25,8 @@ import {
   sessionDatesForRange,
 } from './calendar.js';
 import { bridgePath, gaussian, historyAtTimes, rngFor } from './seed.js';
-import { SEED_ASSETS, SNAPSHOT } from './universe.js';
-import { KR_SEED_ASSETS, KRW_PER_USD } from './universe.kr.js';
+import { SEED_ASSETS, SNAPSHOT, US_PREV_ASOF_ISO } from './universe.js';
+import { KR_PREV_ASOF_ISO, KR_SEED_ASSETS, KRW_PER_USD } from './universe.kr.js';
 import type { DataProvenance, RemoteCandle, RemoteQuotePatch } from '../shared/api.js';
 import type { MarketRegion } from './region.js';
 import type {
@@ -59,16 +63,25 @@ type BatchListener = (batch: MarketBatch) => void;
 const SPARK_POINTS = 80;
 const EMPTY_QUOTES: readonly Quote[] = Object.freeze([]);
 const EMPTY_CANDLES: readonly CandlePoint[] = Object.freeze([]);
-const EQUITY_AS_OF_TS = Math.floor(new Date(SNAPSHOT.asOfISO).getTime() / 1000);
-const KR_EQUITY_AS_OF_TS = Math.floor(new Date(SNAPSHOT.krAsOfISO).getTime() / 1000);
+// Fallback anchors for rows with no per-row `asOfISO` override — the *previous* verified close
+// per region, not `SNAPSHOT.asOfISO`/`krAsOfISO` (see the class doc comment above for why).
+const EQUITY_AS_OF_TS = Math.floor(new Date(US_PREV_ASOF_ISO).getTime() / 1000);
+const KR_EQUITY_AS_OF_TS = Math.floor(new Date(KR_PREV_ASOF_ISO).getTime() / 1000);
 const CRYPTO_AS_OF_TS = Math.floor(new Date(SNAPSHOT.cryptoAsOfISO).getTime() / 1000);
 
-/** Korean equities were captured a session after the US anchor (see universe.kr.ts) — route non-crypto quotes through the right as-of by region rather than always assuming the US close. */
-function equityAsOfISO(region: MarketRegion): string {
-  return region === 'KR' ? SNAPSHOT.krAsOfISO : SNAPSHOT.asOfISO;
+/**
+ * Korean equities were captured a session after the US anchor (see universe.kr.ts) — route
+ * non-crypto quotes through the right as-of by region rather than always assuming the US close.
+ * `override` is a seed row's own `asOfISO` (set for rows refreshed independently of the bulk
+ * region capture); when present it wins outright, regardless of region.
+ */
+function equityAsOfISO(region: MarketRegion, override?: string): string {
+  if (override) return override;
+  return region === 'KR' ? KR_PREV_ASOF_ISO : US_PREV_ASOF_ISO;
 }
 
-function equityAsOfTs(region: MarketRegion): number {
+function equityAsOfTs(region: MarketRegion, override?: string): number {
+  if (override) return Math.floor(new Date(override).getTime() / 1000);
   return region === 'KR' ? KR_EQUITY_AS_OF_TS : EQUITY_AS_OF_TS;
 }
 
@@ -145,10 +158,16 @@ function buildQuote(seed: (typeof SEED_ASSETS)[number]): Quote {
         ? 0
         : Math.round(1e5 + volumeRng() * 9e5);
 
+  // Crypto ignores per-row overrides today (no crypto row carries one — see universe.ts's
+  // `cryptoAsset`), but resolving it the same way as equities keeps this one call site correct
+  // if that ever changes, rather than needing a second branch to remember to update.
+  const quoteAsOfISO =
+    seed.kind === 'crypto' ? (seed.asOfISO ?? SNAPSHOT.cryptoAsOfISO) : equityAsOfISO(seed.region, seed.asOfISO);
+
   const activeSession: QuoteSessionSnapshot = {
     kind: seed.kind === 'crypto' ? 'continuous' : 'regular',
     status: seed.kind === 'crypto' ? 'open' : 'closed',
-    asOfISO: seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : equityAsOfISO(seed.region),
+    asOfISO: quoteAsOfISO,
     price: seed.price,
     volume,
     high,
@@ -167,7 +186,7 @@ function buildQuote(seed: (typeof SEED_ASSETS)[number]): Quote {
     open,
     spark,
     seq: 0,
-    provenance: localProvenance(seed.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : equityAsOfISO(seed.region)),
+    provenance: localProvenance(quoteAsOfISO),
     sessions:
       seed.kind === 'crypto'
         ? { continuous: activeSession }
@@ -376,9 +395,15 @@ export class MarketEngine {
     if (!quote) return EMPTY_CANDLES;
 
     const calendar = calendarForAsset(quote.kind, quote.region);
-    const asOfISO = quote.kind === 'crypto' ? SNAPSHOT.cryptoAsOfISO : equityAsOfISO(quote.region);
+    const asOfISO =
+      quote.kind === 'crypto' ? (quote.asOfISO ?? SNAPSHOT.cryptoAsOfISO) : equityAsOfISO(quote.region, quote.asOfISO);
     const endDateISO = asOfISO.slice(0, 10);
-    const endTimestamp = quote.kind === 'crypto' ? CRYPTO_AS_OF_TS : equityAsOfTs(quote.region);
+    const endTimestamp =
+      quote.kind === 'crypto'
+        ? quote.asOfISO
+          ? Math.floor(new Date(quote.asOfISO).getTime() / 1000)
+          : CRYPTO_AS_OF_TS
+        : equityAsOfTs(quote.region, quote.asOfISO);
     let candles: CandlePoint[];
 
     if (range === '1D' || range === '5D' || range === '7D') {

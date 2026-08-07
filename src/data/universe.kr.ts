@@ -18,12 +18,25 @@
    FX benchmarks are the same 2026-08-05 KRX session close; no separate field
    was needed for them since every source agreed on that same trading day.
 
+   2026-08-07 partial refresh (`.superpowers/refresh-2026-08-07-kr.md`): 18 of
+   the 20 priority stocks plus all five index/FX benchmarks were re-verified
+   against a settled 2026-08-07 15:30 KST close and now carry their own
+   row-level `asOfISO` (`KR_ASOF_ISO`, below — equal to the bumped
+   `SNAPSHOT.krAsOfISO`). Kakao (035720) and NAVER (035420) were deliberately
+   left at their 2026-08-05 figures — see the inline comments on those rows.
+   Every other row in this file is still the original 2026-08-05 capture;
+   `KR_PREV_ASOF_ISO` is what engine.ts falls back to for those, so bumping
+   `SNAPSHOT.krAsOfISO` forward doesn't relabel them as 08-07 data they
+   aren't.
+
    Row-tuple shape mirrors `universe.ts`'s `StockRow`:
-     [code, name, nameKo, sectorId, marketCapTrillionKrw, priceKrw, dayChangePct]
+     [code, name, nameKo, sectorId, marketCapTrillionKrw, priceKrw, dayChangePct, asOfISO?]
    `marketCapTrillionKrw` is trillions of KRW (조원) — the KR analogue of the
    US rows' `capB` ($B) column, and the number a human can check against a
    Korean quote page. `price` stays in raw KRW (`unit: 'KRW'` — display
-   renders it natively via `fmtKrw`/`fmtKrwCompact`).
+   renders it natively via `fmtKrw`/`fmtKrwCompact`). No won market-cap
+   figures were found in the 08-07 research, so `marketCapTrillionKrw` is
+   unchanged for every row, refreshed or not.
 
    `AssetMeta.marketCap`, however, is documented in types.ts as USD and is
    compared across the whole engine (heatmap weighting, movers, search
@@ -47,14 +60,26 @@ import type { SeedAsset } from './universe.js';
  */
 export const KRW_PER_USD = 1_392.5;
 
-/** [code, name, nameKo, sectorId, marketCapTrillionKrw, priceKrw, dayChangePct] */
-type KrStockRow = [string, string, string, SectorId, number, number, number];
+/**
+ * 2026-08-07 seed refresh (see `.superpowers/refresh-2026-08-07-kr.md`). KRX closed normally
+ * at 15:30 KST that Friday — one session after this file's original 2026-08-05 anchor, not
+ * the same day as the US refresh below (US markets hadn't closed 08-07 yet when researched;
+ * see `US_ASOF_ISO` in universe.ts). `KR_ASOF_ISO` is the override value for rows the research
+ * corroborated to a settled close; `KR_PREV_ASOF_ISO` is what engine.ts falls back to for every
+ * KR row this pass did NOT touch, so bumping `SNAPSHOT.krAsOfISO` forward doesn't silently
+ * claim the new close for rows still priced as of the old one.
+ */
+export const KR_ASOF_ISO = '2026-08-07T15:30:00+09:00';
+export const KR_PREV_ASOF_ISO = '2026-08-05T15:30:00+09:00';
+
+/** [code, name, nameKo, sectorId, marketCapTrillionKrw, priceKrw, dayChangePct, asOfISO?] */
+type KrStockRow = [string, string, string, SectorId, number, number, number, string?];
 
 export const KR_STOCKS: KrStockRow[] = [
   // ---------- 기술 ----------
-  ['005930', 'Samsung Electronics Co., Ltd.', '삼성전자', 'tech', 1568.32, 246000, 2.5],
-  ['000660', 'SK hynix Inc.', 'SK하이닉스', 'tech', 1215.75, 1668000, 5.77],
-  ['402340', 'SK Square Co., Ltd.', 'SK스퀘어', 'tech', 147.36, 1119000, 5.57],
+  ['005930', 'Samsung Electronics Co., Ltd.', '삼성전자', 'tech', 1568.32, 231000, 0.22, KR_ASOF_ISO],
+  ['000660', 'SK hynix Inc.', 'SK하이닉스', 'tech', 1215.75, 1422000, -4.88, KR_ASOF_ISO],
+  ['402340', 'SK Square Co., Ltd.', 'SK스퀘어', 'tech', 147.36, 939000, -3.2, KR_ASOF_ISO],
   ['009150', 'Samsung Electro-Mechanics Co., Ltd.', '삼성전기', 'tech', 99.92, 1356000, 14.43],
   ['066570', 'LG Electronics Inc.', 'LG전자', 'tech', 30.29, 179500, 8.46],
   ['042700', 'Hanmi Semiconductor Co., Ltd.', '한미반도체', 'tech', 19.82, 209000, 2.96],
@@ -70,9 +95,10 @@ export const KR_STOCKS: KrStockRow[] = [
   ['489790', 'Hanwha Vision Co., Ltd.', '한화비전', 'tech', 2.47, 49000, 9.62],
 
   // ---------- 커뮤니케이션 서비스 ----------
-  ['035420', 'NAVER Corporation', '네이버', 'comm', 34.26, 229000, 1.1],
+  ['035420', 'NAVER Corporation', '네이버', 'comm', 34.26, 229000, 1.1], // NOT refreshed — 08-07 research found an unexplained -7.08% single-sourced move with no same-day story; a large unexplained move is the shape of a bad datum, so the row was left alone (see refresh-2026-08-07-kr.md §3)
   ['017670', 'SK Telecom Co., Ltd.', 'SK텔레콤', 'comm', 19.81, 93000, 1.75],
-  ['035720', 'Kakao Corp.', '카카오', 'comm', 16.81, 38150, 0.66],
+  ['035720', 'Kakao Corp.', '카카오', 'comm', 16.81, 38150, 0.66], // NOT refreshed — 08-07 quote falls inside the 시간외단일가 auction window (16:00-18:00 KST), not verified equal to the 15:30 close; see refresh-2026-08-07-kr.md §3
+
   ['030200', 'KT Corporation', 'KT', 'comm', 12.66, 52500, 0.38],
   ['259960', 'KRAFTON, Inc.', '크래프톤', 'comm', 10.04, 229000, -3.78],
   ['032640', 'LG Uplus Corp.', 'LG유플러스', 'comm', 6.33, 14920, -0.07],
@@ -80,10 +106,10 @@ export const KR_STOCKS: KrStockRow[] = [
   ['251270', 'Netmarble Corporation', '넷마블', 'comm', 3.11, 37950, -3.44],
 
   // ---------- 금융 서비스 ----------
-  ['105560', 'KB Financial Group Inc.', 'KB금융', 'fin', 59.87, 169500, 1.13],
+  ['105560', 'KB Financial Group Inc.', 'KB금융', 'fin', 59.87, 175800, 2.51, KR_ASOF_ISO],
   ['032830', 'Samsung Life Insurance Co., Ltd.', '삼성생명', 'fin', 52.79, 294000, 5.76],
-  ['055550', 'Shinhan Financial Group Co., Ltd.', '신한지주', 'fin', 49.17, 103600, 1.27],
-  ['086790', 'Hana Financial Group Inc.', '하나금융지주', 'fin', 34.4, 128600, 0.78],
+  ['055550', 'Shinhan Financial Group Co., Ltd.', '신한지주', 'fin', 49.17, 110000, 2.42, KR_ASOF_ISO],
+  ['086790', 'Hana Financial Group Inc.', '하나금융지주', 'fin', 34.4, 134700, 1.05, KR_ASOF_ISO],
   ['000810', 'Samsung Fire & Marine Insurance Co., Ltd.', '삼성화재', 'fin', 25.74, 637000, 2.74],
   ['316140', 'Woori Financial Group Inc.', '우리금융지주', 'fin', 24.38, 33350, 0.45],
   ['138040', 'Meritz Financial Group Inc.', '메리츠금융지주', 'fin', 19.65, 120400, 0.75],
@@ -107,8 +133,8 @@ export const KR_STOCKS: KrStockRow[] = [
   ['085620', 'Mirae Asset Life Insurance Co., Ltd.', '미래에셋생명', 'fin', 2.03, 16830, 10.87],
 
   // ---------- 경기소비재 ----------
-  ['005380', 'Hyundai Motor Company', '현대자동차', 'cons-cyc', 94.11, 404500, 3.06],
-  ['000270', 'Kia Corporation', '기아', 'cons-cyc', 50.36, 133000, 2.62],
+  ['005380', 'Hyundai Motor Company', '현대자동차', 'cons-cyc', 94.11, 395500, -1.12, KR_ASOF_ISO],
+  ['000270', 'Kia Corporation', '기아', 'cons-cyc', 50.36, 134900, 0.97, KR_ASOF_ISO],
   ['012330', 'Hyundai Mobis Co., Ltd.', '현대모비스', 'cons-cyc', 44.86, 503000, 4.47],
   ['021240', 'COWAY Co., Ltd.', '코웨이', 'cons-cyc', 6.51, 92400, -2.01],
   ['004170', 'Shinsegae Co., Ltd.', '신세계', 'cons-cyc', 3.77, 430000, 1.06],
@@ -150,12 +176,12 @@ export const KR_STOCKS: KrStockRow[] = [
   ['078930', 'GS Holdings Corp.', 'GS', 'energy', 8.93, 95500, -1.44],
 
   // ---------- 산업재 ----------
-  ['373220', 'LG Energy Solution, Ltd.', 'LG에너지솔루션', 'industrials', 78.51, 335500, 2.13],
-  ['028260', 'Samsung C&T Corporation', '삼성물산', 'industrials', 55.55, 347500, 7.75],
-  ['329180', 'HD Hyundai Heavy Industries Co., Ltd.', 'HD현대중공업', 'industrials', 53.41, 509000, 5.38],
-  ['012450', 'Hanwha Aerospace Co., Ltd.', '한화에어로스페이스', 'industrials', 51.65, 1007000, 0.3],
-  ['034020', 'Doosan Enerbility Co., Ltd.', '두산에너빌리티', 'industrials', 49.32, 77000, 5.48],
-  ['006400', 'Samsung SDI Co., Ltd.', '삼성SDI', 'industrials', 32.67, 429000, 2.26],
+  ['373220', 'LG Energy Solution, Ltd.', 'LG에너지솔루션', 'industrials', 78.51, 360000, 4.35, KR_ASOF_ISO],
+  ['028260', 'Samsung C&T Corporation', '삼성물산', 'industrials', 55.55, 336500, 0.75, KR_ASOF_ISO],
+  ['329180', 'HD Hyundai Heavy Industries Co., Ltd.', 'HD현대중공업', 'industrials', 53.41, 506000, -0.2, KR_ASOF_ISO],
+  ['012450', 'Hanwha Aerospace Co., Ltd.', '한화에어로스페이스', 'industrials', 51.65, 1097000, 4.08, KR_ASOF_ISO],
+  ['034020', 'Doosan Enerbility Co., Ltd.', '두산에너빌리티', 'industrials', 49.32, 77100, 0.92, KR_ASOF_ISO],
+  ['006400', 'Samsung SDI Co., Ltd.', '삼성SDI', 'industrials', 32.67, 459000, 7.49, KR_ASOF_ISO],
   ['010120', 'LS ELECTRIC Co., Ltd.', 'LS일렉트릭', 'industrials', 31.52, 212000, 7.61],
   ['034730', 'SK Inc.', 'SK(주)', 'industrials', 30.64, 562000, 8.49],
   ['042660', 'Hanwha Ocean Co., Ltd.', '한화오션', 'industrials', 28.15, 91900, 5.03],
@@ -200,8 +226,8 @@ export const KR_STOCKS: KrStockRow[] = [
   ['071970', 'HD Hyundai Marine Engine Co., Ltd.', 'HD현대마린엔진', 'industrials', 2.01, 59200, 12.55],
 
   // ---------- 의료 ----------
-  ['207940', 'Samsung Biologics Co.,Ltd.', '삼성바이오로직스', 'healthcare', 69.02, 1491000, 1.02],
-  ['068270', 'Celltrion, Inc.', '셀트리온', 'healthcare', 43.64, 190300, 2.42],
+  ['207940', 'Samsung Biologics Co.,Ltd.', '삼성바이오로직스', 'healthcare', 69.02, 1556000, 2.77, KR_ASOF_ISO],
+  ['068270', 'Celltrion, Inc.', '셀트리온', 'healthcare', 43.64, 199300, 2.21, KR_ASOF_ISO],
   ['326030', 'SK Biopharmaceuticals Co., Ltd.', 'SK바이오팜', 'healthcare', 6.42, 82000, 2.76],
   ['000100', 'Yuhan Corporation', '유한양행', 'healthcare', 5.6, 75100, 0.4],
   ['128940', 'Hanmi Pharm. Co., Ltd.', '한미약품', 'healthcare', 4.82, 380000, 0.53],
@@ -210,9 +236,9 @@ export const KR_STOCKS: KrStockRow[] = [
   ['008930', 'Hanmi Science Co., Ltd.', '한미사이언스', 'healthcare', 2.65, 39900, 1.79],
 
   // ---------- 기초 소재 ----------
-  ['005490', 'POSCO Holdings Inc.', 'POSCO홀딩스', 'materials', 23.97, 317000, 1.28],
+  ['005490', 'POSCO Holdings Inc.', 'POSCO홀딩스', 'materials', 23.97, 331000, 3.76, KR_ASOF_ISO],
   ['010130', 'Korea Zinc Co., Ltd.', '고려아연', 'materials', 22.33, 1095000, 4.89],
-  ['051910', 'LG Chem, Ltd.', 'LG화학', 'materials', 18.97, 255500, -0.39],
+  ['051910', 'LG Chem, Ltd.', 'LG화학', 'materials', 18.97, 276000, 5.75, KR_ASOF_ISO],
   ['003670', 'POSCO Future M Co., Ltd.', '포스코퓨처엠', 'materials', 12.7, 146200, 2.38],
   ['047050', 'POSCO International Corporation', '포스코인터내셔널', 'materials', 9.2, 54400, 0.74],
   ['009830', 'Hanwha Solutions Corporation', '한화솔루션', 'materials', 5.15, 30150, 12.5],
@@ -231,7 +257,7 @@ export const KR_STOCKS: KrStockRow[] = [
   ['036460', 'Korea Gas Corporation', '한국가스공사', 'utilities', 2.96, 33950, -0.44],
 ];
 
-function krStockAsset([code, name, nameKo, sectorId, capT, price, changePct]: KrStockRow): SeedAsset {
+function krStockAsset([code, name, nameKo, sectorId, capT, price, changePct, asOfISO]: KrStockRow): SeedAsset {
   return {
     symbol: code,
     name,
@@ -246,6 +272,7 @@ function krStockAsset([code, name, nameKo, sectorId, capT, price, changePct]: Kr
     marketCap: (capT * 1e12) / KRW_PER_USD,
     price,
     changePct,
+    asOfISO,
     logoBg: '#20808d',
     logoText: nameKo.slice(0, 1),
   };
@@ -255,17 +282,17 @@ function krStockAsset([code, name, nameKo, sectorId, capT, price, changePct]: Kr
  * [symbol, name, nameKo, price/level, dayChangePct, unit] — market benchmarks.
  * Indices carry `unit: 'POINTS'`; the USD/KRW row carries `unit: 'KRW'`.
  */
-type KrIndexRow = [string, string, string, number, number, InstrumentUnit];
+type KrIndexRow = [string, string, string, number, number, InstrumentUnit, string?];
 
 export const KR_INDICES: KrIndexRow[] = [
-  ['^KOSPI', 'KOSPI', '코스피', 6598.26, 3.76, 'POINTS'],
-  ['^KOSDAQ', 'KOSDAQ', '코스닥', 799.59, 2.42, 'POINTS'],
-  ['^KOSPI200', 'KOSPI 200', '코스피200', 1038.59, 3.86, 'POINTS'],
-  ['USDKRW', 'US Dollar / Korean Won', '달러/원', 1423.05, -0.45, 'KRW'],
-  ['^VKOSPI', 'KOSPI Volatility Index', 'VKOSPI', 78.55, -4.27, 'POINTS'],
+  ['^KOSPI', 'KOSPI', '코스피', 6258.77, -0.6, 'POINTS', KR_ASOF_ISO],
+  ['^KOSDAQ', 'KOSDAQ', '코스닥', 798.81, -0.36, 'POINTS', KR_ASOF_ISO],
+  ['^KOSPI200', 'KOSPI 200', '코스피200', 974.73, -0.83, 'POINTS', KR_ASOF_ISO],
+  ['USDKRW', 'US Dollar / Korean Won', '달러/원', 1416.1, -0.54, 'KRW', KR_ASOF_ISO],
+  ['^VKOSPI', 'KOSPI Volatility Index', 'VKOSPI', 75.59, -2.05, 'POINTS', KR_ASOF_ISO],
 ];
 
-function krIndexAsset([symbol, name, nameKo, price, changePct, unit]: KrIndexRow): SeedAsset {
+function krIndexAsset([symbol, name, nameKo, price, changePct, unit, asOfISO]: KrIndexRow): SeedAsset {
   const kind: AssetKind = 'index';
   return {
     symbol,
@@ -277,6 +304,7 @@ function krIndexAsset([symbol, name, nameKo, price, changePct, unit]: KrIndexRow
     region: 'KR',
     price,
     changePct,
+    asOfISO,
     logoBg: '#20808d',
     logoText: nameKo.slice(0, 1),
   };

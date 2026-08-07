@@ -257,6 +257,12 @@ function main(): void {
     contrast: failures.some((f) => f.startsWith('contrast')) ? 'FAIL' : 'PASS',
     literals: violations,
     callsiteContrast: failures.some((f) => f.startsWith('callsite-contrast')) ? 'FAIL' : 'PASS',
+    // PASS means only this: no literal `color` beside a same-rule `background: var(--token)`
+    // fell below 4.5:1. It cannot see a JS-set background (e.g. a `bg ?? 'var(--x)'` prop), a
+    // color-mix()/gradient background, or a pairing split across a base rule and its :hover.
+    callsiteContrastScope:
+      'static CSS var()-background + literal-color pairs only — misses JS-set backgrounds, ' +
+      'color-mix()/gradient backgrounds, and base/:hover-split pairs',
     reducedMotion: failures.some((f) => f.startsWith('motion')) ? 'FAIL' : 'PASS',
     result: failures.length === 0 ? 'PASS' : 'FAIL',
   };

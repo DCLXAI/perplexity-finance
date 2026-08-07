@@ -46,6 +46,15 @@ export interface AssetMeta {
   readonly marketCap?: number;
   readonly logoBg?: string;
   readonly logoText?: string;
+  /**
+   * Per-row as-of override for a seed row refreshed independently of its region's bulk
+   * snapshot (see `SNAPSHOT.asOfISO`/`krAsOfISO` in universe.ts). Absent means "inherits the
+   * region's default as-of" — engine.ts's `equityAsOfISO`/`equityAsOfTs` resolve that fallback.
+   * Exists so moving `SNAPSHOT.asOfISO` forward to a newly-verified close doesn't silently
+   * relabel the many rows this pass didn't re-verify as sharing that same close (the defect
+   * P11 fixed for KR-vs-US rows, reintroduced here per-row instead of per-region).
+   */
+  readonly asOfISO?: string;
 }
 
 /**

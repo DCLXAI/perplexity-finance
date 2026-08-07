@@ -20,10 +20,34 @@
    labels everything driven by it as `DEMO · 합성 시세`. Nothing here is
    ever promoted to `verified` — see the provenance rules in
    ARCHITECTURE.md.
+
+   2026-08-07 partial refresh (`.superpowers/refresh-2026-08-07-us.md`): 21 of
+   the ~187 US rows below (8 individually-verified mega-caps plus 13 more
+   matched exactly against a second table snapshot) and 3 of the macro rows
+   (^GSPC, ^IXIC, ^DJI) were re-verified against a settled Thursday
+   2026-08-06 close and now carry their own row-level `asOfISO` (see
+   `US_ASOF_ISO` above). Every other row is still the original 2026-08-04
+   capture — `US_PREV_ASOF_ISO` is what engine.ts falls back to for those.
+   Crypto was not touched in this pass (no full-batch recapture; see
+   `SNAPSHOT.cryptoAsOfISO`'s comment below).
    ============================================================ */
 import type { AssetKind, AssetMeta, SectorId, SectorInfo } from './types.js';
 import type { MarketRegion } from './region.js';
-import { KR_SECTORS } from './universe.kr.js';
+import { KR_ASOF_ISO, KR_SECTORS } from './universe.kr.js';
+
+/**
+ * 2026-08-07 partial refresh (`.superpowers/refresh-2026-08-07-us.md`). The US session had not
+ * closed Friday 08-07 when the research ran — every settled close found was Thursday 2026-08-06,
+ * 16:00 EDT — so `US_ASOF_ISO` is that Thursday close, not the Friday the refresh was run on.
+ * Rows the research corroborated to that close carry this literal as their row-level `asOfISO`
+ * override (see `AssetMeta.asOfISO` in types.ts); it's also `SNAPSHOT.asOfISO` below, so the two
+ * stay identical by construction rather than by two independently-typed literals drifting apart.
+ * `US_PREV_ASOF_ISO` is the previous 2026-08-04 close — what engine.ts falls back to for every US
+ * row this pass did NOT re-verify, so bumping `SNAPSHOT.asOfISO` forward doesn't relabel the
+ * ~85% of the US universe still priced as of the old close.
+ */
+export const US_ASOF_ISO = '2026-08-06T16:00:00-04:00';
+export const US_PREV_ASOF_ISO = '2026-08-04T16:00:00-04:00';
 
 /** US sector index levels (renamed from `SECTORS`; see `SECTORS_BY_REGION`). */
 export const US_SECTORS: SectorInfo[] = [
@@ -53,21 +77,21 @@ export const SECTORS_BY_REGION: Readonly<Record<MarketRegion, readonly SectorInf
     KR: KR_SECTORS,
   });
 
-/** [symbol, name, nameKo, sector, marketCap($B), price, dayChangePct] */
-type StockRow = [string, string, string, SectorId, number, number, number];
+/** [symbol, name, nameKo, sector, marketCap($B), price, dayChangePct, asOfISO?] */
+type StockRow = [string, string, string, SectorId, number, number, number, string?];
 
 const STOCKS: StockRow[] = [
   // ---------- 기술 ----------
-  ['NVDA', 'NVIDIA Corporation', '엔비디아', 'tech', 5130, 211.94, 2.56],
-  ['MSFT', 'Microsoft Corporation', '마이크로소프트', 'tech', 3660, 492.81, 1.06],
-  ['AAPL', 'Apple Inc.', '애플', 'tech', 4520, 309.38, 1.96],
-  ['AVGO', 'Broadcom Inc.', '브로드컴', 'tech', 1990, 418.16, 6.61],
-  ['MU', 'Micron Technology, Inc.', '마이크론', 'tech', 1010, 892.67, 7.62],
-  ['AMD', 'Advanced Micro Devices, Inc.', 'AMD', 'tech', 846, 518.58, 7.0],
-  ['ORCL', 'Oracle Corporation', '오라클', 'tech', 420, 145.74, 2.74],
+  ['NVDA', 'NVIDIA Corporation', '엔비디아', 'tech', 5300, 218.99, -0.1, US_ASOF_ISO],
+  ['MSFT', 'Microsoft Corporation', '마이크로소프트', 'tech', 3710, 499.86, 2.54, US_ASOF_ISO],
+  ['AAPL', 'Apple Inc.', '애플', 'tech', 4560, 312.41, 0.45, US_ASOF_ISO],
+  ['AVGO', 'Broadcom Inc.', '브로드컴', 'tech', 2000, 420.57, 0.55, US_ASOF_ISO],
+  ['MU', 'Micron Technology, Inc.', '마이크론', 'tech', 995.53, 881.47, -1.31, US_ASOF_ISO],
+  ['AMD', 'Advanced Micro Devices, Inc.', 'AMD', 'tech', 798.74, 489.28, 1.5, US_ASOF_ISO],
+  ['ORCL', 'Oracle Corporation', '오라클', 'tech', 413.26, 143.47, -0.64, US_ASOF_ISO],
   ['PLTR', 'Palantir Technologies Inc.', '팔란티어', 'tech', 391, 162.66, 29.45],
   ['HYNX', 'SK Hynix Inc. (ADR)', 'SK하이닉스', 'tech', 805, 154.38, 8.17],
-  ['INTC', 'Intel Corporation', '인텔', 'tech', 509, 100.86, 10.84],
+  ['INTC', 'Intel Corporation', '인텔', 'tech', 503.44, 99.81, -1.24, US_ASOF_ISO],
   ['IBM', 'International Business Machines', 'IBM', 'tech', 222, 235.15, 3.91],
   ['CSCO', 'Cisco Systems, Inc.', '시스코', 'tech', 480, 121.74, 5.08],
   ['CRM', 'Salesforce, Inc.', '세일즈포스', 'tech', 156, 190.99, 2.71],
@@ -101,8 +125,8 @@ const STOCKS: StockRow[] = [
   ['DOCN', 'DigitalOcean Holdings, Inc.', '디지털오션', 'tech', 15, 128.89, 1.35],
 
   // ---------- 커뮤니케이션 서비스 ----------
-  ['GOOGL', 'Alphabet Inc.', '알파벳', 'comm', 4620, 377.65, 1.11],
-  ['META', 'Meta Platforms, Inc.', '메타 플랫폼스', 'comm', 1500, 587.94, -0.39],
+  ['GOOGL', 'Alphabet Inc.', '알파벳', 'comm', 4380, 357.75, -1.29, US_ASOF_ISO],
+  ['META', 'Meta Platforms, Inc.', '메타 플랫폼스', 'comm', 1500, 589.9, 0.19, US_ASOF_ISO],
   ['NFLX', 'Netflix, Inc.', '넷플릭스', 'comm', 306, 73.57, 0.33],
   ['TMUS', 'T-Mobile US, Inc.', 'T모바일', 'comm', 190, 177.21, 0.07],
   ['DIS', 'The Walt Disney Company', '디즈니', 'comm', 170, 98.18, 0.04],
@@ -113,8 +137,8 @@ const STOCKS: StockRow[] = [
   ['RBLX', 'Roblox Corporation', '로블록스', 'comm', 26, 37.0, 0.9],
 
   // ---------- 경기소비재 ----------
-  ['AMZN', 'Amazon.com, Inc.', '아마존', 'cons-cyc', 2990, 277.42, -2.32],
-  ['TSLA', 'Tesla, Inc.', '테슬라', 'cons-cyc', 1290, 327.35, 1.64],
+  ['AMZN', 'Amazon.com, Inc.', '아마존', 'cons-cyc', 2940, 272.26, -0.14, US_ASOF_ISO],
+  ['TSLA', 'Tesla, Inc.', '테슬라', 'cons-cyc', 1260, 319.53, -0.63, US_ASOF_ISO],
   ['HD', 'The Home Depot, Inc.', '홈디포', 'cons-cyc', 347, 348.24, 2.42],
   ['MCD', "McDonald's Corporation", '맥도날드', 'cons-cyc', 191, 268.34, 1.17],
   ['BKNG', 'Booking Holdings Inc.', '부킹 홀딩스', 'cons-cyc', 151, 194.27, 0.81],
@@ -133,8 +157,8 @@ const STOCKS: StockRow[] = [
   ['PLBL', 'Polibeli Group Ltd', '폴리벨리 그룹', 'cons-cyc', 2.21, 6.02, -5.79],
 
   // ---------- 필수소비재 ----------
-  ['WMT', 'Walmart Inc.', '월마트', 'cons-def', 888, 111.55, 0.76],
-  ['COST', 'Costco Wholesale Corporation', '코스트코', 'cons-def', 420, 947.85, -0.65],
+  ['WMT', 'Walmart Inc.', '월마트', 'cons-def', 891.86, 112.07, -0.24, US_ASOF_ISO],
+  ['COST', 'Costco Wholesale Corporation', '코스트코', 'cons-def', 420.93, 949.15, 0.76, US_ASOF_ISO],
   ['PG', 'The Procter & Gamble Company', 'P&G', 'cons-def', 345, 148.01, 2.1],
   ['KO', 'The Coca-Cola Company', '코카콜라', 'cons-def', 372, 86.56, -0.35],
   ['PM', 'Philip Morris International', '필립모리스', 'cons-def', 291, 186.91, -0.27],
@@ -146,10 +170,10 @@ const STOCKS: StockRow[] = [
   ['KMB', 'Kimberly-Clark Corporation', '킴벌리클라크', 'cons-def', 37, 111.57, 3.73],
 
   // ---------- 금융 서비스 ----------
-  ['BRK-B', 'Berkshire Hathaway Inc.', '버크셔 해서웨이', 'fin', 1110, 517.22, 0.8],
-  ['JPM', 'JPMorgan Chase & Co.', 'JP모건', 'fin', 950, 357.52, 1.38],
-  ['V', 'Visa Inc.', '비자', 'fin', 678, 369.59, 1.07],
-  ['MA', 'Mastercard Incorporated', '마스터카드', 'fin', 500, 571.1, 0.02],
+  ['BRK-B', 'Berkshire Hathaway Inc.', '버크셔 해서웨이', 'fin', 1130, 524.61, 1.11, US_ASOF_ISO],
+  ['JPM', 'JPMorgan Chase & Co.', 'JP모건', 'fin', 947.12, 356.3, -0.82, US_ASOF_ISO],
+  ['V', 'Visa Inc.', '비자', 'fin', 680.04, 370.47, 0.52, US_ASOF_ISO],
+  ['MA', 'Mastercard Incorporated', '마스터카드', 'fin', 504.54, 575.95, 0.96, US_ASOF_ISO],
   ['BAC', 'Bank of America Corporation', '뱅크오브아메리카', 'fin', 440, 62.9, 0.67],
   ['WFC', 'Wells Fargo & Company', '웰스파고', 'fin', 267, 88.39, 0.57],
   ['AXP', 'American Express Company', '아메리칸 익스프레스', 'fin', 234, 346.71, 0.58],
@@ -171,8 +195,8 @@ const STOCKS: StockRow[] = [
   ['RF', 'Regions Financial Corporation', '리전스 파이낸셜', 'fin', 27, 31.95, 1.49],
 
   // ---------- 의료 ----------
-  ['LLY', 'Eli Lilly and Company', '일라이 릴리', 'healthcare', 995, 1115.68, -0.51],
-  ['JNJ', 'Johnson & Johnson', '존슨앤드존슨', 'healthcare', 614, 254.93, 0.2],
+  ['LLY', 'Eli Lilly and Company', '일라이 릴리', 'healthcare', 1060, 1191.94, 1.89, US_ASOF_ISO],
+  ['JNJ', 'Johnson & Johnson', '존슨앤드존슨', 'healthcare', 619.3, 256.98, -0.24, US_ASOF_ISO],
   ['UNH', 'UnitedHealth Group Incorporated', '유나이티드헬스', 'healthcare', 370, 407.55, -1.88],
   ['ABBV', 'AbbVie Inc.', '애브비', 'healthcare', 431, 243.8, -0.53],
   ['MRK', 'Merck & Co., Inc.', '머크', 'healthcare', 316, 128.0, 0.18],
@@ -196,7 +220,7 @@ const STOCKS: StockRow[] = [
   ['MRNA', 'Moderna, Inc.', '모더나', 'healthcare', 23, 56.99, 3.36],
 
   // ---------- 에너지 ----------
-  ['XOM', 'Exxon Mobil Corporation', '엑슨모빌', 'energy', 633, 153.96, -0.71],
+  ['XOM', 'Exxon Mobil Corporation', '엑슨모빌', 'energy', 636.69, 154.84, 2.12, US_ASOF_ISO],
   ['CVX', 'Chevron Corporation', '셰브론', 'energy', 374, 190.4, -1.44],
   ['COP', 'ConocoPhillips', '코노코필립스', 'energy', 144, 117.94, -1.02],
   ['WMB', 'The Williams Companies, Inc.', '윌리엄스', 'energy', 87, 71.51, 1.53],
@@ -267,8 +291,8 @@ const STOCKS: StockRow[] = [
   ['CCI', 'Crown Castle Inc.', '크라운 캐슬', 'realestate', 33, 77.66, 1.2],
 ];
 
-/** [symbol, name, nameKo, price, changePct, kindLabel] — indices/futures/macro */
-type MacroRow = [string, string, string, number, number, string];
+/** [symbol, name, nameKo, price, changePct, kindLabel, asOfISO?] — indices/futures/macro */
+type MacroRow = [string, string, string, number, number, string, string?];
 
 const MACRO: MacroRow[] = [
   // Futures levels are DERIVED, not captured: each carries the ~+0.5% basis over its own
@@ -277,13 +301,21 @@ const MACRO: MacroRow[] = [
   // ES level would have put S&P futures 1.5% BELOW an index that had just closed, which no
   // reader would believe. The change percentages are left alone — a futures move measured
   // from prior settle legitimately differs from the cash session's change.
+  //
+  // 2026-08-07 refresh: ^GSPC/^IXIC/^DJI below moved to a newer, settled 2026-08-06 close
+  // (`.superpowers/refresh-2026-08-07-us.md`), but ES=F/NQ=F/YM=F were NOT re-derived this
+  // time — the research found no corroborated futures print for any session, and futures
+  // rows carry no `asOfISO` override, so they still read as the 2026-08-04-vintage basis
+  // documented above. That basis is now a little more visibly stale (ES sits further above
+  // the new S&P close than the intended ~0.5%) but a fabricated re-derivation would be worse
+  // than an honest, unlabeled stale row — the futures rows simply weren't touched.
   ['ES=F', 'S&P Futures', 'S&P 선물', 7775.68, 0.42, 'CME'],
   ['NQ=F', 'NASDAQ Fut.', '나스닥 선물', 30032.25, 0.32, 'CME'],
   ['YM=F', 'Dow Futures', '다우 선물', 54356.43, 0.27, 'CBOT'],
   ['^VIX', 'VIX', 'VIX 변동성지수', 15.86, -0.8, 'CBOE'],
-  ['^GSPC', 'S&P 500', 'S&P 500', 7737.0, 1.79, 'INDEX'],
-  ['^IXIC', 'NASDAQ Composite', '나스닥 종합', 29856.11, 0.29, 'INDEX'],
-  ['^DJI', 'Dow Jones Industrial', '다우존스 산업평균', 54086.0, 1.71, 'INDEX'],
+  ['^GSPC', 'S&P 500', 'S&P 500', 7709.96, -0.18, 'INDEX', US_ASOF_ISO],
+  ['^IXIC', 'NASDAQ Composite', '나스닥 종합', 26348.35, -0.06, 'INDEX', US_ASOF_ISO],
+  ['^DJI', 'Dow Jones Industrial', '다우존스 산업평균', 53885.1, -0.85, 'INDEX', US_ASOF_ISO],
   ['^TNX', 'US 10Y Treasury', '미 국채 10년물', 3.62, 0.83, 'BOND'],
   ['DX=F', 'US Dollar Index', '달러 인덱스', 96.42, -0.21, 'ICE'],
   ['GC=F', 'Gold', '금 선물', 4075.26, 1.01, 'COMEX'],
@@ -345,7 +377,7 @@ export interface SeedAsset extends AssetMeta {
   changePct: number;
 }
 
-function stockAsset([symbol, name, nameKo, sectorId, capB, price, changePct]: StockRow): SeedAsset {
+function stockAsset([symbol, name, nameKo, sectorId, capB, price, changePct, asOfISO]: StockRow): SeedAsset {
   const nasdaq = new Set(['NVDA','MSFT','AAPL','AVGO','MU','AMD','PLTR','HYNX','INTC','CSCO','AMAT','ADBE','TXN','QCOM','INTU','LRCX','APP','ANET','KLAC','PANW','MRVL','ADI','CRWD','SNOW','FTNT','SMCI','WDC','STX','RXT','XNDU','IONQ','RGTI','SOUN','WOLF','DOCN','GOOGL','META','NFLX','TMUS','CMCSA','RBLX','AMZN','TSLA','BKNG','SBUX','ABNB','CMG','MAR','LCID','PTON','CHWY','PLBL','COST','PEP','MDLZ','KMB','MO','ISRG','AMGN','GILD','VRTX','REGN','AARD','FBRX','QURE','SRPT','MRNA','ENPH','CEG','XEL','EXC','AEP','EQIX','PSA','CCI','LIN','NEM']);
   return {
     symbol, name, nameKo,
@@ -356,12 +388,13 @@ function stockAsset([symbol, name, nameKo, sectorId, capB, price, changePct]: St
     sectorId,
     marketCap: capB * 1e9,
     price, changePct,
+    asOfISO,
     logoBg: chipColor(symbol),
     logoText: symbol.replace('-B', '').slice(0, 1),
   };
 }
 
-function macroAsset([symbol, name, nameKo, price, changePct, exchange]: MacroRow): SeedAsset {
+function macroAsset([symbol, name, nameKo, price, changePct, exchange, asOfISO]: MacroRow): SeedAsset {
   const kind: AssetKind = symbol.endsWith('=F') ? 'future' : 'index';
   const unit =
     symbol === '^TNX'
@@ -381,6 +414,7 @@ function macroAsset([symbol, name, nameKo, price, changePct, exchange]: MacroRow
     region: 'US',
     price,
     changePct,
+    asOfISO,
     logoBg: '#20808d',
     logoText: name.slice(0, 1),
   };
@@ -403,24 +437,44 @@ export const SEED_ASSETS: SeedAsset[] = [
 /** Default watchlist — mirrors the reference snapshot */
 export const DEFAULT_WATCHLIST = ['AMD', 'XNDU', 'META', 'GOOGL', 'TSLA', 'NVDA', 'MU', 'HYNX', 'BTCUSD', 'AAPL'];
 
-/** Snapshot metadata */
+/**
+ * Snapshot metadata.
+ *
+ * 2026-08-07 partial refresh: `asOfISO`/`closeLabel*` moved forward to the settled Thursday
+ * 2026-08-06 US close (`US_ASOF_ISO` above — Friday 08-07's session had not closed when the
+ * refresh research ran, see `.superpowers/refresh-2026-08-07-us.md`), and `krAsOfISO`/
+ * `krAsOfLabelKo` moved to the settled Friday 2026-08-07 KRX close (`KR_ASOF_ISO` in
+ * universe.kr.ts). These two fields are the "latest verified close" pointer used for display
+ * (this banner, AI-answer captions) AND the per-row default for any seed row that carries no
+ * `asOfISO` override — engine.ts's `equityAsOfISO`/`equityAsOfTs` resolve that fallback to
+ * `US_PREV_ASOF_ISO`/`KR_PREV_ASOF_ISO` instead, precisely so the ~85% of rows this pass didn't
+ * re-verify keep reading as the older close they actually are, not this newer one.
+ *
+ * `cryptoAsOfISO` is untouched: the research found one corroborated BTC print (a different,
+ * sub-day timestamp — see refresh-2026-08-07-us.md §3) but no full-batch crypto recapture, and
+ * this field is meant to describe the whole crypto batch, not one row.
+ */
 export const SNAPSHOT = {
   dataMode: 'synthetic' as const,
   dataModeLabel: '모의 데이터',
   provenanceLabel: '외부 API 미연결 · 결정론적 로컬 시뮬레이션',
-  closeLabel: 'Aug 4, 2026, 4:00 PM EDT',
-  closeLabelKo: '2026년 8월 4일 16:00 EDT',
-  sentimentLabel: '예시 심리: 낙관적',
-  sentimentScore: 72, // 0-100, synthetic indicator
-  asOfISO: '2026-08-04T16:00:00-04:00',
+  closeLabel: 'Aug 6, 2026, 4:00 PM EDT',
+  closeLabelKo: '2026년 8월 6일 16:00 EDT',
+  // Thu 08-06: all three major US indices closed lower, oil/energy prices rose (typically read
+  // as a headwind for equities and Fed policy), and the Dow's multi-day record-close streak
+  // snapped — a mild risk-off session, not the sharp "낙관적" read the prior 08-04 anchor
+  // (all three indices up, fresh records) supported.
+  sentimentLabel: '예시 심리: 신중',
+  sentimentScore: 44, // 0-100, synthetic indicator
+  asOfISO: US_ASOF_ISO,
   cryptoAsOfISO: '2026-08-05T05:00:00Z',
   cryptoAsOfLabelKo: '2026년 8월 5일 14:00 KST',
-  // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks are all
-  // one 2026-08-05 KRX session close — a day after the US anchor above, and
-  // (per stockanalysis.com/investing.com corroboration) the same instant for
-  // both equities and indices, so one field covers both rather than implying
-  // a false precision of separate KR equity vs. KR index capture times.
-  krAsOfISO: '2026-08-05T15:30:00+09:00',
-  krAsOfLabelKo: '2026년 8월 5일 15:30 KST',
-  todayISO: '2026-08-05',
+  // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks refreshed in this pass
+  // are all one 2026-08-07 KRX session close (see universe.kr.ts's `KR_ASOF_ISO`) — a day after
+  // the US anchor above, and (per the refresh research's multi-source corroboration) the same
+  // instant for both equities and indices, so one field covers both rather than implying a
+  // false precision of separate KR equity vs. KR index capture times.
+  krAsOfISO: KR_ASOF_ISO,
+  krAsOfLabelKo: '2026년 8월 7일 15:30 KST',
+  todayISO: '2026-08-07',
 };

@@ -85,7 +85,7 @@ describe('StockPage region-scoped related news', () => {
     await screen.findByText('삼성전자');
 
     const newsCard = container.querySelector('.st-news-list') as HTMLElement;
-    expect(newsCard.textContent).toContain('코스피, 반도체 대장주 동반 반등에 3.76% 급등 마감');
+    expect(newsCard.textContent).toContain('반도체 대장주 희비 엇갈려…SK하이닉스 4.88% 급락, 삼성전자는 강보합');
     expect(newsCard.textContent).not.toContain('Palantir surges');
     expect(newsCard.textContent).not.toContain('S&P 500 and Dow');
   });
@@ -95,7 +95,7 @@ describe('StockPage region-scoped related news', () => {
     await screen.findByText('Apple Inc.', { exact: false });
 
     const newsCard = container.querySelector('.st-news-list') as HTMLElement;
-    expect(newsCard.textContent).toContain('Palantir surges');
+    expect(newsCard.textContent).toContain('Airbnb (ABNB) beats on Q2 earnings');
     expect(newsCard.textContent).not.toContain('코스피');
   });
 });

@@ -451,17 +451,21 @@ export const POLITICIAN_TRADES: PoliticianTrade[] = [
   { id: 'pt12', politician: 'Sheldon Whitehouse', party: '민주당', chamber: '상원', state: 'RI', symbol: 'NEE', company: 'NextEra Energy', action: '매수', amountRange: '$1K – $15K', tradedISO: '2026-07-01', disclosedISO: '2026-07-10', sincePct: 1.2 },
 ];
 
-/* ---------- 뉴스 (stock-detail page) ---------- */
+/* ---------- 뉴스 (stock-detail page) ----------
+   2026-08-07 refresh: replaced with Thursday 2026-08-06 close-session stories, the last
+   settled US close at research time (see `.superpowers/refresh-2026-08-07-us.md` §5 —
+   Friday 08-07's session had not closed yet). `timeAgo` is relative to that Thursday
+   16:00 EDT close (`SNAPSHOT.closeLabelKo`), not to whenever this seed is read. */
 
 export const GENERAL_NEWS: NewsItem[] = [
-  { id: 'n1', title: 'Palantir surges ~30% as Q2 revenue jumps 93% and guidance is raised', summary: 'US commercial revenue rose 149% year over year to $764M; management raised FY2026 revenue and adjusted free-cash-flow guidance on AI demand.', source: 'CNBC', timeAgo: '2시간 전', symbols: ['PLTR'] },
-  { id: 'n2', title: 'S&P 500 and Dow close at records as Hormuz reopening hopes lift sentiment', summary: 'The S&P 500 closed at 7,737 (+1.79%) and the Dow at 54,086 (+1.71%); technology led sectors while energy and utilities lagged.', source: 'The Motley Fool', timeAgo: '3시간 전', symbols: [] },
-  { id: 'n3', title: 'AMD beats with record $11.5B revenue but shares slide on capex concerns', summary: 'EPS of $1.66 and Q3 guidance of $13B both topped estimates, yet the stock fell about 7% after hours.', source: 'Yahoo Finance', timeAgo: '5시간 전', symbols: ['AMD'] },
-  { id: 'n4', title: 'SpaceX slips after hours despite a Starlink-driven revenue beat', summary: 'Rising spend on AI data centres, Starship and next-generation satellites pushed investors to reassess cash burn.', source: 'Yahoo Finance', timeAgo: '6시간 전', symbols: [] },
-  { id: 'n5', title: 'Crude falls sharply on hopes of resumed Strait of Hormuz traffic', summary: 'Reported declines ranged from 3% to 6% across outlets; lower oil could ease inflation pressure and reduce the odds of further tightening this year.', source: 'Reuters', timeAgo: '8시간 전', symbols: ['XOM', 'CVX', 'SLB'] },
-  { id: 'n6', title: 'Caterpillar climbs 5.6% on record quarterly revenue', summary: 'Industrials rose 3.42% as a group, second only to technology at 4.20%.', source: 'Bloomberg', timeAgo: '9시간 전', symbols: ['CAT'] },
-  { id: 'n7', title: 'Memory and semi-cap names rally as AI capacity demand persists', summary: 'Micron +7.6%, Intel +10.8%, Lam Research +7.9% and Marvell +12.8% on the session.', source: 'SemiAnalysis', timeAgo: '11시간 전', symbols: ['MU', 'INTC', 'LRCX', 'MRVL'] },
-  { id: 'n8', title: 'Bitcoin holds near $64K while ether lags', summary: 'BTC traded around $64,196 (+0.6%) with ETH near $1,868 (+0.3%), leaving bitcoin dominance elevated.', source: 'CoinDesk', timeAgo: '1시간 전', symbols: ['BTCUSD', 'ETHUSD'] },
+  { id: 'n1', title: 'Airbnb (ABNB) beats on Q2 earnings, jumps toward 9% after hours', summary: 'EPS of $1.37 topped the $1.25 estimate and revenue of $3.61B beat $3.58B expected; shares rallied further after the print on top of a 7-9% regular-session gain.', source: 'CNBC', timeAgo: '1시간 전', symbols: ['ABNB'] },
+  { id: 'n2', title: 'Cloudflare (NET) surges roughly 16% on strong full-year outlook', summary: 'A stronger-than-expected full-year and current-quarter guide sent shares sharply higher in after-hours trading.', source: 'CNBC', timeAgo: '1시간 전', symbols: [] },
+  { id: 'n3', title: 'DraftKings (DKNG) slips after missing on revenue', summary: 'Q2 revenue of $1.44B fell short of the $1.51B estimate and the company posted a per-share loss of $0.14 versus an expected profit, though FY2026 guidance was reaffirmed.', source: 'CNBC', timeAgo: '2시간 전', symbols: [] },
+  { id: 'n4', title: 'Oil rebound revives Fed rate-hike concern, pressures major indices', summary: 'WTI and Brent both advanced on the session, the cited driver behind the Dow’s roughly 0.85% decline as Treasury yields also rose.', source: 'Yahoo Finance', timeAgo: '3시간 전', symbols: ['XOM'] },
+  { id: 'n5', title: 'Dow snaps its record-breaking win streak', summary: 'After closing at fresh records Aug 3-4, the index fell 464.02 points (-0.85%) to 53,885.10, ending the run.', source: 'Yahoo Finance', timeAgo: '3시간 전', symbols: [] },
+  { id: 'n6', title: 'AppLovin, Western Digital earnings weigh on Nasdaq', summary: 'Both names fell after reporting, dragging on the Nasdaq alongside a similar move in SanDisk.', source: 'Proactive Investors', timeAgo: '5시간 전', symbols: ['APP', 'WDC'] },
+  { id: 'n7', title: 'Markets position defensively ahead of Friday’s July jobs report', summary: 'Consensus called for +85K nonfarm payrolls and unemployment holding near 4.2%; June was revised down to a four-month-low +57K.', source: 'CNBC', timeAgo: '6시간 전', symbols: [] },
+  { id: 'n8', title: 'Microsoft (MSFT) leads mega-caps with a 2.54% gain', summary: 'Microsoft was the largest gainer among mega-cap tech on the session, closing at $499.86 with a $3.71T market cap.', source: 'stockanalysis.com', timeAgo: '4시간 전', symbols: ['MSFT'] },
 ];
 
 /* ---------- 앱 갤러리 ---------- */

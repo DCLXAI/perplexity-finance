@@ -6,31 +6,31 @@
 .sc-head {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  margin: 4px 0 16px;
+  gap: var(--space-2-5);
+  margin: var(--space-1) 0 var(--space-4);
 }
 
 .sc-title {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--ink-strong);
   margin: 0;
 }
 
 .sc-count {
-  font-size: 12.5px;
+  font-size: var(--text-base);
   color: var(--ink-muted);
 }
 
 /* ---------- filter bar ---------- */
 .sc-filtercard {
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3-5);
 }
 
 .sc-filterbar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
@@ -43,15 +43,15 @@
 .sc-search {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   background: var(--bg-raised);
   min-width: 180px;
   max-width: 240px;
   flex: 1;
-  transition: border-color 0.12s;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 
 .sc-search:focus-within {
@@ -68,7 +68,7 @@
   border: none;
   outline: none;
   background: transparent;
-  font-size: 12.5px;
+  font-size: var(--text-base);
   color: var(--ink);
   width: 100%;
   padding: 0;
@@ -109,8 +109,8 @@
 }
 
 .sc-arrow {
-  font-size: 8.5px;
-  margin-left: 3px;
+  font-size: var(--text-2xs);
+  margin-left: var(--space-1);
   vertical-align: 1px;
 }
 
@@ -127,7 +127,7 @@
 .sc-namewrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -138,7 +138,7 @@
 }
 
 .sc-nameko {
-  font-size: 11px;
+  font-size: var(--text-xs);
   max-width: 90px;
 }
 
@@ -146,8 +146,8 @@
   display: inline-block;
   background: var(--bg-subtle);
   border-radius: var(--radius-full);
-  padding: 2px 9px;
-  font-size: 11px;
+  padding: var(--space-0-5) var(--space-2-5);
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--ink-secondary);
   white-space: nowrap;
@@ -169,9 +169,9 @@
 
 .sc-empty {
   text-align: center !important;
-  padding: 36px 12px !important;
+  padding: var(--space-10) var(--space-3) !important;
   color: var(--ink-muted);
-  font-size: 12.5px;
+  font-size: var(--text-base);
 }
 
 /* ---------- footer / pagination ---------- */
@@ -179,20 +179,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
+  gap: var(--space-3);
+  padding: var(--space-2-5) var(--space-4);
   border-top: 1px solid var(--border);
 }
 
 .sc-range {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--ink-muted);
 }
 
 .sc-pager {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
 }
 
 .sc-pager button {
@@ -202,13 +202,13 @@
   border: 1px solid var(--border);
   background: var(--bg-raised);
   color: var(--ink);
-  font-size: 15px;
+  font-size: var(--text-md);
   line-height: 1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.12s;
+  transition: background var(--dur-fast) var(--ease-out);
 }
 
 .sc-pager button:hover:not(:disabled) {
@@ -222,7 +222,7 @@
 }
 
 .sc-pagelabel {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--ink-secondary);
 }
@@ -238,7 +238,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 3px;
+  gap: var(--space-1);
   color: inherit;
   font: inherit;
   font-weight: 600;
@@ -268,7 +268,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 3px;
+  gap: var(--space-1);
   width: 100%;
   color: inherit;
   font: inherit;

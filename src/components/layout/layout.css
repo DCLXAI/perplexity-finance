@@ -7,7 +7,7 @@
   top: 8px;
   left: 8px;
   z-index: 3000;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
   background: var(--ink-strong);
   color: var(--bg-raised);
@@ -21,12 +21,17 @@
 }
 
 .app-header {
+  /* #root is now the flex column that sizes .app-main (see .app-main below);
+     flex: none keeps header/tabbar at their intrinsic height instead of
+     stretching, and removes the --header-h/--tabbar-h drift that let .app-main's
+     old calc() run ~1px short of the tab bar's true rendered height. */
+  flex: none;
   height: var(--header-h);
   display: grid;
   grid-template-columns: minmax(200px, 1fr) minmax(280px, 520px) auto;
   align-items: center;
-  gap: 16px;
-  padding: 0 20px;
+  gap: var(--space-4);
+  padding: 0 var(--space-5);
   background: var(--bg);
   border-bottom: 1px solid transparent;
   position: sticky;
@@ -37,9 +42,9 @@
 .hdr-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--ink-strong);
   letter-spacing: -0.01em;
@@ -59,16 +64,16 @@
 .hdr-search {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
   width: 100%;
   height: 36px;
-  padding: 0 14px;
+  padding: 0 var(--space-3-5);
   border-radius: var(--radius-full);
   border: 1px solid var(--border);
   background: var(--bg-raised);
   color: var(--ink-muted);
-  font-size: 12.5px;
+  font-size: var(--text-base);
   text-align: left;
   transition: border-color 0.12s, box-shadow 0.12s;
 }
@@ -94,10 +99,10 @@
   margin-left: auto;
   flex: none;
   font-family: inherit;
-  font-size: 10.5px;
+  font-size: var(--text-xs);
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 1px 5px;
+  padding: var(--space-0-5) var(--space-1-5);
   color: var(--ink-faint);
   background: var(--bg-subtle);
 }
@@ -106,17 +111,17 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .hdr-action {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   min-height: 34px;
-  padding: 6px 10px;
+  padding: var(--space-1-5) var(--space-2-5);
   border-radius: var(--radius-full);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--ink-secondary);
   white-space: nowrap;
@@ -130,12 +135,12 @@
 .hdr-data-badge {
   display: inline-flex;
   align-items: center;
-  margin-left: 2px;
-  padding: 2px 7px;
+  margin-left: var(--space-0-5);
+  padding: var(--space-0-5) var(--space-2);
   border: 1px solid var(--warn);
   border-radius: var(--radius-full);
   color: var(--warn);
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -150,23 +155,24 @@
 /* ---------- Tab bar ---------- */
 
 .app-tabbar {
+  flex: none;
   position: sticky;
   top: var(--header-h);
   z-index: 99;
   min-width: 0;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding: 0 20px;
+  padding: 0 var(--space-5);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .tabbar-tabs {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -179,13 +185,15 @@
 .tabbar-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 12px 12px 13px;
-  font-size: 13px;
+  gap: var(--space-1-5);
+  padding: var(--space-3) var(--space-3) var(--space-3-5);
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--ink-muted);
   border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  /* -1px, not -var(--space-0-5) (-2px): pulls the bottom border to sit flush
+     under the tab bar's own border, not past it. */
+  margin-bottom: calc(var(--space-0-5) / -2);
   white-space: nowrap;
   transition: color 0.12s;
 }
@@ -200,7 +208,7 @@
 }
 
 .tabbar-caret {
-  font-size: 9px;
+  font-size: var(--text-2xs);
   color: var(--ink-faint);
 }
 
@@ -208,18 +216,18 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 1px;
+  gap: var(--space-0-5);
   flex: none;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--ink-muted);
   white-space: nowrap;
-  padding: 6px 0;
+  padding: var(--space-1-5) 0;
 }
 
 .tabbar-sentiment {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   font-weight: 600;
   color: var(--ink-secondary);
 }
@@ -227,7 +235,7 @@
 .sentiment-bars {
   display: inline-flex;
   align-items: flex-end;
-  gap: 1.5px;
+  gap: var(--space-0-5);
   height: 12px;
 }
 
@@ -242,9 +250,38 @@
 .sentiment-bars i.on.high { background: var(--pos); }
 
 .app-main {
+  /* Flex child of #root (flex column, height: 100svh — global.css), not an
+     arithmetic height: `100vh` on mobile Safari/Chrome freezes at the largest
+     viewport (browser chrome hidden), so a `calc(100vh - ...)` box still
+     underlaps the toolbar-visible viewport and reopens the exact defect this
+     rule exists to close. `100svh` on #root sizes to the *smallest* viewport,
+     so header + tabbar + main always fit inside what's actually visible.
+     flex: 1 1 auto + min-height: 0 let it absorb the remaining column space
+     and become its own scroll container instead of stretching past it. */
+  flex: 1 1 auto;
+  min-height: 0;
   min-width: 0;
-  min-height: calc(100vh - var(--header-h) - var(--tabbar-h));
+  /* Establishes this box as the containing block for `.sr-only` (position:
+     absolute) and similar descendants, so overflow below actually clips them
+     instead of them escaping to the initial containing block and inflating
+     the document's own scroll area. */
+  position: relative;
+  overflow-y: auto;
   overflow-x: clip;
+  /* A wheel/touch scroll that reaches either end of this box must not chain
+     into the (now non-scrolling, but still technically scrollable) document —
+     that would present as a blank viewport with the header pushed off-screen. */
+  overscroll-behavior-y: contain;
+}
+
+/* Reserve the AskBar's full footprint (bar height + its own bottom offset) only
+   on the three routes that actually mount it — `.ai-askbar` is a descendant of
+   `.app-main`, so `:has()` on body sees it the instant AskBar mounts. Already
+   the codebase's own pattern for this (see .ai-askbar's rail-clearance rule in
+   ai.css). `margin-bottom`, not `padding-bottom`, so it genuinely shortens the
+   scrollable range rather than padding a box that still extends underneath. */
+body:has(.ai-askbar) .app-main {
+  margin-bottom: calc(var(--askbar-h) + var(--space-4));
 }
 
 .app-main:focus {
@@ -256,8 +293,8 @@
 @media (max-width: 1000px) {
   .app-header {
     grid-template-columns: auto minmax(160px, 1fr) auto;
-    gap: 10px;
-    padding: 0 12px;
+    gap: var(--space-2-5);
+    padding: 0 var(--space-3);
   }
 
   .hdr-data-badge,
@@ -280,15 +317,15 @@
   }
 
   .app-tabbar {
-    padding: 0 10px;
+    padding: 0 var(--space-2-5);
   }
 }
 
 @media (max-width: 520px) {
   .app-header {
     grid-template-columns: auto minmax(72px, 1fr) auto;
-    gap: 6px;
-    padding: 0 8px;
+    gap: var(--space-1-5);
+    padding: 0 var(--space-2);
   }
 
   .hdr-brand-name {
@@ -296,18 +333,18 @@
   }
 
   .hdr-search {
-    padding: 0 10px;
+    padding: 0 var(--space-2-5);
   }
 
   .tabbar-tab {
-    padding-inline: 10px;
+    padding-inline: var(--space-2-5);
   }
 }
 
 @media (max-width: 360px) {
   .app-header {
     grid-template-columns: 28px 36px minmax(76px, auto);
-    padding-inline: 8px;
+    padding-inline: var(--space-2);
   }
 
   .hdr-brand svg {

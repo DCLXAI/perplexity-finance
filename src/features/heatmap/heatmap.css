@@ -5,7 +5,7 @@
 .hm-root {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -29,28 +29,28 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 2px;
+  gap: var(--space-3);
+  padding: 0 var(--space-0-5);
 }
 
 .hm-scale {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--space-1);
 }
 
 .hm-scale-label {
-  font-size: 10px;
+  font-size: var(--text-2xs);
   color: var(--ink-muted);
   line-height: 1;
 }
 
 .hm-scale-label:first-child {
-  margin-right: 2px;
+  margin-right: var(--space-0-5);
 }
 
 .hm-scale-label:last-child {
-  margin-left: 2px;
+  margin-left: var(--space-0-5);
 }
 
 .hm-swatch {
@@ -62,7 +62,7 @@
 
 .hm-wordmark {
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: var(--text-base);
   color: var(--ink-faint);
   letter-spacing: 0.02em;
   user-select: none;
@@ -78,8 +78,8 @@
 .hm-tip-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .hm-tip-names {
@@ -87,7 +87,7 @@
 }
 
 .hm-tip-name {
-  font-size: 12.5px;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--ink-strong);
   white-space: nowrap;
@@ -96,7 +96,7 @@
 }
 
 .hm-tip-sym {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--ink-muted);
 }
 
@@ -104,12 +104,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 6px;
+  gap: var(--space-2-5);
+  margin-bottom: var(--space-1-5);
 }
 
 .hm-tip-price {
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--ink-strong);
 }
@@ -118,28 +118,28 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  font-size: 11px;
+  gap: var(--space-2-5);
+  font-size: var(--text-xs);
   color: var(--ink-secondary);
 }
 
 .hm-data-table {
-  margin-top: 10px;
+  margin-top: var(--space-2-5);
   border-top: 1px solid var(--border);
 }
 
 .hm-data-table summary {
   width: fit-content;
-  padding: 9px 4px 2px;
+  padding: var(--space-2-5) var(--space-1) var(--space-0-5);
   color: var(--teal);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
 }
 
 .hm-data-scroll {
   max-height: 320px;
-  margin-top: 8px;
+  margin-top: var(--space-2);
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);

@@ -8,18 +8,28 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+
+/* Scoped to the interactive element types only, mirroring a.ui-qrow:hover below —
+   .ui-card itself is a plain div (see Card in index.tsx); a bare .ui-card must not
+   suggest clickability it doesn't have. */
+a.ui-card:hover,
+button.ui-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--border-strong);
 }
 
 .ui-card-pad {
-  padding: 14px 16px;
+  padding: var(--space-3-5) var(--space-4);
 }
 
 .ui-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 12px 16px 8px;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-2);
 }
 
 .ui-card-heading {
@@ -29,12 +39,12 @@
 }
 
 .ui-card-title {
-  font-size: 14px;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--ink-strong);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-1-5);
 }
 
 .ui-card-title:is(a):hover {
@@ -45,7 +55,7 @@
 .ui-chg {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--space-0-5);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -53,8 +63,8 @@
 
 .ui-chg.pill {
   border-radius: var(--radius-sm);
-  padding: 1px 6px;
-  font-size: 11.5px;
+  padding: var(--space-0-5) var(--space-1-5);
+  font-size: var(--text-sm);
 }
 
 .ui-chg.up { color: var(--pos); }
@@ -65,7 +75,7 @@
 .ui-chg.pill.flat { background: var(--bg-subtle); }
 
 .ui-chg .arr {
-  font-size: 10px;
+  font-size: var(--text-2xs);
   line-height: 1;
 }
 
@@ -87,7 +97,7 @@
   object-fit: contain;
   background: #fff;
   box-shadow: inset 0 0 0 1px var(--border);
-  padding: 1px;
+  padding: var(--space-0-5);
 }
 
 /* Roughly a fifth of the set is near-white artwork on transparent — Apple,
@@ -102,15 +112,15 @@
 .ui-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-3);
   border-radius: var(--radius-full);
   border: 1px solid var(--border);
   background: var(--bg-raised);
   color: var(--ink);
-  font-size: 12.5px;
+  font-size: var(--text-base);
   font-weight: 600;
-  transition: background 0.12s, border-color 0.12s;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
 }
 
 .ui-btn:hover {
@@ -119,8 +129,8 @@
 }
 
 .ui-btn.primary {
-  background: var(--teal);
-  border-color: var(--teal);
+  background: var(--teal-btn);
+  border-color: var(--teal-btn);
   color: #fff;
 }
 
@@ -151,18 +161,22 @@
 .ui-seg {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: var(--space-5);
   border-bottom: 1px solid var(--border);
 }
 
 .ui-seg button {
-  padding: 8px 2px 9px;
-  font-size: 13px;
+  padding: var(--space-2) var(--space-0-5) var(--space-2-5);
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--ink-muted);
   border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.12s;
+  /* Pulls the button up so its 2px active border overlaps the parent's 1px
+     border-bottom exactly — must stay -1px, not the -2px the codemod's
+     nearest-token step would give, or the active underline floats with a
+     visible 1px gap above the tab row's separator line. */
+  margin-bottom: calc(var(--space-0-5) / -2);
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .ui-seg button:hover { color: var(--ink); }
@@ -175,15 +189,15 @@
 /* ---------- Chip tabs (rounded filter chips) ---------- */
 .ui-chips {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
 .ui-chips button {
-  padding: 5px 12px;
+  padding: var(--space-1-5) var(--space-3);
   border-radius: var(--radius-full);
   border: 1px solid var(--border);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--ink-secondary);
   background: var(--bg-raised);
@@ -201,9 +215,9 @@
 .ui-qrow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  transition: background 0.1s;
+  gap: var(--space-2-5);
+  padding: var(--space-2) var(--space-4);
+  transition: background var(--dur-fast) var(--ease-out);
   border-radius: var(--radius-sm);
 }
 
@@ -218,7 +232,7 @@ a.ui-qrow:hover {
 
 .ui-qrow .qr-name {
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: var(--text-base);
   color: var(--ink-strong);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -226,7 +240,7 @@ a.ui-qrow:hover {
 }
 
 .ui-qrow .qr-sub {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--ink-muted);
 }
 
@@ -237,7 +251,7 @@ a.ui-qrow:hover {
 
 .ui-qrow .qr-price {
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: var(--text-base);
   font-variant-numeric: tabular-nums;
   color: var(--ink-strong);
 }
@@ -255,6 +269,23 @@ a.ui-qrow:hover {
   animation: ui-shimmer 1.4s ease-in-out infinite;
 }
 
+.ui-skeleton {
+  display: inline-block;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--bg-inset) 25%, var(--bg-hover) 37%, var(--bg-inset) 63%);
+  background-size: 400% 100%;
+  animation: ui-skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+.ui-skeleton.rounded {
+  border-radius: var(--radius-full);
+}
+
+@keyframes ui-skeleton-sweep {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
 /* ---------- Tooltip container ---------- */
 .ui-tooltip {
   position: fixed;
@@ -264,8 +295,8 @@ a.ui-qrow:hover {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
-  padding: 10px 12px;
-  font-size: 12px;
+  padding: var(--space-2-5) var(--space-3);
+  font-size: var(--text-sm);
   min-width: 160px;
 }
 
@@ -278,7 +309,7 @@ a.ui-qrow:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: var(--space-4);
   animation: fade-in-up 0.15s ease-out;
 }
 
@@ -296,15 +327,15 @@ a.ui-qrow:hover {
 .ui-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: var(--text-base);
 }
 
 .ui-table th {
   text-align: right;
   font-weight: 600;
-  font-size: 11.5px;
+  font-size: var(--text-sm);
   color: var(--ink-muted);
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
   cursor: default;
@@ -317,7 +348,7 @@ a.ui-qrow:hover {
 }
 
 .ui-table td {
-  padding: 9px 12px;
+  padding: var(--space-2-5) var(--space-3);
   border-bottom: 1px solid var(--border);
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -333,7 +364,7 @@ a.ui-qrow:hover {
 }
 
 .ui-modal-backdrop {
-  padding: 16px;
+  padding: var(--space-4);
 }
 
 .ui-modal:focus {
@@ -347,6 +378,6 @@ a.ui-qrow:hover {
 
 @media (max-width: 560px) {
   .ui-modal-backdrop {
-    padding: 8px;
+    padding: var(--space-2);
   }
 }

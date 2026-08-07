@@ -1,6 +1,6 @@
-# P11 Deployment Runbook
+# P12 Deployment Runbook
 
-**Version 1.12.0 · 2026-08-06**
+**Version 1.13.0 · 2026-08-06**
 
 ## 1. Prerequisites
 
@@ -203,7 +203,7 @@ Run:
 
 ```bash
 SMOKE_BASE_URL=https://preview.example.vercel.app \
-SMOKE_EXPECT_VERSION=1.12.0 \
+SMOKE_EXPECT_VERSION=1.13.0 \
 npm run smoke:deployment
 ```
 
@@ -222,7 +222,7 @@ After all credentials and migrations are configured:
 
 ```bash
 SMOKE_BASE_URL=https://finance.example.com \
-SMOKE_EXPECT_VERSION=1.12.0 \
+SMOKE_EXPECT_VERSION=1.13.0 \
 SMOKE_REQUIRE_READY=1 \
 SMOKE_REQUIRE_PROVIDER=1 \
 npm run smoke:deployment
@@ -455,7 +455,7 @@ npm run validate:p8
 npm run validate:p9
 npm run validate:p10
 npm run validate:migrations
-SMOKE_BASE_URL=https://your-deployment.example SMOKE_EXPECT_VERSION=1.12.0 npm run smoke:deployment
+SMOKE_BASE_URL=https://your-deployment.example SMOKE_EXPECT_VERSION=1.13.0 npm run smoke:deployment
 ```
 
 ### P4 snapshot batch sizing

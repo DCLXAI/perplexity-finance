@@ -11,7 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}', 'server/**/*.test.ts', 'routes/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}', 'server/**/*.test.ts', 'routes/**/*.test.ts', 'scripts/**/*.test.ts'],
     setupFiles: ['src/test/setup.ts'],
     testTimeout: 10_000,
     restoreMocks: true,

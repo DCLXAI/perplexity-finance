@@ -6,19 +6,19 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
 .wl-title {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--ink-strong);
-  margin: 0 0 4px;
+  margin: 0 0 var(--space-1);
 }
 
 .wl-sub {
-  font-size: 12.5px;
+  font-size: var(--text-base);
 }
 
 /* ---------- add-symbol combo ---------- */
@@ -33,7 +33,7 @@
   position: absolute;
   left: 12px;
   color: var(--ink-muted);
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
   pointer-events: none;
   line-height: 1;
@@ -41,14 +41,14 @@
 
 .wl-add-input {
   width: 220px;
-  padding: 8px 14px 8px 28px;
+  padding: var(--space-2) var(--space-3-5) var(--space-2) var(--space-8);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   background: var(--bg-raised);
   color: var(--ink);
-  font-size: 13px;
+  font-size: var(--text-base);
   outline: none;
-  transition: border-color 0.12s, box-shadow 0.12s;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .wl-add-input::placeholder {
@@ -65,7 +65,7 @@
   top: calc(100% + 6px);
   right: 0;
   width: 290px;
-  padding: 4px;
+  padding: var(--space-1);
   background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -76,11 +76,11 @@
 .wl-add-item {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 9px;
+  gap: var(--space-2-5);
+  padding: var(--space-2) var(--space-2-5);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 12.5px;
+  font-size: var(--text-base);
 }
 
 .wl-add-item:hover {
@@ -96,16 +96,16 @@
 
 .wl-add-sym {
   color: var(--ink-muted);
-  font-size: 11.5px;
+  font-size: var(--text-sm);
 }
 
 .wl-add-has {
   flex: none;
-  font-size: 10.5px;
+  font-size: var(--text-xs);
   color: var(--teal);
   background: var(--teal-softer);
   border-radius: var(--radius-full);
-  padding: 2px 7px;
+  padding: var(--space-0-5) var(--space-2);
 }
 
 /* ---------- table ---------- */
@@ -113,7 +113,7 @@
 .wl-name-cell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
   min-width: 0;
 }
 
@@ -123,7 +123,7 @@
 
 .wl-name {
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: var(--text-base);
   color: var(--ink-strong);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -131,7 +131,7 @@
 }
 
 .wl-name-sub {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--ink-muted);
 }
 
@@ -147,12 +147,12 @@
   border: none;
   background: transparent;
   color: var(--ink-faint);
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1;
-  padding: 5px 7px;
+  padding: var(--space-1-5) var(--space-2);
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 
 .wl-del:hover {
@@ -163,19 +163,19 @@
 /* ---------- empty state ---------- */
 
 .wl-empty {
-  padding: 56px 24px;
+  padding: var(--space-16) var(--space-6);
   text-align: center;
 }
 
 .wl-empty-title {
-  font-size: 14px;
+  font-size: var(--text-md);
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-1-5);
 }
 
 .wl-empty-hint {
-  font-size: 12px;
-  color: var(--ink-faint);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
 }
 
 .wl-empty-hint b {

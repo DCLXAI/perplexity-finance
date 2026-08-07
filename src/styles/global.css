@@ -15,27 +15,31 @@
   --ink: #13343b;
   --ink-strong: #091717;
   --ink-secondary: #4d5f62;
-  --ink-muted: #84898c;
-  --ink-faint: #aab0b0;
+  --ink-muted: #6a6d6f;
+  --ink-faint: #858a8a;
 
   /* Lines */
   --border: #e8e8e3;
   --border-strong: #d9d9d2;
 
   /* Brand */
-  --teal: #20808d;
+  --teal: #20708d;
   --teal-strong: #16606b;
   --teal-soft: #e4eeef;
   --teal-softer: #f0f5f6;
+  /* Identical to --teal in light; dark gets its own darker value below —
+     #fff on dark --teal is only 2.96:1 (fails AA text), and the primary CTA
+     is the one place that pairs #fff directly against the brand fill. */
+  --teal-btn: #20708d;
 
   /* Semantics */
-  --pos: #0d8259;
+  --pos: #0d7259;
   --pos-strong: #096b49;
   --pos-bg: #e2f2ea;
   --neg: #b8432f;
   --neg-strong: #9e3826;
   --neg-bg: #f8e8e3;
-  --warn: #b47d12;
+  --warn: #88670f;
   --warn-bg: #f7efdb;
 
   /* Heatmap ramp (−3% … +3%) */
@@ -60,6 +64,40 @@
   --radius-xl: 20px;
   --radius-full: 999px;
 
+  /* Spacing — 4px base with half-steps. See docs/superpowers/specs/2026-08-06-p12-visual-craft-design.md */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Type scale. 9px is why the market tab's caret read as a dot; nothing sits below 10px. */
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 32px;
+
+  /* Motion */
+  --dur-fast: 120ms;
+  --dur-base: 150ms;
+  --dur-slow: 300ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
+
   --shadow-sm: 0 1px 2px rgba(9, 23, 23, 0.05);
   --shadow: 0 2px 8px rgba(9, 23, 23, 0.07);
   --shadow-lg: 0 12px 32px rgba(9, 23, 23, 0.14);
@@ -67,6 +105,9 @@
   --rail-w: 320px;
   --header-h: 52px;
   --tabbar-h: 46px;
+  /* AskBar's *total* footprint: measured bar height (86.2px, single line, holds
+     across 375/768/1280) + its own `bottom: 20px` offset (.ai-askbar), + buffer. */
+  --askbar-h: 108px;
 
   color-scheme: light;
 }
@@ -81,8 +122,8 @@
   --ink: #e7ecec;
   --ink-strong: #f7fafa;
   --ink-secondary: #a9b6b6;
-  --ink-muted: #7d8b8b;
-  --ink-faint: #566262;
+  --ink-muted: #839090;
+  --ink-faint: #677373;
 
   --border: #233030;
   --border-strong: #2e3d3d;
@@ -91,6 +132,7 @@
   --teal-strong: #58bcc8;
   --teal-soft: #143336;
   --teal-softer: #10282b;
+  --teal-btn: #2a818c;
 
   --pos: #3bbf8b;
   --pos-strong: #5fd3a5;
@@ -139,8 +181,12 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* flex column, not min-height: 100vh — .app-main below needs a definite cross
+   size to flex against so it can become its own scroll container (see layout.css). */
 #root {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
 }
 
 h1, h2, h3, h4, h5, p {
@@ -212,9 +258,6 @@ canvas {
 .muted { color: var(--ink-muted); }
 
 .text-xs { font-size: 11px; }
-.text-sm { font-size: 12px; }
-.text-md { font-size: 13px; }
-.text-lg { font-size: 15px; }
 
 .truncate {
   overflow: hidden;
@@ -387,12 +430,19 @@ canvas {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
+    animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
   }
 }

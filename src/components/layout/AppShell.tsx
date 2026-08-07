@@ -120,7 +120,10 @@ export default function AppShell() {
           // HashRouter owns location.hash, so a native fragment jump would replace the route.
           event.preventDefault();
           mainRef.current?.focus({ preventScroll: true });
-          mainRef.current?.scrollIntoView({ block: 'start' });
+          // .app-main is its own scroll container now (see layout.css); scrollIntoView
+          // would scroll the outer document instead, which has nothing to reveal and
+          // just pushes the header/tab bar off-screen.
+          mainRef.current?.scrollTo({ top: 0 });
         }}
       >
         본문으로 건너뛰기

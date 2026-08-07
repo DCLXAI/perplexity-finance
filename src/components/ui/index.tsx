@@ -8,6 +8,7 @@ import {
   useState,
   useSyncExternalStore,
   type CSSProperties,
+  type JSX,
   type ReactNode,
 } from 'react';
 import { Link } from 'react-router';
@@ -336,6 +337,28 @@ export function SegTabs({
         </button>
       ))}
     </div>
+  );
+}
+
+/* ---------- Skeleton ---------- */
+
+export function Skeleton({
+  width = '100%',
+  height = 'var(--text-base)',
+  rounded = false,
+}: {
+  readonly width?: string;
+  readonly height?: string;
+  readonly rounded?: boolean;
+}): JSX.Element {
+  return (
+    <span
+      role="status"
+      aria-busy="true"
+      aria-label="불러오는 중"
+      className={`ui-skeleton${rounded ? ' rounded' : ''}`}
+      style={{ width, height }}
+    />
   );
 }
 

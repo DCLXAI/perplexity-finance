@@ -1,8 +1,10 @@
-# Synapsu — P11 Korean Market Parity
+# Synapsu — P12 Visual Craft
 
-**Version 1.12.0 · 2026-08-06**
+**Version 1.13.0 · 2026-08-06**
 
 Synapsu is a Vite/React financial terminal with explicit provider provenance, durable alerts, an operations control plane, and an append-only personal investment decision ledger.
+
+P12 moves every screen's spacing, type, motion, and colour off hand-picked literals onto token scales, corrects six colour tokens that fell short of their contrast thresholds, and fixes the AI AskBar covering the last rows of on-load content.
 
 P11 adds the Korean market (KRX) as a first-class region — won pricing, the KRX trading calendar, a 159-stock KOSPI/KOSDAQ universe, and a real region switcher that re-scopes market home, screener, heatmap, earnings, stock detail, and the watchlist between `US` and `KR`.
 
@@ -51,6 +53,10 @@ With Supabase and market providers configured, the application supports:
 Without cloud credentials, `/#/portfolio` shows a deterministic demo. It is labelled `DEMO · 합성 시세`; it is not an account, brokerage statement, verified return, or investment recommendation.
 
 Synthetic, stale, divergent, or degraded market data is never promoted to verified data. It may be displayed as an estimated value with warnings, but it cannot create a strict snapshot or trigger a durable alert.
+
+## P12 capabilities
+
+`validate:tokens` (part of `npm run check`) is the gate that keeps the spacing, type, motion, and colour scales in `src/styles/global.css` honest: it fails the build on any raw px in a guarded property (`font-size`, `padding`, `margin`, `gap`, `row-gap`, `column-gap`, `inset`, and their logical-property variants) outside `global.css`, on a token declared in `:root` with no `[data-theme='dark']` counterpart, on an ink/surface pair or a semantic ink-on-its-own-chip pair (`--warn`/`--warn-bg`, `--pos`/`--pos-bg`, `--neg`/`--neg-bg`, `--teal`/`--teal-soft`) that falls short of its contrast threshold, and on a missing `prefers-reduced-motion` escape hatch that doesn't zero every duration token. `global.css` is the only file allowed raw px in those guarded properties — every other stylesheet references a `--space-*`, `--text-*`, `--dur-*`, or `--ease-*` token. There is no raw-hex check: seven raw hex declarations ship outside `global.css` (`alerts.css`, `politicians.css`, `ui.css`), and each is a fixed white/near-black mark deliberately painted against a themed background so it stays constant while the surface swaps between light and dark — a category with no token equivalent, not an oversight. See `P12_CHANGELOG.md` for the token axes, the colour corrections and the thresholds behind them, and the AskBar overlap fix.
 
 ## P11 capabilities
 
@@ -330,7 +336,9 @@ npm run validate:p8
 npm run validate:p9
 npm run validate:p10
 npm run validate:p11
+npm run validate:p12
 npm run validate:migrations
+npm run validate:tokens
 npm run build
 npm run security:scan
 npm audit --audit-level=low
@@ -340,10 +348,10 @@ Post-deployment:
 
 ```bash
 SMOKE_BASE_URL=https://your-deployment.example \
-SMOKE_EXPECT_VERSION=1.12.0 \
+SMOKE_EXPECT_VERSION=1.13.0 \
 SMOKE_REQUIRE_READY=1 \
 SMOKE_REQUIRE_PROVIDER=1 \
 npm run smoke:deployment
 ```
 
-See `DEPLOYMENT.md`, `CONTRACT.md`, `ARCHITECTURE.md`, `P11_CHANGELOG.md`, `P10_CHANGELOG.md`, and `P9_CHANGELOG.md` for operational details and remaining credential-dependent acceptance tests.
+See `DEPLOYMENT.md`, `CONTRACT.md`, `ARCHITECTURE.md`, `P12_CHANGELOG.md`, `P11_CHANGELOG.md`, `P10_CHANGELOG.md`, and `P9_CHANGELOG.md` for operational details and remaining credential-dependent acceptance tests.

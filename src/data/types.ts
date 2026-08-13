@@ -194,6 +194,8 @@ export interface NewsItem {
   summary: string;
   source: string;
   timeAgo: string;
+  publishedAt?: string;
+  url?: string;
   symbols: string[];
 }
 

@@ -7,12 +7,14 @@ import { fetchAlpacaNews, alpacaNewsStatus } from '../market/alpaca-news.js';
 import { alphaStatus, fetchAlphaEarnings } from '../market/providers/alpha-vantage.js';
 import { fetchKalshi, fetchPolymarket, predictionStatus } from '../market/providers/predictions.js';
 
+const STATIC_CONTENT_AS_OF_ISO = '2026-08-13T18:49:20Z';
+
 function fallbackPredictions(limit:number):readonly LivePredictionMarket[]{
   return Object.freeze(PREDICTIONS.slice(0,limit).map((m)=>Object.freeze({
     id:`fallback:${m.id}`, question:m.questionKo||m.question,
     outcomes:Object.freeze(m.outcomes.map((o)=>Object.freeze({label:o.label,probability:o.prob,priceDeltaPct:o.deltaPct}))),
     volumeUsd:m.volumeUsd, closesAt:m.endsAt,
-    provider:m.source==='Polymarket-style'?'polymarket':'kalshi', providerTimestamp:'2026-07-10T20:00:00Z'
+    provider:m.source==='Polymarket-style'?'polymarket':'kalshi', providerTimestamp:STATIC_CONTENT_AS_OF_ISO
   })));
 }
 export async function getPredictions(limit:number,requestId:string):Promise<PredictionsResponse>{
@@ -28,14 +30,14 @@ export async function getPredictions(limit:number,requestId:string):Promise<Pred
   });
   return Object.freeze({requestId,generatedAt:new Date().toISOString(),...hit.value});
 }
-function fallbackEarnings():readonly LiveEarningsEntry[]{return Object.freeze(EARNINGS.map((e)=>Object.freeze({symbol:e.symbol,name:e.company,reportDate:e.dateISO,estimate:e.epsEst,currency:'USD',providerTimestamp:'2026-07-10T20:00:00Z'})));}
+function fallbackEarnings():readonly LiveEarningsEntry[]{return Object.freeze(EARNINGS.map((e)=>Object.freeze({symbol:e.symbol,name:e.company,reportDate:e.dateISO,estimate:e.epsEst,currency:'USD',providerTimestamp:STATIC_CONTENT_AS_OF_ISO})));}
 export async function getEarnings(requestId:string):Promise<EarningsResponse>{
   const c=loadConfig();
   if(!c.alphaVantageApiKey)return Object.freeze({requestId,generatedAt:new Date().toISOString(),entries:fallbackEarnings(),provider:alphaStatus('disabled','API 키 미설정'),fallback:true});
   try{const hit=await cached('content:earnings:v3:3month',c.contentCacheSeconds,()=>fetchAlphaEarnings());return Object.freeze({requestId,generatedAt:new Date().toISOString(),entries:hit.value.entries,provider:alphaStatus('up',`${hit.value.entries.length}개 수신`,hit.value.latencyMs),fallback:false});}
   catch(error){const m=error instanceof Error?error.message:String(error);logger.warn('content.earnings.failed',{message:m});return Object.freeze({requestId,generatedAt:new Date().toISOString(),entries:fallbackEarnings(),provider:alphaStatus('down',m),fallback:true});}
 }
-function fallbackNews():readonly LiveNewsItem[]{return Object.freeze(GENERAL_NEWS.map((n)=>Object.freeze({id:`fallback:${n.id}`,title:n.title,summary:n.summary,source:n.source,url:'',publishedAt:'2026-07-10T20:00:00Z',symbols:Object.freeze([...n.symbols])})));}
+function fallbackNews():readonly LiveNewsItem[]{return Object.freeze(GENERAL_NEWS.map((n)=>Object.freeze({id:`fallback:${n.id}`,title:n.title,summary:n.summary,source:n.source,url:n.url??'',publishedAt:n.publishedAt??STATIC_CONTENT_AS_OF_ISO,symbols:Object.freeze([...n.symbols])})));}
 export async function getNews(symbol:string|undefined,limit:number,requestId:string):Promise<NewsResponse>{
   const c=loadConfig(); const configured=Boolean(c.alpacaKeyId&&c.alpacaSecretKey);
   if(!configured)return Object.freeze({requestId,generatedAt:new Date().toISOString(),items:fallbackNews().slice(0,limit),provider:alpacaNewsStatus(false,'disabled','Alpaca 자격증명 미설정'),fallback:true});

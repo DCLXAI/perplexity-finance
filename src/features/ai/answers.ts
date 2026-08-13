@@ -4,7 +4,7 @@
    No external AI model or market-data API is called.
    ============================================================ */
 import { engine, priceInUsd } from '../../data/engine.js';
-import { EARNINGS, GENERAL_NEWS, MARKET_SUMMARY } from '../../data/content.js';
+import { EARNINGS, EARNINGS_WEEK, GENERAL_NEWS, MARKET_SUMMARY } from '../../data/content.js';
 import {
   fmtAssetVolume,
   fmtDateKo,
@@ -187,10 +187,12 @@ function cryptoAnswer(): string {
 }
 
 function earningsAnswer(): string {
-  const upcoming = EARNINGS.filter((e) => e.dateISO >= '2026-07-14' && e.epsEst !== undefined)
+  const upcoming = EARNINGS.filter((e) => e.dateISO >= SNAPSHOT.todayISO && e.epsEst !== undefined)
     .sort((a, b) => (a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1 : 0))
     .slice(0, 3);
-  const lines: string[] = ['**이번 주 주요 모의 실적 일정** (7월 14일 ~ 7월 18일)', ''];
+  const firstDay = EARNINGS_WEEK.at(0)?.label ?? '';
+  const lastDay = EARNINGS_WEEK.at(-1)?.label ?? '';
+  const lines: string[] = [`**이번 주 주요 실적 일정** (${firstDay} ~ ${lastDay})`, ''];
   for (const e of upcoming) {
     lines.push(
       `· **${e.company} (${e.symbol})** — ${fmtDateKo(e.dateISO)}(${weekdayKo(e.dateISO)}) ${e.timeLabel} · EPS 예시 $${(e.epsEst ?? 0).toFixed(2)} · 매출 예시 ${e.revenueEst ?? '—'}`,

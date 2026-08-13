@@ -1,6 +1,6 @@
 # Synapsu — P12 Visual Craft
 
-**Version 1.13.0 · 2026-08-06**
+**Version 1.13.0 · data refresh 2026-08-14 KST**
 
 Synapsu is a Vite/React financial terminal with explicit provider provenance, durable alerts, an operations control plane, and an append-only personal investment decision ledger.
 

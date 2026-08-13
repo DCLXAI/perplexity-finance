@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { isUsEquityTradingDay } from '../src/data/calendar.js';
 import { EARNINGS, EARNINGS_WEEK, PREDICTIONS } from '../src/data/content.js';
 import { engine } from '../src/data/engine.js';
-import { SEED_ASSETS, SNAPSHOT, US_PREV_ASOF_ISO } from '../src/data/universe.js';
-import { KR_PREV_ASOF_ISO, KR_SEED_ASSETS } from '../src/data/universe.kr.js';
+import { SEED_ASSETS, SNAPSHOT, US_MID_ASOF_ISO, US_PREV_ASOF_ISO } from '../src/data/universe.js';
+import { KR_MID_ASOF_ISO, KR_PREV_ASOF_ISO, KR_SEED_ASSETS } from '../src/data/universe.kr.js';
 import type { CandlePoint, HistoryRange } from '../src/data/types.js';
 
 function isoDate(timestamp: number): string {
@@ -25,7 +25,7 @@ function validateCandles(label: string, candles: readonly CandlePoint[]): void {
 }
 
 async function main(): Promise<void> {
-  assert.equal(SNAPSHOT.asOfISO, '2026-08-06T16:00:00-04:00');
+  assert.equal(SNAPSHOT.asOfISO, '2026-08-12T16:00:00-04:00');
   // The anchor must be a weekday session close. It was pinned to Friday while the seed
   // happened to be captured on one; that was never a requirement of the calendar
   // generator, only a property of the old capture. Any Mon-Fri close is valid.
@@ -44,16 +44,18 @@ async function main(): Promise<void> {
   for (const quote of engine.getAll()) {
     if (quote.kind === 'crypto') continue;
     const regionAnchor = quote.region === 'KR' ? SNAPSHOT.krAsOfISO : SNAPSHOT.asOfISO;
-    const regionPrevAnchor = quote.region === 'KR' ? KR_PREV_ASOF_ISO : US_PREV_ASOF_ISO;
+    const allowedOlderAnchors = quote.region === 'KR'
+      ? [KR_MID_ASOF_ISO, KR_PREV_ASOF_ISO]
+      : [US_MID_ASOF_ISO, US_PREV_ASOF_ISO];
     const session = quote.sessions.regular;
     assert.ok(session, `${quote.symbol}: non-crypto quote must carry a regular session`);
     const wasRefreshed = session!.asOfISO === regionAnchor;
-    const inheritedPrevious = session!.asOfISO === regionPrevAnchor;
+    const inheritedPrevious = allowedOlderAnchors.includes(session!.asOfISO);
     assert.ok(
       wasRefreshed || inheritedPrevious,
       `${quote.symbol}: per-row as-of (${session!.asOfISO}) must equal either its region's ` +
         `current snapshot anchor (${regionAnchor}, if refreshed) or the previous one ` +
-        `(${regionPrevAnchor}, if not) — got neither`,
+        `(${allowedOlderAnchors.join(' or ')}, if not) — got neither`,
     );
     assert.ok(
       new Date(session!.asOfISO).getTime() <= new Date(regionAnchor).getTime(),

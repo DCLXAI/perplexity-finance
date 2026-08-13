@@ -54,15 +54,15 @@ describe('generateAnswer sector comparison is region-scoped', () => {
   it("compares a Korean quote's changePct to the KR sector table, not the US one", () => {
     const text = generateAnswer('005930');
     expect(text).toContain('기술 섹터 예시 평균(+4.46%)');
-    expect(text).toContain('언더퍼폼');
+    expect(text).toContain('아웃퍼폼');
     expect(text).not.toContain('기술 섹터 예시 평균(+0.23%)');
-    expect(text).not.toContain('아웃퍼폼');
+    expect(text).not.toContain('언더퍼폼');
   });
 
   it("still compares a US quote's changePct to the US sector table (no regression from the KR fix)", () => {
     const text = generateAnswer('AAPL');
     expect(text).toContain('기술 섹터 예시 평균(+0.23%)');
-    expect(text).toContain('아웃퍼폼');
+    expect(text).toContain('언더퍼폼');
   });
 });
 

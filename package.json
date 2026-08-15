@@ -9,6 +9,7 @@
     "typecheck:strict": "tsc --noEmit --pretty --noUnusedLocals --noUnusedParameters",
     "test": "vitest run",
     "test:contracts": "tsx scripts/test-core.ts",
+    "refresh:market-data": "node scripts/refresh-static-seeds.mjs",
     "validate:data": "tsx scripts/validate-data.ts",
     "build": "tsc --noEmit && vite build",
     "check": "npm run typecheck:strict && npm run test && npm run test:contracts && npm run validate:data && npm run validate:p2 && npm run validate:p3 && npm run validate:p4 && npm run validate:p5 && npm run validate:p6 && npm run validate:p7 && npm run validate:p8 && npm run validate:p9 && npm run validate:p10 && npm run validate:p11 && npm run validate:p12 && npm run validate:migrations && npm run validate:tokens && npm run validate:esm && npm run build && npm run security:scan",

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { engine } from '@/data/engine';
+import { SECTORS_BY_REGION } from '@/data/universe';
 import { generateAnswer } from './answers.js';
 
 beforeEach(() => {
@@ -43,26 +44,31 @@ describe('generateAnswer region-aware currency formatting', () => {
  * `SECTOR_BY_ID`, which `universe.ts` builds from `US_SECTORS` alone — never region-scoped even
  * though P11 introduced `SECTORS_BY_REGION`. A Korean stock was compared to the *US* tech
  * sector's average under the identical Korean label "기술", producing a directionally inverted
- * claim: Samsung Electronics (KOSPI tech, +2.50%) actually trails KR tech's +4.46% average by
- * 1.96%p, but the buggy code read US tech's +0.23% and declared a false +2.27%p outperformance.
+ * claim: Samsung Electronics was judged against the US tech average instead of the KR tech
+ * average, which can invert the comparison direction.
  *
  * This guards the fix by breaking it the same way review found it: if `sectorFor()` ever regresses
- * back to reading the US table for a KR quote, `기술 섹터 예시 평균` would again render `(+0.23%)`
- * and "아웃퍼폼" instead of `(+4.46%)`/"언더퍼폼" for 005930 — this assertion would then fail.
+ * back to reading the US table for a KR quote, `기술 섹터 예시 평균` would again render
+ * `(+0.23%)` instead of `(+4.46%)`. Direction is derived from the daily-refreshed quote.
  */
 describe('generateAnswer sector comparison is region-scoped', () => {
   it("compares a Korean quote's changePct to the KR sector table, not the US one", () => {
     const text = generateAnswer('005930');
+    const quote = engine.quote('005930')!;
+    const sector = SECTORS_BY_REGION.KR.find((entry) => entry.id === quote.sectorId)!;
+    const direction = quote.changePct >= sector.changePct ? '아웃퍼폼' : '언더퍼폼';
     expect(text).toContain('기술 섹터 예시 평균(+4.46%)');
-    expect(text).toContain('아웃퍼폼');
+    expect(text).toContain(direction);
     expect(text).not.toContain('기술 섹터 예시 평균(+0.23%)');
-    expect(text).not.toContain('언더퍼폼');
   });
 
   it("still compares a US quote's changePct to the US sector table (no regression from the KR fix)", () => {
     const text = generateAnswer('AAPL');
+    const quote = engine.quote('AAPL')!;
+    const sector = SECTORS_BY_REGION.US.find((entry) => entry.id === quote.sectorId)!;
+    const direction = quote.changePct >= sector.changePct ? '아웃퍼폼' : '언더퍼폼';
     expect(text).toContain('기술 섹터 예시 평균(+0.23%)');
-    expect(text).toContain('언더퍼폼');
+    expect(text).toContain(direction);
   });
 });
 

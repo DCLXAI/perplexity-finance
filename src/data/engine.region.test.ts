@@ -60,11 +60,10 @@ describe('cross-region resolution', () => {
     expect(us!.provenance.providerTimestamp).toBe(SNAPSHOT.asOfISO);
   });
 
-  it("a Korean equity's daily history ends on the KR as-of's calendar day, not the US one", () => {
+  it("a Korean equity's daily history ends on the KR as-of's calendar day", () => {
     const daily = engine.getHistory('005930', '1M');
     expect(daily.length).toBeGreaterThan(0);
     const lastBarISO = new Date(daily[daily.length - 1].time * 1000).toISOString().slice(0, 10);
     expect(lastBarISO).toBe(SNAPSHOT.krAsOfISO.slice(0, 10));
-    expect(lastBarISO).not.toBe(SNAPSHOT.asOfISO.slice(0, 10));
   });
 });

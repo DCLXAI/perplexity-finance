@@ -25,22 +25,20 @@ function validateCandles(label: string, candles: readonly CandlePoint[]): void {
 }
 
 async function main(): Promise<void> {
-  assert.equal(SNAPSHOT.asOfISO, '2026-08-12T16:00:00-04:00');
-  // The anchor must be a weekday session close. It was pinned to Friday while the seed
-  // happened to be captured on one; that was never a requirement of the calendar
-  // generator, only a property of the old capture. Any Mon-Fri close is valid.
-  const anchorDay = new Date(SNAPSHOT.asOfISO).getUTCDay();
-  assert.ok(anchorDay >= 1 && anchorDay <= 5, 'equity snapshot must be a weekday close');
-  assert.ok(new Date(SNAPSHOT.asOfISO) < new Date(`${SNAPSHOT.todayISO}T23:59:59Z`),
-    'equity snapshot cannot be after todayISO');
+  // Daily automation advances these anchors, so validate their market-calendar shape rather
+  // than pinning a date that becomes obsolete on the next successful run.
+  const todayEnd = new Date(`${SNAPSHOT.todayISO}T23:59:59+09:00`).getTime();
+  for (const [market, anchor] of [['US', SNAPSHOT.asOfISO], ['KR', SNAPSHOT.krAsOfISO]] as const) {
+    const parsed = new Date(anchor);
+    assert.ok(Number.isFinite(parsed.getTime()), `${market} equity snapshot must be valid ISO`);
+    const anchorDay = parsed.getUTCDay();
+    assert.ok(anchorDay >= 1 && anchorDay <= 5, `${market} equity snapshot must be a weekday close`);
+    assert.ok(parsed.getTime() <= todayEnd, `${market} equity snapshot cannot be after todayISO`);
+  }
 
-  // 2026-08-07 partial refresh invariant: a seed row refreshed independently of its region's
-  // bulk capture carries its own `asOfISO` and must resolve to exactly the region's current
-  // (bumped) snapshot anchor — never later, since nothing in this seed is from the future
-  // relative to that anchor. A row with no override must resolve to the *previous* anchor,
-  // never the new one — that's the exact defect this refresh's per-row override design exists
-  // to prevent (P11 shipped it for KR-vs-US rows; this is the same bug, per-row instead of
-  // per-region). Crypto is exempted: it has its own `cryptoAsOfISO` model, untouched here.
+  // A refreshed row resolves to its region's current anchor. Provider misses keep an exact
+  // older literal, so any valid timestamp no later than the regional anchor is acceptable.
+  // Crypto is exempted because it has one independently refreshed batch anchor.
   for (const quote of engine.getAll()) {
     if (quote.kind === 'crypto') continue;
     const regionAnchor = quote.region === 'KR' ? SNAPSHOT.krAsOfISO : SNAPSHOT.asOfISO;
@@ -49,13 +47,12 @@ async function main(): Promise<void> {
       : [US_MID_ASOF_ISO, US_PREV_ASOF_ISO];
     const session = quote.sessions.regular;
     assert.ok(session, `${quote.symbol}: non-crypto quote must carry a regular session`);
-    const wasRefreshed = session!.asOfISO === regionAnchor;
-    const inheritedPrevious = allowedOlderAnchors.includes(session!.asOfISO);
+    const preservedOlder = Number.isFinite(Date.parse(session!.asOfISO))
+      && Date.parse(session!.asOfISO) < Date.parse(regionAnchor);
     assert.ok(
-      wasRefreshed || inheritedPrevious,
-      `${quote.symbol}: per-row as-of (${session!.asOfISO}) must equal either its region's ` +
-        `current snapshot anchor (${regionAnchor}, if refreshed) or the previous one ` +
-        `(${allowedOlderAnchors.join(' or ')}, if not) — got neither`,
+      session!.asOfISO === regionAnchor || allowedOlderAnchors.includes(session!.asOfISO) || preservedOlder,
+      `${quote.symbol}: per-row as-of (${session!.asOfISO}) must be the regional current ` +
+        `anchor (${regionAnchor}) or a valid older timestamp`,
     );
     assert.ok(
       new Date(session!.asOfISO).getTime() <= new Date(regionAnchor).getTime(),

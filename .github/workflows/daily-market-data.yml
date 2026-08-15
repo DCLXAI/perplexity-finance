@@ -1,0 +1,54 @@
+name: Daily market data refresh
+
+on:
+  schedule:
+    # 07:30 KST: safely after the US close and before the next KRX session.
+    - cron: '30 22 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-market-data-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Refresh all seeded market data
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout the default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Refresh US, KR, and crypto seed data
+        env:
+          REFRESH_MIN_COVERAGE: '0.95'
+        run: npm run refresh:market-data
+      - name: Verify refreshed data
+        run: npm run validate:data && npm run typecheck && npm run test && npm run build
+      - name: Commit changed snapshots
+        id: commit
+        shell: bash
+        run: |
+          git add src/data/universe.ts src/data/universe.kr.ts
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(data): refresh daily market snapshot $(date -u +%F)"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      - name: Push refreshed snapshots
+        if: steps.commit.outputs.changed == 'true'
+        run: git push origin HEAD:${{ github.event.repository.default_branch }}

@@ -52,3 +52,24 @@ jobs:
       - name: Push refreshed snapshots
         if: steps.commit.outputs.changed == 'true'
         run: git push origin HEAD:${{ github.event.repository.default_branch }}
+      - name: Pull Vercel production configuration
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@50.1.3 pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Build Vercel production output
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@50.1.3 build --prod --token="$VERCEL_TOKEN"
+      - name: Deploy Vercel production output
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@50.1.3 deploy --prebuilt --prod --token="$VERCEL_TOKEN"

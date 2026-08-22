@@ -83,7 +83,7 @@ type StockRow = [string, string, string, SectorId, number, number, number, strin
 
 const STOCKS: StockRow[] = [
   // ---------- 기술 ----------
-  ['NVDA', 'NVIDIA Corporation', '엔비디아', 'tech', 5300, 214.75, -0.97, US_ASOF_ISO],
+  ['NVDA', 'NVIDIA Corporation', '엔비디아', 'tech', 5300, 214.72, -0.98, US_ASOF_ISO],
   ['MSFT', 'Microsoft Corporation', '마이크로소프트', 'tech', 3710, 483.24, 0.43, US_ASOF_ISO],
   ['AAPL', 'Apple Inc.', '애플', 'tech', 4560, 309.35, -0.63, US_ASOF_ISO],
   ['AVGO', 'Broadcom Inc.', '브로드컴', 'tech', 2000, 368.45, 1.21, US_ASOF_ISO],
@@ -94,7 +94,7 @@ const STOCKS: StockRow[] = [
   // HYNX is not a verified SK hynix ADR mapping; retain the older demo row rather than
   // importing the unrelated US-listed HYNX ETF history under the wrong company identity.
   ['HYNX', 'SK Hynix Inc. (ADR)', 'SK하이닉스', 'tech', 805, 154.38, 8.17],
-  ['INTC', 'Intel Corporation', '인텔', 'tech', 503.44, 90.06, -2.25, US_ASOF_ISO],
+  ['INTC', 'Intel Corporation', '인텔', 'tech', 503.44, 90.07, -2.24, US_ASOF_ISO],
   ['IBM', 'International Business Machines', 'IBM', 'tech', 222, 235.68, 0.85, US_ASOF_ISO],
   ['CSCO', 'Cisco Systems, Inc.', '시스코', 'tech', 480, 111.04, 1.32, US_ASOF_ISO],
   ['CRM', 'Salesforce, Inc.', '세일즈포스', 'tech', 156, 209.17, 1.82, US_ASOF_ISO],
@@ -109,7 +109,7 @@ const STOCKS: StockRow[] = [
   ['APP', 'AppLovin Corporation', '앱러빈', 'tech', 141, 305.77, -0.97, US_ASOF_ISO],
   ['ANET', 'Arista Networks, Inc.', '아리스타 네트웍스', 'tech', 240, 188.65, 2.67, US_ASOF_ISO],
   ['KLAC', 'KLA Corporation', 'KLA', 'tech', 255, 183.99, -1.01, US_ASOF_ISO],
-  ['PANW', 'Palo Alto Networks, Inc.', '팔로알토 네트웍스', 'tech', 299, 358.04, 2.43, US_ASOF_ISO],
+  ['PANW', 'Palo Alto Networks, Inc.', '팔로알토 네트웍스', 'tech', 299, 357.87, 2.38, US_ASOF_ISO],
   ['MRVL', 'Marvell Technology, Inc.', '마벨 테크놀로지', 'tech', 191, 237.04, -5.57, US_ASOF_ISO],
   ['ADI', 'Analog Devices, Inc.', '아날로그 디바이시스', 'tech', 185, 373.09, 0.77, US_ASOF_ISO],
   ['DELL', 'Dell Technologies Inc.', '델', 'tech', 302, 442.08, 1.68, US_ASOF_ISO],
@@ -119,7 +119,7 @@ const STOCKS: StockRow[] = [
   ['SMCI', 'Super Micro Computer, Inc.', '슈퍼마이크로', 'tech', 20, 37.24, 2.03, US_ASOF_ISO],
   ['WDC', 'Western Digital Corporation', '웨스턴 디지털', 'tech', 189, 459.44, -2.05, US_ASOF_ISO],
   ['STX', 'Seagate Technology Holdings', '씨게이트', 'tech', 192, 850, -0.03, US_ASOF_ISO],
-  ['RXT', 'Rackspace Technology, Inc.', '랙스페이스', 'tech', 1.31, 3.3, 1.54, US_ASOF_ISO],
+  ['RXT', 'Rackspace Technology, Inc.', '랙스페이스', 'tech', 1.31, 3.32, 2.15, US_ASOF_ISO],
   ['XNDU', 'Xanadu Quantum Technologies', '자나두 퀀텀', 'tech', 3.48, 10.95, 8.31, US_ASOF_ISO],
   ['IONQ', 'IonQ, Inc.', '아이온큐', 'tech', 16, 44.86, 8.02, US_ASOF_ISO],
   ['RGTI', 'Rigetti Computing, Inc.', '리게티 컴퓨팅', 'tech', 5.8, 17.91, 11.48, US_ASOF_ISO],
@@ -136,7 +136,7 @@ const STOCKS: StockRow[] = [
   ['T', 'AT&T Inc.', 'AT&T', 'comm', 160, 25.29, 0.56, US_ASOF_ISO],
   ['VZ', 'Verizon Communications Inc.', '버라이즌', 'comm', 195, 49.45, 0.53, US_ASOF_ISO],
   ['SPOT', 'Spotify Technology S.A.', '스포티파이', 'comm', 98, 533.72, 0.11, US_ASOF_ISO],
-  ['CMCSA', 'Comcast Corporation', '컴캐스트', 'comm', 88, 26.84, 1.59, US_ASOF_ISO],
+  ['CMCSA', 'Comcast Corporation', '컴캐스트', 'comm', 88, 26.85, 1.63, US_ASOF_ISO],
   ['RBLX', 'Roblox Corporation', '로블록스', 'comm', 26, 38.37, -0.67, US_ASOF_ISO],
 
   // ---------- 경기소비재 ----------
@@ -220,7 +220,7 @@ const STOCKS: StockRow[] = [
   ['FBRX', 'Forte Biosciences, Inc.', '포르테 바이오사이언스', 'healthcare', 1.87, 76.92, 0.04, US_ASOF_ISO],
   ['QURE', 'uniQure N.V.', '유니큐어', 'healthcare', 3.03, 48.37, -1.06, US_ASOF_ISO],
   ['SRPT', 'Sarepta Therapeutics, Inc.', '사렙타', 'healthcare', 1.73, 18.79, -2.24, US_ASOF_ISO],
-  ['MRNA', 'Moderna, Inc.', '모더나', 'healthcare', 23, 145.07, 8.81, US_ASOF_ISO],
+  ['MRNA', 'Moderna, Inc.', '모더나', 'healthcare', 23, 145.13, 8.86, US_ASOF_ISO],
 
   // ---------- 에너지 ----------
   ['XOM', 'Exxon Mobil Corporation', '엑슨모빌', 'energy', 636.69, 165.11, -0.63, US_ASOF_ISO],
@@ -255,7 +255,7 @@ const STOCKS: StockRow[] = [
   ['MMM', '3M Company', '3M', 'industrials', 94, 178.96, 0.49, US_ASOF_ISO],
   ['NOC', 'Northrop Grumman Corporation', '노스럽 그러먼', 'industrials', 78, 551.03, -2.28, US_ASOF_ISO],
   ['ITW', 'Illinois Tool Works Inc.', 'ITW', 'industrials', 85, 282.29, -0.16, US_ASOF_ISO],
-  ['CSX', 'CSX Corporation', 'CSX', 'industrials', 95, 51.6, 1.23, US_ASOF_ISO],
+  ['CSX', 'CSX Corporation', 'CSX', 'industrials', 95, 51.59, 1.22, US_ASOF_ISO],
   ['EMR', 'Emerson Electric Co.', '에머슨', 'industrials', 89, 157.26, 1.64, US_ASOF_ISO],
 
   // ---------- 기초 소재 ----------
@@ -330,26 +330,26 @@ const MACRO: MacroRow[] = [
 type CryptoRow = [string, string, string, number, number, number];
 
 const CRYPTO: CryptoRow[] = [
-  ['BTCUSD', 'Bitcoin', '비트코인', 78508, 8.1, 1575.78],
-  ['ETHUSD', 'Ethereum', '이더리움', 2529.86, 8.4, 305.31],
-  ['XRPUSD', 'XRP', '리플', 1.45, 12.6, 90.84],
-  ['BNBUSD', 'BNB', '바이낸스 코인', 689.77, 4.8, 91.85],
-  ['SOLUSD', 'Solana', '솔라나', 94.34, 6.9, 55.02],
-  ['DOGEUSD', 'Dogecoin', '도지코인', 0.093838, 13.8, 14.6],
-  ['ADAUSD', 'Cardano', '카르다노', 0.23123, 14.2, 8.67],
-  ['TRXUSD', 'TRON', '트론', 0.342891, 0.4, 32.54],
-  ['AVAXUSD', 'Avalanche', '아발란체', 7.87, 7.7, 3.4],
-  ['LINKUSD', 'Chainlink', '체인링크', 12.25, 14.5, 9.16],
-  ['DOTUSD', 'Polkadot', '폴카닷', 0.937689, 10.4, 1.59],
-  ['LTCUSD', 'Litecoin', '라이트코인', 53.54, 9.6, 4.15],
-  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.00000595, 15, 3.51],
-  ['UNIUSD', 'Uniswap', '유니스왑', 4.17, 11.7, 2.6],
-  ['ATOMUSD', 'Cosmos', '코스모스', 1.6, 6.8, 0.84],
-  ['XLMUSD', 'Stellar', '스텔라', 0.200698, 9.6, 6.94],
-  ['NEARUSD', 'NEAR Protocol', '니어', 1.99, 12.8, 2.59],
-  ['APTUSD', 'Aptos', '앱토스', 0.654126, 12.6, 0.56],
-  ['ARBUSD', 'Arbitrum', '아비트럼', 0.0993, 11.2, 0.66],
-  ['ONDOUSD', 'Ondo', '온도', 0.396813, 12.5, 1.93],
+  ['BTCUSD', 'Bitcoin', '비트코인', 76984, -0.7, 1545.09],
+  ['ETHUSD', 'Ethereum', '이더리움', 2413.96, -1.3, 291.3],
+  ['XRPUSD', 'XRP', '리플', 1.47, 5.9, 92.23],
+  ['BNBUSD', 'BNB', '바이낸스 코인', 693.97, 2.5, 92.4],
+  ['SOLUSD', 'Solana', '솔라나', 93.79, 1.2, 54.69],
+  ['DOGEUSD', 'Dogecoin', '도지코인', 0.092159, 5.3, 14.34],
+  ['ADAUSD', 'Cardano', '카르다노', 0.22653, 2.3, 8.49],
+  ['TRXUSD', 'TRON', '트론', 0.344466, 1.1, 32.7],
+  ['AVAXUSD', 'Avalanche', '아발란체', 7.51, -2.3, 3.24],
+  ['LINKUSD', 'Chainlink', '체인링크', 11.59, -2.8, 8.66],
+  ['DOTUSD', 'Polkadot', '폴카닷', 0.919659, -0.1, 1.56],
+  ['LTCUSD', 'Litecoin', '라이트코인', 52.57, -0.7, 4.07],
+  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.00000545, -0.5, 3.21],
+  ['UNIUSD', 'Uniswap', '유니스왑', 4.31, 6.6, 2.69],
+  ['ATOMUSD', 'Cosmos', '코스모스', 1.58, 0.6, 0.83],
+  ['XLMUSD', 'Stellar', '스텔라', 0.196422, 0.5, 6.8],
+  ['NEARUSD', 'NEAR Protocol', '니어', 1.92, -2, 2.5],
+  ['APTUSD', 'Aptos', '앱토스', 0.634702, -1.1, 0.54],
+  ['ARBUSD', 'Arbitrum', '아비트럼', 0.099002, -0.3, 0.66],
+  ['ONDOUSD', 'Ondo', '온도', 0.368702, -5.6, 1.79],
 ];
 
 /* ---------- Brand colors for logo chips ---------- */
@@ -470,8 +470,8 @@ export const SNAPSHOT = {
   sentimentLabel: '예시 심리: 낙관',
   sentimentScore: 68, // 0-100, synthetic indicator
   asOfISO: US_ASOF_ISO,
-  cryptoAsOfISO: '2026-08-21T22:44:30.000Z',
-  cryptoAsOfLabelKo: '2026년 8월 22일 07:44 KST',
+  cryptoAsOfISO: '2026-08-22T22:42:30.000Z',
+  cryptoAsOfLabelKo: '2026년 8월 23일 07:42 KST',
   // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks refreshed in this pass
   // are all one 2026-08-07 KRX session close (see universe.kr.ts's `KR_ASOF_ISO`) — a day after
   // the US anchor above, and (per the refresh research's multi-source corroboration) the same
@@ -479,5 +479,5 @@ export const SNAPSHOT = {
   // false precision of separate KR equity vs. KR index capture times.
   krAsOfISO: KR_ASOF_ISO,
   krAsOfLabelKo: '2026년 8월 21일 15:30 KST',
-  todayISO: '2026-08-22',
+  todayISO: '2026-08-23',
 };

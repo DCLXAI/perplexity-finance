@@ -83,8 +83,8 @@ type StockRow = [string, string, string, SectorId, number, number, number, strin
 
 const STOCKS: StockRow[] = [
   // ---------- 기술 ----------
-  ['NVDA', 'NVIDIA Corporation', '엔비디아', 'tech', 5300, 218.17, -0.09, US_ASOF_ISO],
-  ['MSFT', 'Microsoft Corporation', '마이크로소프트', 'tech', 3710, 495.59, 0.64, US_ASOF_ISO],
+  ['NVDA', 'NVIDIA Corporation', '엔비디아', 'tech', 5300, 218.29, -0.03, US_ASOF_ISO],
+  ['MSFT', 'Microsoft Corporation', '마이크로소프트', 'tech', 3710, 495.63, 0.65, US_ASOF_ISO],
   ['AAPL', 'Apple Inc.', '애플', 'tech', 4560, 332.27, 1.75, US_ASOF_ISO],
   ['AVGO', 'Broadcom Inc.', '브로드컴', 'tech', 2000, 361.99, 0.32, US_ASOF_ISO],
   ['MU', 'Micron Technology, Inc.', '마이크론', 'tech', 995.53, 975.26, -0.22, US_ASOF_ISO],
@@ -104,7 +104,7 @@ const STOCKS: StockRow[] = [
   ['UBER', 'Uber Technologies, Inc.', '우버', 'tech', 147, 71.67, -1.23, US_ASOF_ISO],
   ['TXN', 'Texas Instruments Incorporated', '텍사스 인스트루먼츠', 'tech', 259, 268.7, 3.82, US_ASOF_ISO],
   ['QCOM', 'QUALCOMM Incorporated', '퀄컴', 'tech', 174, 181.97, 2.88, US_ASOF_ISO],
-  ['INTU', 'Intuit Inc.', '인튜이트', 'tech', 89, 321.68, 2.85, US_ASOF_ISO],
+  ['INTU', 'Intuit Inc.', '인튜이트', 'tech', 89, 321.57, 2.81, US_ASOF_ISO],
   ['LRCX', 'Lam Research Corporation', '램 리서치', 'tech', 398, 298.22, 0.07, US_ASOF_ISO],
   ['APP', 'AppLovin Corporation', '앱러빈', 'tech', 141, 323.96, 3.01, US_ASOF_ISO],
   ['ANET', 'Arista Networks, Inc.', '아리스타 네트웍스', 'tech', 240, 199.59, 5.61, US_ASOF_ISO],
@@ -117,9 +117,9 @@ const STOCKS: StockRow[] = [
   ['SNOW', 'Snowflake Inc.', '스노우플레이크', 'tech', 110, 328.99, -0.22, US_ASOF_ISO],
   ['FTNT', 'Fortinet, Inc.', '포티넷', 'tech', 123, 156.07, -1.75, US_ASOF_ISO],
   ['SMCI', 'Super Micro Computer, Inc.', '슈퍼마이크로', 'tech', 20, 40.1, 7.28, US_ASOF_ISO],
-  ['WDC', 'Western Digital Corporation', '웨스턴 디지털', 'tech', 189, 446.92, -3.04, US_ASOF_ISO],
+  ['WDC', 'Western Digital Corporation', '웨스턴 디지털', 'tech', 189, 447.18, -2.98, US_ASOF_ISO],
   ['STX', 'Seagate Technology Holdings', '씨게이트', 'tech', 192, 830.17, -3.73, US_ASOF_ISO],
-  ['RXT', 'Rackspace Technology, Inc.', '랙스페이스', 'tech', 1.31, 3.23, 3.04, US_ASOF_ISO],
+  ['RXT', 'Rackspace Technology, Inc.', '랙스페이스', 'tech', 1.31, 3.22, 2.88, US_ASOF_ISO],
   ['XNDU', 'Xanadu Quantum Technologies', '자나두 퀀텀', 'tech', 3.48, 8.62, -4.01, US_ASOF_ISO],
   ['IONQ', 'IonQ, Inc.', '아이온큐', 'tech', 16, 36.75, -0.24, US_ASOF_ISO],
   ['RGTI', 'Rigetti Computing, Inc.', '리게티 컴퓨팅', 'tech', 5.8, 15.27, 0.73, US_ASOF_ISO],
@@ -131,7 +131,7 @@ const STOCKS: StockRow[] = [
   ['GOOGL', 'Alphabet Inc.', '알파벳', 'comm', 4380, 338.5, 1.77, US_ASOF_ISO],
   ['META', 'Meta Platforms, Inc.', '메타 플랫폼스', 'comm', 1500, 648.03, 0.57, US_ASOF_ISO],
   ['NFLX', 'Netflix, Inc.', '넷플릭스', 'comm', 306, 77.4, 1.83, US_ASOF_ISO],
-  ['TMUS', 'T-Mobile US, Inc.', 'T모바일', 'comm', 190, 182.36, 2.94, US_ASOF_ISO],
+  ['TMUS', 'T-Mobile US, Inc.', 'T모바일', 'comm', 190, 182.33, 2.92, US_ASOF_ISO],
   ['DIS', 'The Walt Disney Company', '디즈니', 'comm', 170, 106.55, 0.69, US_ASOF_ISO],
   ['T', 'AT&T Inc.', 'AT&T', 'comm', 160, 26.06, 2, US_ASOF_ISO],
   ['VZ', 'Verizon Communications Inc.', '버라이즌', 'comm', 195, 50.61, 1.28, US_ASOF_ISO],
@@ -155,9 +155,9 @@ const STOCKS: StockRow[] = [
   ['GM', 'General Motors Company', '제너럴 모터스', 'cons-cyc', 77, 85.62, -0.58, US_ASOF_ISO],
   ['F', 'Ford Motor Company', '포드', 'cons-cyc', 57, 13.97, 0.65, US_ASOF_ISO],
   ['LCID', 'Lucid Group, Inc.', '루시드', 'cons-cyc', 3.04, 4.22, 0.96, US_ASOF_ISO],
-  ['PTON', 'Peloton Interactive, Inc.', '펠로톤', 'cons-cyc', 2.86, 4.95, 0.51, US_ASOF_ISO],
+  ['PTON', 'Peloton Interactive, Inc.', '펠로톤', 'cons-cyc', 2.86, 4.95, 0.61, US_ASOF_ISO],
   ['CHWY', 'Chewy, Inc.', '츄이', 'cons-cyc', 9.87, 20.44, -3.04, US_ASOF_ISO],
-  ['PLBL', 'Polibeli Group Ltd', '폴리벨리 그룹', 'cons-cyc', 2.21, 5.75, 1.59, US_ASOF_ISO],
+  ['PLBL', 'Polibeli Group Ltd', '폴리벨리 그룹', 'cons-cyc', 2.21, 5.67, 0.18, US_ASOF_ISO],
 
   // ---------- 필수소비재 ----------
   ['WMT', 'Walmart Inc.', '월마트', 'cons-def', 891.86, 107.15, 1.34, US_ASOF_ISO],
@@ -253,7 +253,7 @@ const STOCKS: StockRow[] = [
   ['TDG', 'TransDigm Group Incorporated', '트랜스다임', 'industrials', 71, 1140.32, 1.19, US_ASOF_ISO],
   ['GD', 'General Dynamics Corporation', '제너럴 다이내믹스', 'industrials', 104, 355.9, 0.47, US_ASOF_ISO],
   ['MMM', '3M Company', '3M', 'industrials', 94, 164.97, 1.3, US_ASOF_ISO],
-  ['NOC', 'Northrop Grumman Corporation', '노스럽 그러먼', 'industrials', 78, 514.98, -2.51, '2026-09-04T16:00:00-04:00'],
+  ['NOC', 'Northrop Grumman Corporation', '노스럽 그러먼', 'industrials', 78, 518.969970703125, 0.0038, US_ASOF_ISO],
   ['ITW', 'Illinois Tool Works Inc.', 'ITW', 'industrials', 85, 268.16, 1.12, US_ASOF_ISO],
   ['CSX', 'CSX Corporation', 'CSX', 'industrials', 95, 48.95, -0.18, US_ASOF_ISO],
   ['EMR', 'Emerson Electric Co.', '에머슨', 'industrials', 89, 152.19, 2.57, US_ASOF_ISO],
@@ -330,26 +330,26 @@ const MACRO: MacroRow[] = [
 type CryptoRow = [string, string, string, number, number, number];
 
 const CRYPTO: CryptoRow[] = [
-  ['BTCUSD', 'Bitcoin', '비트코인', 77278, 0.61563, 1551.98],
-  ['ETHUSD', 'Ethereum', '이더리움', 2516.22, 2.72823, 307.07],
-  ['XRPUSD', 'XRP', '리플', 1.36, 1.25001, 85.39],
-  ['BNBUSD', 'BNB', '바이낸스 코인', 727.61, 2.22184, 96.89],
-  ['SOLUSD', 'Solana', '솔라나', 102.32, 3.45498, 60.02],
-  ['DOGEUSD', 'Dogecoin', '도지코인', 0.084281, 1.07501, 13.14],
-  ['ADAUSD', 'Cardano', '카르다노', 0.206082, 0.0287, 7.73],
-  ['TRXUSD', 'TRON', '트론', 0.338593, -0.50449, 32.15],
-  ['AVAXUSD', 'Avalanche', '아발란체', 7.46, -0.10104, 3.3],
-  ['LINKUSD', 'Chainlink', '체인링크', 11.53, 0.36884, 8.63],
-  ['DOTUSD', 'Polkadot', '폴카닷', 1.046, -5.95397, 1.78],
-  ['LTCUSD', 'Litecoin', '라이트코인', 53.24, 1.57765, 4.13],
-  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.0000052, 2.66573, 3.06],
-  ['UNIUSD', 'Uniswap', '유니스왑', 6.02, 0.2031, 3.75],
-  ['ATOMUSD', 'Cosmos', '코스모스', 1.65, -9.16363, 0.87],
-  ['XLMUSD', 'Stellar', '스텔라', 0.178913, 1.93928, 6.23],
-  ['NEARUSD', 'NEAR Protocol', '니어', 2.36, -4.53115, 3.08],
-  ['APTUSD', 'Aptos', '앱토스', 0.602494, -7.16318, 0.52],
-  ['ARBUSD', 'Arbitrum', '아비트럼', 0.140018, -0.99878, 0.94],
-  ['ONDOUSD', 'Ondo', '온도', 0.350569, 1.49713, 1.71],
+  ['BTCUSD', 'Bitcoin', '비트코인', 77259, -0.01324, 1551.56],
+  ['ETHUSD', 'Ethereum', '이더리움', 2525.55, 0.35762, 308.15],
+  ['XRPUSD', 'XRP', '리플', 1.37, 0.70328, 85.89],
+  ['BNBUSD', 'BNB', '바이낸스 코인', 727.13, 0.01993, 96.83],
+  ['SOLUSD', 'Solana', '솔라나', 101.75, -0.73741, 59.68],
+  ['DOGEUSD', 'Dogecoin', '도지코인', 0.084791, 0.58932, 13.22],
+  ['ADAUSD', 'Cardano', '카르다노', 0.207572, 0.51479, 7.79],
+  ['TRXUSD', 'TRON', '트론', 0.339878, 0.41043, 32.27],
+  ['AVAXUSD', 'Avalanche', '아발란체', 7.39, -0.93922, 3.27],
+  ['LINKUSD', 'Chainlink', '체인링크', 11.5, -0.45563, 8.6],
+  ['DOTUSD', 'Polkadot', '폴카닷', 1.017, -2.34049, 1.73],
+  ['LTCUSD', 'Litecoin', '라이트코인', 53.65, 0.51986, 4.16],
+  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.0000053, 2.16434, 3.12],
+  ['UNIUSD', 'Uniswap', '유니스왑', 6.37, 6.0503, 3.97],
+  ['ATOMUSD', 'Cosmos', '코스모스', 1.6, -2.28202, 0.85],
+  ['XLMUSD', 'Stellar', '스텔라', 0.179935, 0.69734, 6.26],
+  ['NEARUSD', 'NEAR Protocol', '니어', 2.37, 0.26116, 3.1],
+  ['APTUSD', 'Aptos', '앱토스', 0.600629, 0.73081, 0.52],
+  ['ARBUSD', 'Arbitrum', '아비트럼', 0.140576, 0.37364, 0.94],
+  ['ONDOUSD', 'Ondo', '온도', 0.348623, -0.60731, 1.7],
 ];
 
 /* ---------- Brand colors for logo chips ---------- */
@@ -470,8 +470,8 @@ export const SNAPSHOT = {
   sentimentLabel: '예시 심리: 낙관',
   sentimentScore: 68, // 0-100, synthetic indicator
   asOfISO: US_ASOF_ISO,
-  cryptoAsOfISO: '2026-09-12T00:21:10.000Z',
-  cryptoAsOfLabelKo: '2026년 9월 12일 09:21 KST',
+  cryptoAsOfISO: '2026-09-13T00:02:00.000Z',
+  cryptoAsOfLabelKo: '2026년 9월 13일 09:02 KST',
   // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks refreshed in this pass
   // are all one 2026-08-07 KRX session close (see universe.kr.ts's `KR_ASOF_ISO`) — a day after
   // the US anchor above, and (per the refresh research's multi-source corroboration) the same
@@ -479,5 +479,5 @@ export const SNAPSHOT = {
   // false precision of separate KR equity vs. KR index capture times.
   krAsOfISO: KR_ASOF_ISO,
   krAsOfLabelKo: '2026년 9월 11일 15:30 KST',
-  todayISO: '2026-09-12',
+  todayISO: '2026-09-13',
 };

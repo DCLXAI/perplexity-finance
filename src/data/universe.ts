@@ -105,7 +105,7 @@ const STOCKS: StockRow[] = [
   ['TXN', 'Texas Instruments Incorporated', '텍사스 인스트루먼츠', 'tech', 259, 278.07, 2.74, US_ASOF_ISO],
   ['QCOM', 'QUALCOMM Incorporated', '퀄컴', 'tech', 174, 201.97, 3.97, US_ASOF_ISO],
   ['INTU', 'Intuit Inc.', '인튜이트', 'tech', 89, 275.79, -0.48, US_ASOF_ISO],
-  ['LRCX', 'Lam Research Corporation', '램 리서치', 'tech', 398, 315.17, 2.61, US_ASOF_ISO],
+  ['LRCX', 'Lam Research Corporation', '램 리서치', 'tech', 398, 315.21, 2.62, US_ASOF_ISO],
   ['APP', 'AppLovin Corporation', '앱러빈', 'tech', 141, 310.75, -0.55, US_ASOF_ISO],
   ['ANET', 'Arista Networks, Inc.', '아리스타 네트웍스', 'tech', 240, 206.55, 0.41, US_ASOF_ISO],
   ['KLAC', 'KLA Corporation', 'KLA', 'tech', 255, 187.92, 0.43, US_ASOF_ISO],
@@ -151,7 +151,7 @@ const STOCKS: StockRow[] = [
   ['SBUX', 'Starbucks Corporation', '스타벅스', 'cons-cyc', 120, 94.86, 1.29, US_ASOF_ISO],
   ['ABNB', 'Airbnb, Inc.', '에어비앤비', 'cons-cyc', 89, 157.47, 4.02, US_ASOF_ISO],
   ['CMG', 'Chipotle Mexican Grill, Inc.', '치폴레', 'cons-cyc', 43, 31.33, -2.12, US_ASOF_ISO],
-  ['MAR', 'Marriott International, Inc.', '메리어트', 'cons-cyc', 90, 351.96, 0.13, US_ASOF_ISO],
+  ['MAR', 'Marriott International, Inc.', '메리어트', 'cons-cyc', 90, 352.03, 0.15, US_ASOF_ISO],
   ['GM', 'General Motors Company', '제너럴 모터스', 'cons-cyc', 77, 82.63, 2.56, US_ASOF_ISO],
   ['F', 'Ford Motor Company', '포드', 'cons-cyc', 57, 12.71, 0.87, US_ASOF_ISO],
   ['LCID', 'Lucid Group, Inc.', '루시드', 'cons-cyc', 3.04, 4.07, -1.93, US_ASOF_ISO],
@@ -208,7 +208,7 @@ const STOCKS: StockRow[] = [
   ['ISRG', 'Intuitive Surgical, Inc.', '인튜이티브 서지컬', 'healthcare', 130, 405.18, 1.42, US_ASOF_ISO],
   ['AMGN', 'Amgen Inc.', '암젠', 'healthcare', 210, 414.61, 2.11, US_ASOF_ISO],
   ['PFE', 'Pfizer Inc.', '화이자', 'healthcare', 145, 28.67, 0.92, US_ASOF_ISO],
-  ['GILD', 'Gilead Sciences, Inc.', '길리어드', 'healthcare', 168, 150.95, 0.84, US_ASOF_ISO],
+  ['GILD', 'Gilead Sciences, Inc.', '길리어드', 'healthcare', 168, 150.93, 0.83, US_ASOF_ISO],
   ['SYK', 'Stryker Corporation', '스트라이커', 'healthcare', 129, 272.36, 0.97, US_ASOF_ISO],
   ['BSX', 'Boston Scientific Corporation', '보스턴 사이언티픽', 'healthcare', 71, 43.92, -1.7, US_ASOF_ISO],
   ['VRTX', 'Vertex Pharmaceuticals', '버텍스', 'healthcare', 121, 526.19, 0.73, US_ASOF_ISO],
@@ -234,13 +234,13 @@ const STOCKS: StockRow[] = [
   ['OXY', 'Occidental Petroleum Corp.', '옥시덴탈', 'energy', 55, 56.86, -2.05, US_ASOF_ISO],
   ['SLB', 'Schlumberger Limited', '슐럼버거', 'energy', 75, 51.54, 0.21, US_ASOF_ISO],
   ['VLO', 'Valero Energy Corporation', '발레로', 'energy', 89, 387.18, 1.13, US_ASOF_ISO],
-  ['ENPH', 'Enphase Energy, Inc.', '엔페이즈', 'energy', 5.52, 32.39, -1.31, US_ASOF_ISO],
+  ['ENPH', 'Enphase Energy, Inc.', '엔페이즈', 'energy', 5.52, 32.4, -1.28, US_ASOF_ISO],
 
   // ---------- 산업재 ----------
   ['GE', 'GE Aerospace', 'GE 에어로스페이스', 'industrials', 391, 327.09, 2.29, US_ASOF_ISO],
   ['CAT', 'Caterpillar Inc.', '캐터필러', 'industrials', 404, 821.58, 2.03, US_ASOF_ISO],
   ['RTX', 'RTX Corporation', 'RTX', 'industrials', 294, 189.4, 0.42, US_ASOF_ISO],
-  ['ETN', 'Eaton Corporation plc', '이튼', 'industrials', 173, 440, 0.28, '2026-09-24T16:00:00-04:00'],
+  ['ETN', 'Eaton Corporation plc', '이튼', 'industrials', 173, 439.9800109863281, -0.0045, US_ASOF_ISO],
   ['HON', 'Honeywell International Inc.', '하니웰', 'industrials', 79, 212.55, 0.36, US_ASOF_ISO],
   ['UNP', 'Union Pacific Corporation', '유니언 퍼시픽', 'industrials', 176, 273.79, -0.1, US_ASOF_ISO],
   ['BA', 'The Boeing Company', '보잉', 'industrials', 187, 198.07, 0.65, US_ASOF_ISO],
@@ -330,26 +330,26 @@ const MACRO: MacroRow[] = [
 type CryptoRow = [string, string, string, number, number, number];
 
 const CRYPTO: CryptoRow[] = [
-  ['BTCUSD', 'Bitcoin', '비트코인', 83790, -0.95598, 1683.39],
-  ['ETHUSD', 'Ethereum', '이더리움', 2680.75, -0.39435, 327.27],
-  ['XRPUSD', 'XRP', '리플', 1.56, 0.21723, 97.85],
-  ['BNBUSD', 'BNB', '바이낸스 코인', 774.79, -0.39736, 103.18],
-  ['SOLUSD', 'Solana', '솔라나', 121.24, 3.18979, 71.25],
-  ['DOGEUSD', 'Dogecoin', '도지코인', 0.098155, 1.92236, 15.32],
-  ['ADAUSD', 'Cardano', '카르다노', 0.256412, 2.69619, 9.62],
-  ['TRXUSD', 'TRON', '트론', 0.337606, -0.7287, 32.06],
-  ['AVAXUSD', 'Avalanche', '아발란체', 10.58, 3.32242, 4.69],
-  ['LINKUSD', 'Chainlink', '체인링크', 13.89, 4.58294, 10.39],
-  ['DOTUSD', 'Polkadot', '폴카닷', 1.21, 4.25987, 2.05],
-  ['LTCUSD', 'Litecoin', '라이트코인', 72.14, 0.98546, 5.6],
-  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.00000592, 2.10353, 3.49],
-  ['UNIUSD', 'Uniswap', '유니스왑', 9.53, 4.15329, 5.92],
-  ['ATOMUSD', 'Cosmos', '코스모스', 1.79, 0.23175, 0.95],
-  ['XLMUSD', 'Stellar', '스텔라', 0.217794, -2.00999, 7.61],
-  ['NEARUSD', 'NEAR Protocol', '니어', 4.9, 5.86182, 6.42],
-  ['APTUSD', 'Aptos', '앱토스', 0.861625, 6.594, 0.75],
-  ['ARBUSD', 'Arbitrum', '아비트럼', 0.22327, 3.04339, 1.51],
-  ['ONDOUSD', 'Ondo', '온도', 0.545456, 4.01927, 2.66],
+  ['BTCUSD', 'Bitcoin', '비트코인', 84341, 0.56283, 1694.39],
+  ['ETHUSD', 'Ethereum', '이더리움', 2694.74, 0.37841, 328.98],
+  ['XRPUSD', 'XRP', '리플', 1.52, -2.48677, 95.64],
+  ['BNBUSD', 'BNB', '바이낸스 코인', 773.09, -0.32095, 102.94],
+  ['SOLUSD', 'Solana', '솔라나', 121.04, -0.36404, 71.14],
+  ['DOGEUSD', 'Dogecoin', '도지코인', 0.096465, -1.98391, 15.06],
+  ['ADAUSD', 'Cardano', '카르다노', 0.252539, -1.78349, 9.48],
+  ['TRXUSD', 'TRON', '트론', 0.333995, -1.08629, 31.72],
+  ['AVAXUSD', 'Avalanche', '아발란체', 10.86, 2.41465, 4.81],
+  ['LINKUSD', 'Chainlink', '체인링크', 14.13, 1.30365, 10.57],
+  ['DOTUSD', 'Polkadot', '폴카닷', 1.24, 2.35023, 2.11],
+  ['LTCUSD', 'Litecoin', '라이트코인', 72.24, -0.02912, 5.61],
+  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.0000059, -0.61898, 3.47],
+  ['UNIUSD', 'Uniswap', '유니스왑', 9.7, 1.5819, 6.02],
+  ['ATOMUSD', 'Cosmos', '코스모스', 1.85, 3.30046, 0.98],
+  ['XLMUSD', 'Stellar', '스텔라', 0.215688, -1.27778, 7.54],
+  ['NEARUSD', 'NEAR Protocol', '니어', 5.1, 3.70375, 6.67],
+  ['APTUSD', 'Aptos', '앱토스', 0.8454, -2.19348, 0.74],
+  ['ARBUSD', 'Arbitrum', '아비트럼', 0.223738, -0.17726, 1.52],
+  ['ONDOUSD', 'Ondo', '온도', 0.53668, -1.55548, 2.61],
 ];
 
 /* ---------- Brand colors for logo chips ---------- */
@@ -470,8 +470,8 @@ export const SNAPSHOT = {
   sentimentLabel: '예시 심리: 낙관',
   sentimentScore: 68, // 0-100, synthetic indicator
   asOfISO: US_ASOF_ISO,
-  cryptoAsOfISO: '2026-09-26T00:39:20.000Z',
-  cryptoAsOfLabelKo: '2026년 9월 26일 09:39 KST',
+  cryptoAsOfISO: '2026-09-27T00:40:20.000Z',
+  cryptoAsOfLabelKo: '2026년 9월 27일 09:40 KST',
   // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks refreshed in this pass
   // are all one 2026-08-07 KRX session close (see universe.kr.ts's `KR_ASOF_ISO`) — a day after
   // the US anchor above, and (per the refresh research's multi-source corroboration) the same
@@ -479,5 +479,5 @@ export const SNAPSHOT = {
   // false precision of separate KR equity vs. KR index capture times.
   krAsOfISO: KR_ASOF_ISO,
   krAsOfLabelKo: '2026년 9월 23일 15:30 KST',
-  todayISO: '2026-09-26',
+  todayISO: '2026-09-27',
 };

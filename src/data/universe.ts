@@ -133,7 +133,7 @@ const STOCKS: StockRow[] = [
   ['NFLX', 'Netflix, Inc.', '넷플릭스', 'comm', 306, 67.06, -1.16, US_ASOF_ISO],
   ['TMUS', 'T-Mobile US, Inc.', 'T모바일', 'comm', 190, 163.64, 1.18, US_ASOF_ISO],
   ['DIS', 'The Walt Disney Company', '디즈니', 'comm', 170, 102.19, 0.85, US_ASOF_ISO],
-  ['T', 'AT&T Inc.', 'AT&T', 'comm', 160, 25.38, -0.28, '2026-09-25T16:00:00-04:00'],
+  ['T', 'AT&T Inc.', 'AT&T', 'comm', 160, 24.299999237060547, 0, US_ASOF_ISO],
   ['VZ', 'Verizon Communications Inc.', '버라이즌', 'comm', 195, 45.92, -0.13, US_ASOF_ISO],
   ['SPOT', 'Spotify Technology S.A.', '스포티파이', 'comm', 98, 472.89, -3.77, US_ASOF_ISO],
   ['CMCSA', 'Comcast Corporation', '컴캐스트', 'comm', 88, 21.57, -0.6, US_ASOF_ISO],
@@ -160,7 +160,7 @@ const STOCKS: StockRow[] = [
   ['PLBL', 'Polibeli Group Ltd', '폴리벨리 그룹', 'cons-cyc', 2.21, 5.65, 2.91, US_ASOF_ISO],
 
   // ---------- 필수소비재 ----------
-  ['WMT', 'Walmart Inc.', '월마트', 'cons-def', 891.86, 107.98, 0.36, '2026-09-25T16:00:00-04:00'],
+  ['WMT', 'Walmart Inc.', '월마트', 'cons-def', 891.86, 104.26000213623047, 0, US_ASOF_ISO],
   ['COST', 'Costco Wholesale Corporation', '코스트코', 'cons-def', 420.93, 920.65, 0.62, US_ASOF_ISO],
   ['PG', 'The Procter & Gamble Company', 'P&G', 'cons-def', 345, 144.91, 0.67, US_ASOF_ISO],
   ['KO', 'The Coca-Cola Company', '코카콜라', 'cons-def', 372, 85.65, -0.52, US_ASOF_ISO],
@@ -330,26 +330,26 @@ const MACRO: MacroRow[] = [
 type CryptoRow = [string, string, string, number, number, number];
 
 const CRYPTO: CryptoRow[] = [
-  ['BTCUSD', 'Bitcoin', '비트코인', 84660, 0.01316, 1701.11],
-  ['ETHUSD', 'Ethereum', '이더리움', 2679.26, -0.88364, 327.13],
-  ['XRPUSD', 'XRP', '리플', 1.49, -0.03442, 94.03],
-  ['BNBUSD', 'BNB', '바이낸스 코인', 768.83, -0.16042, 102.38],
-  ['SOLUSD', 'Solana', '솔라나', 119.2, 0.37444, 70.11],
-  ['DOGEUSD', 'Dogecoin', '도지코인', 0.093329, -0.46624, 14.58],
-  ['ADAUSD', 'Cardano', '카르다노', 0.247206, 0.86481, 9.28],
-  ['TRXUSD', 'TRON', '트론', 0.33477, 0.14823, 31.79],
-  ['AVAXUSD', 'Avalanche', '아발란체', 10.93, 0.19031, 4.85],
-  ['LINKUSD', 'Chainlink', '체인링크', 13.91, -2.07771, 10.41],
-  ['DOTUSD', 'Polkadot', '폴카닷', 1.17, -0.37322, 1.99],
-  ['LTCUSD', 'Litecoin', '라이트코인', 70.83, 2.89157, 5.5],
-  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.00000573, -0.63572, 3.37],
-  ['UNIUSD', 'Uniswap', '유니스왑', 9.06, 1.48071, 5.66],
-  ['ATOMUSD', 'Cosmos', '코스모스', 1.67, -1.91214, 0.89],
-  ['XLMUSD', 'Stellar', '스텔라', 0.215868, -0.7645, 7.57],
-  ['NEARUSD', 'NEAR Protocol', '니어', 4.71, -2.21624, 6.17],
-  ['APTUSD', 'Aptos', '앱토스', 0.801756, 3.11577, 0.7],
-  ['ARBUSD', 'Arbitrum', '아비트럼', 0.197129, -1.21698, 1.34],
-  ['ONDOUSD', 'Ondo', '온도', 0.496206, 1.08025, 2.42],
+  ['BTCUSD', 'Bitcoin', '비트코인', 84763, 0.16171, 1703.15],
+  ['ETHUSD', 'Ethereum', '이더리움', 2691.78, 0.40917, 328.67],
+  ['XRPUSD', 'XRP', '리플', 1.49, -0.21332, 93.92],
+  ['BNBUSD', 'BNB', '바이낸스 코인', 783.23, 1.76863, 104.28],
+  ['SOLUSD', 'Solana', '솔라나', 119.99, 0.54517, 70.58],
+  ['DOGEUSD', 'Dogecoin', '도지코인', 0.092749, -0.59596, 14.48],
+  ['ADAUSD', 'Cardano', '카르다노', 0.243682, -1.63622, 9.15],
+  ['TRXUSD', 'TRON', '트론', 0.335745, 0.25503, 31.89],
+  ['AVAXUSD', 'Avalanche', '아발란체', 11.07, 1.54284, 4.91],
+  ['LINKUSD', 'Chainlink', '체인링크', 14.09, 1.10693, 10.54],
+  ['DOTUSD', 'Polkadot', '폴카닷', 1.18, 0.98771, 2.01],
+  ['LTCUSD', 'Litecoin', '라이트코인', 69.98, -0.85688, 5.44],
+  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.00000571, -0.29318, 3.36],
+  ['UNIUSD', 'Uniswap', '유니스왑', 9.05, -0.85337, 5.66],
+  ['ATOMUSD', 'Cosmos', '코스모스', 1.71, 2.28781, 0.91],
+  ['XLMUSD', 'Stellar', '스텔라', 0.215819, -0.21448, 7.57],
+  ['NEARUSD', 'NEAR Protocol', '니어', 4.85, 3.13376, 6.35],
+  ['APTUSD', 'Aptos', '앱토스', 0.797801, -0.85528, 0.69],
+  ['ARBUSD', 'Arbitrum', '아비트럼', 0.2016, 1.98998, 1.37],
+  ['ONDOUSD', 'Ondo', '온도', 0.500008, 1.24757, 2.43],
 ];
 
 /* ---------- Brand colors for logo chips ---------- */
@@ -470,8 +470,8 @@ export const SNAPSHOT = {
   sentimentLabel: '예시 심리: 낙관',
   sentimentScore: 68, // 0-100, synthetic indicator
   asOfISO: US_ASOF_ISO,
-  cryptoAsOfISO: '2026-10-03T01:13:20.000Z',
-  cryptoAsOfLabelKo: '2026년 10월 3일 10:13 KST',
+  cryptoAsOfISO: '2026-10-04T01:41:30.000Z',
+  cryptoAsOfLabelKo: '2026년 10월 4일 10:41 KST',
   // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks refreshed in this pass
   // are all one 2026-08-07 KRX session close (see universe.kr.ts's `KR_ASOF_ISO`) — a day after
   // the US anchor above, and (per the refresh research's multi-source corroboration) the same
@@ -479,5 +479,5 @@ export const SNAPSHOT = {
   // false precision of separate KR equity vs. KR index capture times.
   krAsOfISO: KR_ASOF_ISO,
   krAsOfLabelKo: '2026년 10월 2일 15:30 KST',
-  todayISO: '2026-10-03',
+  todayISO: '2026-10-04',
 };

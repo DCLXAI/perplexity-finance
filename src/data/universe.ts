@@ -330,26 +330,26 @@ const MACRO: MacroRow[] = [
 type CryptoRow = [string, string, string, number, number, number];
 
 const CRYPTO: CryptoRow[] = [
-  ['BTCUSD', 'Bitcoin', '비트코인', 84763, 0.16171, 1703.15],
-  ['ETHUSD', 'Ethereum', '이더리움', 2691.78, 0.40917, 328.67],
-  ['XRPUSD', 'XRP', '리플', 1.49, -0.21332, 93.92],
-  ['BNBUSD', 'BNB', '바이낸스 코인', 783.23, 1.76863, 104.28],
-  ['SOLUSD', 'Solana', '솔라나', 119.99, 0.54517, 70.58],
-  ['DOGEUSD', 'Dogecoin', '도지코인', 0.092749, -0.59596, 14.48],
-  ['ADAUSD', 'Cardano', '카르다노', 0.243682, -1.63622, 9.15],
-  ['TRXUSD', 'TRON', '트론', 0.335745, 0.25503, 31.89],
-  ['AVAXUSD', 'Avalanche', '아발란체', 11.07, 1.54284, 4.91],
-  ['LINKUSD', 'Chainlink', '체인링크', 14.09, 1.10693, 10.54],
-  ['DOTUSD', 'Polkadot', '폴카닷', 1.18, 0.98771, 2.01],
-  ['LTCUSD', 'Litecoin', '라이트코인', 69.98, -0.85688, 5.44],
-  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.00000571, -0.29318, 3.36],
-  ['UNIUSD', 'Uniswap', '유니스왑', 9.05, -0.85337, 5.66],
-  ['ATOMUSD', 'Cosmos', '코스모스', 1.71, 2.28781, 0.91],
-  ['XLMUSD', 'Stellar', '스텔라', 0.215819, -0.21448, 7.57],
-  ['NEARUSD', 'NEAR Protocol', '니어', 4.85, 3.13376, 6.35],
-  ['APTUSD', 'Aptos', '앱토스', 0.797801, -0.85528, 0.69],
-  ['ARBUSD', 'Arbitrum', '아비트럼', 0.2016, 1.98998, 1.37],
-  ['ONDOUSD', 'Ondo', '온도', 0.500008, 1.24757, 2.43],
+  ['BTCUSD', 'Bitcoin', '비트코인', 86525, 2.11913, 1738.58],
+  ['ETHUSD', 'Ethereum', '이더리움', 2725.68, 1.30536, 332.82],
+  ['XRPUSD', 'XRP', '리플', 1.52, 2.31952, 96.01],
+  ['BNBUSD', 'BNB', '바이낸스 코인', 795.63, 1.38575, 105.95],
+  ['SOLUSD', 'Solana', '솔라나', 121.15, 0.81595, 71.28],
+  ['DOGEUSD', 'Dogecoin', '도지코인', 0.096301, 3.68709, 15.04],
+  ['ADAUSD', 'Cardano', '카르다노', 0.263397, 8.28745, 9.89],
+  ['TRXUSD', 'TRON', '트론', 0.335812, 0.07564, 31.9],
+  ['AVAXUSD', 'Avalanche', '아발란체', 10.99, -0.81182, 4.87],
+  ['LINKUSD', 'Chainlink', '체인링크', 14.22, 0.76932, 10.64],
+  ['DOTUSD', 'Polkadot', '폴카닷', 1.21, 1.84444, 2.06],
+  ['LTCUSD', 'Litecoin', '라이트코인', 70.65, 0.17684, 5.49],
+  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.00000595, 4.02285, 3.51],
+  ['UNIUSD', 'Uniswap', '유니스왑', 9.12, 0.64653, 5.7],
+  ['ATOMUSD', 'Cosmos', '코스모스', 1.75, 2.2566, 0.94],
+  ['XLMUSD', 'Stellar', '스텔라', 0.224001, 3.73899, 7.85],
+  ['NEARUSD', 'NEAR Protocol', '니어', 4.9, 1.21604, 6.41],
+  ['APTUSD', 'Aptos', '앱토스', 0.807731, 1.46353, 0.7],
+  ['ARBUSD', 'Arbitrum', '아비트럼', 0.204394, 0.91617, 1.39],
+  ['ONDOUSD', 'Ondo', '온도', 0.499476, 0.11696, 2.43],
 ];
 
 /* ---------- Brand colors for logo chips ---------- */
@@ -470,8 +470,8 @@ export const SNAPSHOT = {
   sentimentLabel: '예시 심리: 낙관',
   sentimentScore: 68, // 0-100, synthetic indicator
   asOfISO: US_ASOF_ISO,
-  cryptoAsOfISO: '2026-10-04T01:41:30.000Z',
-  cryptoAsOfLabelKo: '2026년 10월 4일 10:41 KST',
+  cryptoAsOfISO: '2026-10-05T01:01:30.000Z',
+  cryptoAsOfLabelKo: '2026년 10월 5일 10:01 KST',
   // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks refreshed in this pass
   // are all one 2026-08-07 KRX session close (see universe.kr.ts's `KR_ASOF_ISO`) — a day after
   // the US anchor above, and (per the refresh research's multi-source corroboration) the same
@@ -479,5 +479,5 @@ export const SNAPSHOT = {
   // false precision of separate KR equity vs. KR index capture times.
   krAsOfISO: KR_ASOF_ISO,
   krAsOfLabelKo: '2026년 10월 2일 15:30 KST',
-  todayISO: '2026-10-04',
+  todayISO: '2026-10-05',
 };

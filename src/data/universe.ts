@@ -84,7 +84,7 @@ type StockRow = [string, string, string, SectorId, number, number, number, strin
 const STOCKS: StockRow[] = [
   // ---------- 기술 ----------
   ['NVDA', 'NVIDIA Corporation', '엔비디아', 'tech', 5300, 125.53, -14.01, US_ASOF_ISO],
-  ['MSFT', 'Microsoft Corporation', '마이크로소프트', 'tech', 3710, 484.97, -2.68, US_ASOF_ISO],
+  ['MSFT', 'Microsoft Corporation', '마이크로소프트', 'tech', 3710, 484.52, -2.77, US_ASOF_ISO],
   ['AAPL', 'Apple Inc.', '애플', 'tech', 4560, 342.56, -1.9, US_ASOF_ISO],
   ['AVGO', 'Broadcom Inc.', '브로드컴', 'tech', 2000, 304.41, -12.19, US_ASOF_ISO],
   ['MU', 'Micron Technology, Inc.', '마이크론', 'tech', 995.53, 594.51, -13.89, US_ASOF_ISO],
@@ -101,9 +101,9 @@ const STOCKS: StockRow[] = [
   ['AMAT', 'Applied Materials, Inc.', '어플라이드 머티어리얼즈', 'tech', 434, 302.63, -10.71, US_ASOF_ISO],
   ['NOW', 'ServiceNow, Inc.', '서비스나우', 'tech', 122, 87.61, -1.42, US_ASOF_ISO],
   ['ADBE', 'Adobe Inc.', '어도비', 'tech', 102, 217.71, -1.79, US_ASOF_ISO],
-  ['UBER', 'Uber Technologies, Inc.', '우버', 'tech', 147, 63.48, -3.24, US_ASOF_ISO],
-  ['TXN', 'Texas Instruments Incorporated', '텍사스 인스트루먼츠', 'tech', 259, 264.13, -7.57, US_ASOF_ISO],
-  ['QCOM', 'QUALCOMM Incorporated', '퀄컴', 'tech', 174, 150.16, -7.31, US_ASOF_ISO],
+  ['UBER', 'Uber Technologies, Inc.', '우버', 'tech', 147, 63.47, -3.25, US_ASOF_ISO],
+  ['TXN', 'Texas Instruments Incorporated', '텍사스 인스트루먼츠', 'tech', 259, 263.75, -7.7, US_ASOF_ISO],
+  ['QCOM', 'QUALCOMM Incorporated', '퀄컴', 'tech', 174, 149.94, -7.45, US_ASOF_ISO],
   ['INTU', 'Intuit Inc.', '인튜이트', 'tech', 89, 270.44, -12.77, US_ASOF_ISO],
   ['LRCX', 'Lam Research Corporation', '램 리서치', 'tech', 398, 183.27, -10.02, US_ASOF_ISO],
   ['APP', 'AppLovin Corporation', '앱러빈', 'tech', 141, 348.29, -8.11, US_ASOF_ISO],
@@ -170,7 +170,7 @@ const STOCKS: StockRow[] = [
   ['MDLZ', 'Mondelez International, Inc.', '몬델리즈', 'cons-def', 79, 66.28, 0.9, US_ASOF_ISO],
   ['CL', 'Colgate-Palmolive Company', '콜게이트', 'cons-def', 74, 98.71, 1.89, US_ASOF_ISO],
   ['TGT', 'Target Corporation', '타겟', 'cons-def', 67, 165.83, -0.97, US_ASOF_ISO],
-  ['KMB', 'Kimberly-Clark Corporation', '킴벌리클라크', 'cons-def', 37, 106.43, 1.12, US_ASOF_ISO],
+  ['KMB', 'Kimberly-Clark Corporation', '킴벌리클라크', 'cons-def', 37, 106.38, 1.07, US_ASOF_ISO],
 
   // ---------- 금융 서비스 ----------
   ['BRK-B', 'Berkshire Hathaway Inc.', '버크셔 해서웨이', 'fin', 1130, 570, -0.36, US_ASOF_ISO],
@@ -241,7 +241,7 @@ const STOCKS: StockRow[] = [
   ['CAT', 'Caterpillar Inc.', '캐터필러', 'industrials', 404, 510.45, -5.01, US_ASOF_ISO],
   ['RTX', 'RTX Corporation', 'RTX', 'industrials', 294, 190.17, -1.32, US_ASOF_ISO],
   ['ETN', 'Eaton Corporation plc', '이튼', 'industrials', 173, 311.33, -5.82, US_ASOF_ISO],
-  ['HON', 'Honeywell International Inc.', '하니웰', 'industrials', 79, 212.84, -2.3, US_ASOF_ISO],
+  ['HON', 'Honeywell International Inc.', '하니웰', 'industrials', 79, 212.64, -2.39, US_ASOF_ISO],
   ['UNP', 'Union Pacific Corporation', '유니언 퍼시픽', 'industrials', 176, 287.29, -1.15, US_ASOF_ISO],
   ['BA', 'The Boeing Company', '보잉', 'industrials', 187, 155.89, -2.88, US_ASOF_ISO],
   ['DE', 'Deere & Company', '디어', 'industrials', 167, 609.25, -2.5, US_ASOF_ISO],
@@ -266,7 +266,7 @@ const STOCKS: StockRow[] = [
   ['APD', 'Air Products and Chemicals', '에어프로덕츠', 'materials', 66, 297.09, -2.22, US_ASOF_ISO],
   ['NEM', 'Newmont Corporation', '뉴몬트', 'materials', 103, 94.68, -5.37, US_ASOF_ISO],
   ['NUE', 'Nucor Corporation', '뉴코어', 'materials', 62, 239.62, -3.16, US_ASOF_ISO],
-  ['DOW', 'Dow Inc.', '다우', 'materials', 22, 29.04, -4.02, US_ASOF_ISO],
+  ['DOW', 'Dow Inc.', '다우', 'materials', 22, 29.03, -4.03, US_ASOF_ISO],
   ['AA', 'Alcoa Corporation', '알코아', 'materials', 12, 33.42, -5.22, US_ASOF_ISO],
 
   // ---------- 유틸리티 ----------
@@ -330,26 +330,26 @@ const MACRO: MacroRow[] = [
 type CryptoRow = [string, string, string, number, number, number];
 
 const CRYPTO: CryptoRow[] = [
-  ['BTCUSD', 'Bitcoin', '비트코인', 58326, -6.05201, 1173.23],
-  ['ETHUSD', 'Ethereum', '이더리움', 1610.11, -7.70883, 196.82],
-  ['XRPUSD', 'XRP', '리플', 0.896299, -6.51792, 56.93],
-  ['BNBUSD', 'BNB', '바이낸스 코인', 531.88, -7.51311, 69.95],
-  ['SOLUSD', 'Solana', '솔라나', 68.08, -6.50866, 40.29],
-  ['DOGEUSD', 'Dogecoin', '도지코인', 0.05382, -6.40354, 8.44],
-  ['ADAUSD', 'Cardano', '카르다노', 0.140993, -5.7591, 5.3],
-  ['TRXUSD', 'TRON', '트론', 0.301465, -2.63937, 28.65],
-  ['AVAXUSD', 'Avalanche', '아발란체', 6.4, -7.61664, 2.86],
-  ['LINKUSD', 'Chainlink', '체인링크', 8.44, -5.328, 6.47],
-  ['DOTUSD', 'Polkadot', '폴카닷', 0.656935, -6.59245, 1.13],
-  ['LTCUSD', 'Litecoin', '라이트코인', 39.97, -4.92209, 3.11],
-  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.00000354, -5.45971, 2.09],
-  ['UNIUSD', 'Uniswap', '유니스왑', 4.43, -8.98629, 2.69],
-  ['ATOMUSD', 'Cosmos', '코스모스', 1.2, -4.40476, 0.65],
-  ['XLMUSD', 'Stellar', '스텔라', 0.125594, -5.34847, 4.45],
-  ['NEARUSD', 'NEAR Protocol', '니어', 2.74, -10.5961, 3.59],
-  ['APTUSD', 'Aptos', '앱토스', 0.361506, -10.35154, 0.32],
-  ['ARBUSD', 'Arbitrum', '아비트럼', 0.111683, -5.61606, 0.78],
-  ['ONDOUSD', 'Ondo', '온도', 0.273292, -6.51274, 1.33],
+  ['BTCUSD', 'Bitcoin', '비트코인', 59764, 1.55714, 1202.1],
+  ['ETHUSD', 'Ethereum', '이더리움', 1677.13, 3.48866, 205.02],
+  ['XRPUSD', 'XRP', '리플', 0.92763, 1.90331, 58.92],
+  ['BNBUSD', 'BNB', '바이낸스 코인', 545.75, 1.53491, 71.76],
+  ['SOLUSD', 'Solana', '솔라나', 70.03, 1.92462, 41.46],
+  ['DOGEUSD', 'Dogecoin', '도지코인', 0.05489, 0.57554, 8.61],
+  ['ADAUSD', 'Cardano', '카르다노', 0.143268, -0.0491, 5.38],
+  ['TRXUSD', 'TRON', '트론', 0.304954, 1.12786, 28.99],
+  ['AVAXUSD', 'Avalanche', '아발란체', 6.55, 1.01789, 2.93],
+  ['LINKUSD', 'Chainlink', '체인링크', 8.55, 0.14984, 6.55],
+  ['DOTUSD', 'Polkadot', '폴카닷', 0.650084, -2.47498, 1.11],
+  ['LTCUSD', 'Litecoin', '라이트코인', 39.65, -2.1591, 3.09],
+  ['SHIBUSD', 'Shiba Inu', '시바이누', 0.00000363, 1.28628, 2.14],
+  ['UNIUSD', 'Uniswap', '유니스왑', 4.7, 5.1295, 2.86],
+  ['ATOMUSD', 'Cosmos', '코스모스', 1.16, -4.88116, 0.63],
+  ['XLMUSD', 'Stellar', '스텔라', 0.128047, 0.57198, 4.54],
+  ['NEARUSD', 'NEAR Protocol', '니어', 2.89, 4.09761, 3.79],
+  ['APTUSD', 'Aptos', '앱토스', 0.369426, 1.43083, 0.33],
+  ['ARBUSD', 'Arbitrum', '아비트럼', 0.112697, -0.10896, 0.79],
+  ['ONDOUSD', 'Ondo', '온도', 0.281093, 1.12131, 1.37],
 ];
 
 /* ---------- Brand colors for logo chips ---------- */
@@ -470,8 +470,8 @@ export const SNAPSHOT = {
   sentimentLabel: '예시 심리: 낙관',
   sentimentScore: 68, // 0-100, synthetic indicator
   asOfISO: US_ASOF_ISO,
-  cryptoAsOfISO: '2026-11-21T03:16:52.000Z',
-  cryptoAsOfLabelKo: '2026년 11월 21일 12:16 KST',
+  cryptoAsOfISO: '2026-11-22T02:22:55.000Z',
+  cryptoAsOfLabelKo: '2026년 11월 22일 11:22 KST',
   // KR equities and the KOSPI/KOSDAQ/KOSPI200/USD-KRW/VKOSPI benchmarks refreshed in this pass
   // are all one 2026-08-07 KRX session close (see universe.kr.ts's `KR_ASOF_ISO`) — a day after
   // the US anchor above, and (per the refresh research's multi-source corroboration) the same
@@ -479,5 +479,5 @@ export const SNAPSHOT = {
   // false precision of separate KR equity vs. KR index capture times.
   krAsOfISO: KR_ASOF_ISO,
   krAsOfLabelKo: '2026년 11월 20일 15:30 KST',
-  todayISO: '2026-11-21',
+  todayISO: '2026-11-22',
 };
